@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Fast Math Game - Videojuego educativo para aprender y practicar las tablas de multiplicar hasta 15x15">
+    <title>Fast Math Game - Entrena tu Mente</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    
+    <!-- PapaParse -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- ===== VISTA DE CONFIGURACIÓN (INICIO) ===== -->
+    <section id="config-view" class="view active">
+        <div class="config-container">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <span class="logo-symbol">×</span>
+                </div>
+                <h1 class="logo-title">Fast Math Game</h1>
+                <p class="logo-subtitle">Domina las tablas de multiplicar</p>
+            </div>
+
+            <form id="config-form" class="config-form">
+                <div class="form-group">
+                    <label for="nickname">Tu Nickname</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="Ingresa tu nombre" required maxlength="20">
+                </div>
+
+                <div class="form-group">
+                    <label>Modo de Juego</label>
+                    <div class="mode-selector">
+                        <input type="radio" id="mode-timer" name="game-mode" value="TIMER" checked>
+                        <label for="mode-timer" class="mode-option">
+                            <span class="mode-icon">⏱️</span>
+                            <span class="mode-name">Contrarreloj</span>
+                            <span class="mode-desc">Tiempo límite</span>
+                        </label>
+
+                        <input type="radio" id="mode-free" name="game-mode" value="FREE">
+                        <label for="mode-free" class="mode-option">
+                            <span class="mode-icon">🎯</span>
+                            <span class="mode-name">Práctica Libre</span>
+                            <span class="mode-desc">Sin límite</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group timer-config" id="timer-config">
+                    <label for="time-limit">Tiempo Límite (minutos)</label>
+                    <div class="time-slider-container">
+                        <input type="range" id="time-limit" name="time-limit" min="1" max="15" value="5">
+                        <span class="time-display" id="time-display">5 min</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Cargar Historial (opcional)</label>
+                    <div class="file-drop-zone" id="file-drop-zone">
+                        <input type="file" id="csv-upload" accept=".csv" hidden>
+                        <div class="drop-content">
+                            <span class="drop-icon">📁</span>
+                            <span class="drop-text">Arrastra tu archivo CSV aquí</span>
+                            <span class="drop-subtext">o haz clic para seleccionar</span>
+                        </div>
+                        <div class="file-loaded" id="file-loaded" hidden>
+                            <span class="file-icon">✅</span>
+                            <span class="file-name" id="loaded-file-name"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-start">
+                    <span>COMENZAR</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </form>
+        </div>
+        <div class="config-decoration"></div>
+    </section>
+
+    <!-- ===== VISTA DE JUEGO (GAMEPLAY) ===== -->
+    <section id="game-view" class="view">
+        <div class="game-container">
+            <!-- Panel Izquierdo: Matriz -->
+            <div class="matrix-panel">
+                <div class="matrix-header">
+                    <span class="matrix-title">Tabla de Multiplicar</span>
+                    <span class="matrix-progress" id="matrix-progress">0 / 225</span>
+                </div>
+                <div class="matrix-grid" id="matrix-grid">
+                    <!-- Grid generado por JS -->
+                </div>
+            </div>
+
+            <!-- Panel Derecho: Controles -->
+            <div class="controls-panel">
+                <div class="timer-display" id="timer-display">
+                    <span class="timer-label" id="timer-label">Tiempo</span>
+                    <span class="timer-value" id="timer-value">05:00</span>
+                </div>
+
+                <div class="operation-display">
+                    <div class="operation-card" id="operation-card">
+                        <span class="factor" id="factor-a">?</span>
+                        <span class="operator">×</span>
+                        <span class="factor" id="factor-b">?</span>
+                        <span class="equals">=</span>
+                    </div>
+                    <input type="number" id="answer-input" class="answer-input" placeholder="?" min="1" max="225" autofocus>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-card stat-correct">
+                        <span class="stat-icon">✓</span>
+                        <span class="stat-value" id="stat-correct">0</span>
+                        <span class="stat-label">Aciertos</span>
+                    </div>
+                    <div class="stat-card stat-wrong">
+                        <span class="stat-icon">✗</span>
+                        <span class="stat-value" id="stat-wrong">0</span>
+                        <span class="stat-label">Errores</span>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-end" id="btn-end-session">
+                    Terminar Sesión
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== VISTA DE ANALÍTICAS (DASHBOARD) ===== -->
+    <section id="dashboard-view" class="view">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h2 class="dashboard-title">📊 Analíticas de Sesión</h2>
+                <div class="dashboard-actions">
+                    <button type="button" class="btn-secondary" id="btn-new-game">
+                        Nueva Partida
+                    </button>
+                </div>
+            </div>
+
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <span class="summary-icon">🎯</span>
+                    <span class="summary-value" id="summary-total">0</span>
+                    <span class="summary-label">Operaciones</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-icon">✅</span>
+                    <span class="summary-value" id="summary-correct">0</span>
+                    <span class="summary-label">Correctas</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-icon">⚡</span>
+                    <span class="summary-value" id="summary-avg-time">0ms</span>
+                    <span class="summary-label">Tiempo Promedio</span>
+                </div>
+                <div class="summary-card">
+                    <span class="summary-icon">📈</span>
+                    <span class="summary-value" id="summary-accuracy">0%</span>
+                    <span class="summary-label">Precisión</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3 class="chart-title">Distribución de Rendimiento</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-pie"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Errores por Tabla</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-bar-tables"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Top 5 Operaciones Difíciles</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-bar-top"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3 class="chart-title">Velocidad de Respuesta</h3>
+                    <div class="chart-container">
+                        <canvas id="chart-histogram"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/grid.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
