@@ -95,8 +95,9 @@ const DataManager = {
 
     /**
      * Genera y descarga el archivo CSV con todo el historial
+     * Usa File System Access API (moderna y segura) con fallback
      */
-    downloadCSV() {
+    async downloadCSV() {
         const csv = Papa.unparse(this.history, {
             header: true,
             columns: [
@@ -108,21 +109,42 @@ const DataManager = {
 
         // Crear nombre del archivo con fecha y hora
         const now = new Date();
-        const datetime = now.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const datetime = `${year}${month}${day}_${hours}${minutes}${seconds}`;
         const filename = `FastMathGame_${this.nickname}_${datetime}.csv`;
 
-        // Crear blob y descargar
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
+        // Contenido con BOM para UTF-8
+        const BOM = '\uFEFF';
+        const content = BOM + csv;
 
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.style.display = 'none';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        // Intentar usar File System Access API (moderna y segura)
+        if ('showSaveFilePicker' in window) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: 'Archivo CSV',
+                        accept: { 'text/csv': ['.csv'] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(content);
+                await writable.close();
+                return;
+            } catch (err) {
+                // Usuario canceló o error - continuar con fallback
+                if (err.name === 'AbortError') return;
+            }
+        }
+
+        // Fallback: descargar usando Blob y FileSaver
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8' });
+        saveAs(blob, filename);
     },
 
     /**

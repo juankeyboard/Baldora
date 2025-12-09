@@ -48,7 +48,7 @@ La sesión finaliza cuando ocurre uno de los siguientes eventos:
 **Acción al Finalizar:**
 *   Se detiene el registro de tiempo.
 *   Se muestra el panel de Analíticas (Dashboard).
-*   Se compila el registro histórico y se descarga automáticamente el archivo .csv actualizado.
+*   El usuario puede descargar manualmente el archivo .csv con el botón "Descargar CSV".
 
 ## 5. Arquitectura de Visualización y UI
 
@@ -78,7 +78,10 @@ Utilizando librerías de gráficos (ej: Chart.js), se mostrarán cuatro visualiz
 
 El archivo .csv es la base de datos portátil del usuario. Cada fila representa un intento individual de una operación.
 
-**Formato del Archivo:** `FastMath_[Nickname]_[Fecha].csv`
+**Formato del Archivo:** `FastMathGame_[Nickname]_[YYYYMMDD]_[HHMMSS].csv`
+
+**Método de Descarga:**
+El sistema utiliza la **File System Access API** (estándar moderno y seguro) que abre un diálogo nativo de "Guardar como..." permitiendo al usuario elegir la ubicación del archivo. Incluye fallback con FileSaver.js para navegadores sin soporte.
 
 **Campos (Columnas):**
 
@@ -114,6 +117,7 @@ FastMathGame/
 ### 7.2. Dependencias Externas (CDN)
 *   **Chart.js:** Para la renderización de las gráficas estadísticas.
 *   **PapaParse:** Para el procesamiento robusto de lectura/escritura de archivos CSV.
+*   **FileSaver.js:** Para descarga de archivos compatible con múltiples navegadores (fallback).
 *   **(Opcional) Google Fonts:** Para tipografía clara y legible.
 
 ## 8. Notas de Ingeniería para Desarrollo
