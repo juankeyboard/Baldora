@@ -18,6 +18,10 @@ const App = {
     elapsedTime: 0,
     remainingTime: 0,
 
+    // Inactividad
+    inactivityTimeout: null,
+    INACTIVITY_LIMIT: 30000, // 30 segundos en ms
+
     // Operación actual
     currentOperation: null,
     operationStartTime: null,
@@ -103,8 +107,13 @@ const App = {
 
 
 
-        // Answer input
+        // Answer input - detectar actividad
+        this.elements.answerInput.addEventListener('input', () => {
+            this.resetInactivityTimer();
+        });
+
         this.elements.answerInput.addEventListener('keypress', (e) => {
+            this.resetInactivityTimer();
             if (e.key === 'Enter') {
                 this.submitAnswer();
             }
@@ -233,6 +242,9 @@ const App = {
         this.startTime = Date.now();
         this.startTimer();
 
+        // Iniciar timer de inactividad
+        this.startInactivityTimer();
+
         // Cargar primera operación
         this.loadNextOperation();
 
@@ -358,6 +370,9 @@ const App = {
             this.timerInterval = null;
         }
 
+        // Detener timer de inactividad
+        this.clearInactivityTimer();
+
         // Obtener estadísticas
         const stats = DataManager.getSessionStats();
 
@@ -380,10 +395,75 @@ const App = {
      * Reinicia el juego
      */
     resetGame() {
+        this.clearInactivityTimer();
         this.elements.timerDisplayEl.classList.remove('warning');
         DataManager.resetSession();
         ChartsManager.destroyAll();
         this.showView('CONFIG');
+    },
+
+    /**
+     * Inicia el temporizador de inactividad
+     */
+    startInactivityTimer() {
+        this.clearInactivityTimer();
+        this.inactivityTimeout = setTimeout(() => {
+            this.handleInactivity();
+        }, this.INACTIVITY_LIMIT);
+    },
+
+    /**
+     * Resetea el temporizador de inactividad
+     */
+    resetInactivityTimer() {
+        if (this.state === 'PLAYING') {
+            this.startInactivityTimer();
+        }
+    },
+
+    /**
+     * Limpia el temporizador de inactividad
+     */
+    clearInactivityTimer() {
+        if (this.inactivityTimeout) {
+            clearTimeout(this.inactivityTimeout);
+            this.inactivityTimeout = null;
+        }
+    },
+
+    /**
+     * Maneja la inactividad del usuario
+     */
+    handleInactivity() {
+        // Detener timer del juego
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+
+        // Mostrar modal de inactividad
+        this.showInactivityModal();
+    },
+
+    /**
+     * Muestra el modal de inactividad
+     */
+    showInactivityModal() {
+        const modal = document.getElementById('inactivity-modal');
+        if (modal) {
+            modal.classList.add('active');
+        }
+    },
+
+    /**
+     * Cierra el modal de inactividad y reinicia
+     */
+    closeInactivityModal() {
+        const modal = document.getElementById('inactivity-modal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        this.resetGame();
     }
 };
 

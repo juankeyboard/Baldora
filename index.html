@@ -225,6 +225,18 @@
         </div>
     </section>
 
+    <!-- ===== MODAL DE INACTIVIDAD ===== -->
+    <div id="inactivity-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-icon">⏰</div>
+            <h2 class="modal-title">Sesión Pausada</h2>
+            <p class="modal-message">El juego se reinició por inactividad (30 segundos sin respuesta)</p>
+            <button type="button" class="btn-modal" onclick="App.closeInactivityModal()">
+                Volver al Inicio
+            </button>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="js/data.js"></script>
     <script src="js/grid.js"></script>
