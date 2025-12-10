@@ -150,12 +150,84 @@ const GridManager = {
 
     reset() {
         Object.keys(this.cells).forEach(key => {
-            this.cells[key].classList.remove('active', 'correct', 'wrong');
+            this.cells[key].classList.remove('active', 'correct', 'wrong', 'mastered', 'weakness', 'hidden-adaptive');
             this.cellStates[key] = null;
         });
         this.activeCell = null;
         this.initPendingOperations();
         this.updateProgress();
+    },
+
+    /**
+     * Filtra el grid para mostrar solo las operaciones de entrenamiento
+     * @param {Array} trainingQueue - Array de {row, col} a entrenar
+     */
+    filterForTraining(trainingQueue) {
+        // Crear set de claves para búsqueda rápida
+        const trainingKeys = new Set(trainingQueue.map(op => `${op.row}-${op.col}`));
+
+        // Ocultar todas las celdas excepto las de entrenamiento
+        Object.keys(this.cells).forEach(key => {
+            const cell = this.cells[key];
+            cell.classList.remove('correct', 'wrong', 'active');
+
+            if (trainingKeys.has(key)) {
+                // Celda de entrenamiento - resaltarla
+                cell.classList.add('weakness');
+                cell.classList.remove('hidden-adaptive', 'mastered');
+                this.cellStates[key] = null;
+            } else {
+                // Celda dominada - atenuarla
+                cell.classList.add('hidden-adaptive');
+                cell.classList.remove('weakness');
+            }
+        });
+
+        // Reiniciar operaciones pendientes con solo las de entrenamiento
+        this.pendingOperations = [...trainingQueue];
+        this.totalOperations = trainingQueue.length;
+        this.shuffleOperations();
+        this.updateProgress();
+    },
+
+    /**
+     * Marca una celda como dominada (salio de la cola de entrenamiento)
+     */
+    markCellMastered(row, col) {
+        const key = `${row}-${col}`;
+        const cell = this.cells[key];
+        if (cell) {
+            cell.classList.remove('weakness', 'active', 'wrong');
+            cell.classList.add('mastered');
+            this.cellStates[key] = 'mastered';
+        }
+    },
+
+    /**
+     * Muestra la respuesta en una celda (ayuda visual)
+     */
+    showAnswerInCell(row, col, answer) {
+        const key = `${row}-${col}`;
+        const cell = this.cells[key];
+        if (cell) {
+            // Guardar contenido original
+            cell.dataset.originalContent = cell.textContent;
+            cell.textContent = answer;
+            cell.classList.add('showing-help');
+        }
+    },
+
+    /**
+     * Oculta la respuesta de una celda (vuelve al estado normal)
+     */
+    hideAnswerFromCell(row, col) {
+        const key = `${row}-${col}`;
+        const cell = this.cells[key];
+        if (cell && cell.dataset.originalContent) {
+            cell.textContent = cell.dataset.originalContent;
+            cell.classList.remove('showing-help');
+            delete cell.dataset.originalContent;
+        }
     }
 };
 

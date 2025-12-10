@@ -5,8 +5,9 @@
 
 const App = {
     // Estado del juego
-    state: 'CONFIG', // CONFIG, PLAYING, DASHBOARD
-    gameMode: 'TIMER',
+    state: 'CONFIG', // CONFIG, PLAYING, PLAYING_DIAGNOSIS, PLAYING_TRAINING, DASHBOARD
+    gameMode: 'TIMER', // TIMER, FREE, ADAPTIVE
+
     timeLimit: 1 * 60 * 1000, // 1 minuto en ms
 
     // Tablas seleccionadas (por defecto solo la tabla 1)
@@ -30,8 +31,23 @@ const App = {
     correctCount: 0,
     wrongCount: 0,
 
+    // === MODO ADAPTATIVO ===
+    adaptivePhase: 'DIAGNOSIS', // DIAGNOSIS, TRAINING
+    sessionMetrics: [], // { row, col, isCorrect, responseTime }
+    trainingQueue: [], // Operaciones a entrenar
+    initialWeaknessCount: 0,
+    trainingRounds: 0,
+    SLOW_THRESHOLD_MULTIPLIER: 1.2, // 20% mas lento que el promedio
+
+    // Ayuda visual en entrenamiento
+    avgDiagnosisTime: 0, // Tiempo promedio del diagnostico
+    helpCheckInterval: null, // Intervalo para verificar si mostrar ayuda
+    helpShown: false, // Si ya se mostro la ayuda para esta operacion
+    HELP_DISPLAY_DURATION: 2000, // 2 segundos de ayuda visual
+
     // Elementos DOM
     elements: {},
+
 
     /**
      * Inicializa la aplicación
@@ -82,7 +98,21 @@ const App = {
             summaryAvgTime: document.getElementById('summary-avg-time'),
             summaryAccuracy: document.getElementById('summary-accuracy'),
             btnDownloadCsv: document.getElementById('btn-download-csv'),
-            btnNewGame: document.getElementById('btn-new-game')
+            btnNewGame: document.getElementById('btn-new-game'),
+
+            // Modo Adaptativo
+            modeAdaptive: document.getElementById('mode-adaptive'),
+            tablesConfig: document.getElementById('tables-config'),
+            adaptiveInfo: document.getElementById('adaptive-info'),
+            adaptivePhaseIndicator: document.getElementById('adaptive-phase'),
+            matrixTitle: document.getElementById('matrix-title'),
+            weaknessesCounter: document.getElementById('weaknesses-counter'),
+            weaknessesValue: document.getElementById('weaknesses-value'),
+            adaptiveTransitionModal: document.getElementById('adaptive-transition-modal'),
+            weaknessCount: document.getElementById('weakness-count'),
+            adaptiveVictoryModal: document.getElementById('adaptive-victory-modal'),
+            victoryInitial: document.getElementById('victory-initial'),
+            victoryRounds: document.getElementById('victory-rounds')
         };
     },
 
@@ -99,6 +129,7 @@ const App = {
         // Mode toggle
         this.elements.modeTimer.addEventListener('change', () => this.updateModeUI());
         this.elements.modeFree.addEventListener('change', () => this.updateModeUI());
+        this.elements.modeAdaptive.addEventListener('change', () => this.updateModeUI());
 
         // Time slider
         this.elements.timeLimit.addEventListener('input', (e) => {
@@ -173,7 +204,31 @@ const App = {
      */
     updateModeUI() {
         const isTimer = this.elements.modeTimer.checked;
+        const isAdaptive = this.elements.modeAdaptive.checked;
+
+        // Mostrar/ocultar config de tiempo
         this.elements.timerConfig.classList.toggle('hidden', !isTimer);
+
+        // El selector de tablas está disponible en TODOS los modos (incluyendo adaptativo)
+        this.elements.tablesConfig.hidden = false;
+
+        // Mostrar/ocultar info del modo adaptativo
+        this.elements.adaptiveInfo.hidden = !isAdaptive;
+
+        // Si es modo adaptativo, seleccionar todas las tablas por defecto
+        if (isAdaptive && this.selectedTables.length === 1 && this.selectedTables[0] === 1) {
+            this.selectAllTables();
+        }
+    },
+
+    /**
+     * Selecciona todas las tablas
+     */
+    selectAllTables() {
+        this.selectedTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        document.querySelectorAll('.table-btn').forEach(btn => {
+            btn.classList.add('active');
+        });
     },
 
     /**
@@ -207,19 +262,51 @@ const App = {
             return;
         }
 
-        // Validar que hay al menos una tabla seleccionada
+        // Configurar modo
+        if (this.elements.modeAdaptive.checked) {
+            this.gameMode = 'ADAPTIVE';
+        } else if (this.elements.modeTimer.checked) {
+            this.gameMode = 'TIMER';
+        } else {
+            this.gameMode = 'FREE';
+        }
+
+        // Validar que hay al menos una tabla seleccionada (aplica para todos los modos)
         if (this.selectedTables.length === 0) {
             alert('Por favor selecciona al menos una tabla para practicar');
             return;
         }
 
-        // Configurar modo
-        this.gameMode = this.elements.modeTimer.checked ? 'TIMER' : 'FREE';
         this.timeLimit = parseInt(this.elements.timeLimit.value) * 60 * 1000;
 
-        // Inicializar managers con las tablas seleccionadas
+        // Inicializar managers
         DataManager.init(nickname);
-        GridManager.init(this.selectedTables);
+
+        // Para modo adaptativo: usar las tablas seleccionadas por el usuario
+        if (this.gameMode === 'ADAPTIVE') {
+            this.adaptivePhase = 'DIAGNOSIS';
+            this.sessionMetrics = [];
+            this.trainingQueue = [];
+            this.trainingRounds = 0;
+            this.initialWeaknessCount = 0;
+
+            // Usar las tablas seleccionadas por el usuario
+            GridManager.init(this.selectedTables);
+
+            // Calcular total de operaciones para el título
+            const totalOps = this.selectedTables.length * 15;
+
+            // Mostrar indicador de fase
+            this.elements.adaptivePhaseIndicator.hidden = false;
+            this.elements.adaptivePhaseIndicator.innerHTML = '<span class="phase-badge phase-diagnosis">📋 Fase Diagnóstico</span>';
+            this.elements.matrixTitle.textContent = `Diagnóstico - ${totalOps} operaciones`;
+            this.elements.weaknessesCounter.hidden = true;
+        } else {
+            GridManager.init(this.selectedTables);
+            this.elements.adaptivePhaseIndicator.hidden = true;
+            this.elements.matrixTitle.textContent = 'Tabla de Multiplicar';
+            this.elements.weaknessesCounter.hidden = true;
+        }
 
         // Reset stats
         this.correctCount = 0;
@@ -230,7 +317,12 @@ const App = {
         if (this.gameMode === 'TIMER') {
             this.remainingTime = this.timeLimit;
             this.elements.timerLabel.textContent = 'Tiempo Restante';
+        } else if (this.gameMode === 'ADAPTIVE') {
+            // Modo adaptativo: cuenta regresiva de 60 segundos en diagnostico
+            this.remainingTime = 60 * 1000; // 60 segundos
+            this.elements.timerLabel.textContent = 'Diagnostico';
         } else {
+            // FREE usa cronometro
             this.elapsedTime = 0;
             this.elements.timerLabel.textContent = 'Tiempo';
         }
@@ -258,6 +350,7 @@ const App = {
     startTimer() {
         this.timerInterval = setInterval(() => {
             if (this.gameMode === 'TIMER') {
+                // Modo contrarreloj: cuenta regresiva
                 this.remainingTime = this.timeLimit - (Date.now() - this.startTime);
 
                 if (this.remainingTime <= 0) {
@@ -272,7 +365,29 @@ const App = {
                 }
 
                 this.updateTimerDisplay(this.remainingTime);
+            } else if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'DIAGNOSIS') {
+                // Modo adaptativo fase diagnostico: cuenta regresiva de 60s
+                this.remainingTime = (60 * 1000) - (Date.now() - this.startTime);
+
+                if (this.remainingTime <= 0) {
+                    this.remainingTime = 0;
+                    // Tiempo agotado en diagnostico - mostrar transicion con lo que hay
+                    this.showAdaptiveTransition();
+                    return;
+                }
+
+                // Warning cuando queda poco tiempo (menos de 15 segundos)
+                if (this.remainingTime < 15000) {
+                    this.elements.timerDisplayEl.classList.add('warning');
+                }
+
+                this.updateTimerDisplay(this.remainingTime);
+            } else if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+                // Modo adaptativo fase entrenamiento: cronometro (sin limite)
+                this.elapsedTime = Date.now() - this.startTime;
+                this.updateTimerDisplay(this.elapsedTime);
             } else {
+                // Modo FREE: cronometro
                 this.elapsedTime = Date.now() - this.startTime;
                 this.updateTimerDisplay(this.elapsedTime);
             }
@@ -291,9 +406,12 @@ const App = {
     },
 
     /**
-     * Carga la siguiente operación
+     * Carga la siguiente operacion
      */
     loadNextOperation() {
+        // Limpiar intervalo de ayuda visual anterior
+        this.clearHelpCheck();
+
         const op = GridManager.getNextOperation();
 
         if (!op) {
@@ -304,6 +422,7 @@ const App = {
 
         this.currentOperation = op;
         this.operationStartTime = Date.now();
+        this.helpShown = false;
 
         // Actualizar UI
         this.elements.factorA.textContent = op.row;
@@ -312,6 +431,11 @@ const App = {
 
         // Marcar celda activa
         GridManager.setActive(op.row, op.col);
+
+        // Iniciar chequeo de ayuda visual en fase de entrenamiento
+        if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+            this.startHelpCheck();
+        }
 
         // Focus
         this.elements.answerInput.focus();
@@ -344,9 +468,50 @@ const App = {
             this.wrongCount++;
         }
 
+        // === MODO ADAPTATIVO: Guardar métricas ===
+        if (this.gameMode === 'ADAPTIVE') {
+            if (this.adaptivePhase === 'DIAGNOSIS') {
+                // Guardar métrica para análisis posterior
+                this.sessionMetrics.push({
+                    row,
+                    col,
+                    isCorrect,
+                    responseTime
+                });
+            } else if (this.adaptivePhase === 'TRAINING') {
+                // En fase de entrenamiento, solo las correctas salen de la cola
+                if (isCorrect) {
+                    // Remover de la cola de entrenamiento
+                    this.trainingQueue = this.trainingQueue.filter(
+                        op => !(op.row === row && op.col === col)
+                    );
+                    // Marcar celda como dominada
+                    GridManager.markCellMastered(row, col);
+                }
+                // Actualizar contador de debilidades
+                this.elements.weaknessesValue.textContent = this.trainingQueue.length;
+            }
+        }
+
         // Actualizar stats
         this.updateStats();
         GridManager.updateProgress();
+
+        // Verificar si terminó la fase de diagnóstico
+        if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'DIAGNOSIS') {
+            if (GridManager.isComplete()) {
+                this.showAdaptiveTransition();
+                return;
+            }
+        }
+
+        // Verificar si terminó la fase de entrenamiento
+        if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+            if (this.trainingQueue.length === 0) {
+                this.showAdaptiveVictory();
+                return;
+            }
+        }
 
         // Siguiente operación
         this.loadNextOperation();
@@ -404,8 +569,14 @@ const App = {
 
     /**
      * Inicia el temporizador de inactividad
+     * NOTA: Desactivado durante fase de entrenamiento adaptativo
      */
     startInactivityTimer() {
+        // No activar inactividad durante fase de entrenamiento
+        if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+            return;
+        }
+
         this.clearInactivityTimer();
         this.inactivityTimeout = setTimeout(() => {
             this.handleInactivity();
@@ -416,6 +587,11 @@ const App = {
      * Resetea el temporizador de inactividad
      */
     resetInactivityTimer() {
+        // No activar inactividad durante fase de entrenamiento
+        if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+            return;
+        }
+
         if (this.state === 'PLAYING') {
             this.startInactivityTimer();
         }
@@ -464,6 +640,187 @@ const App = {
             modal.classList.remove('active');
         }
         this.resetGame();
+    },
+
+    // ========================================
+    // === FUNCIONES DEL MODO ADAPTATIVO ===
+    // ========================================
+
+    /**
+     * Muestra el modal de transición después del diagnóstico
+     */
+    showAdaptiveTransition() {
+        // Detener timers
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        this.clearInactivityTimer();
+
+        // Generar cola de entrenamiento
+        this.generateTrainingQueue();
+
+        // Mostrar conteo de debilidades
+        this.elements.weaknessCount.textContent = this.trainingQueue.length;
+        this.initialWeaknessCount = this.trainingQueue.length;
+
+        // Si no hay debilidades, ir directo a victoria
+        if (this.trainingQueue.length === 0) {
+            this.showAdaptiveVictory();
+            return;
+        }
+
+        // Mostrar modal de transición
+        this.elements.adaptiveTransitionModal.classList.add('active');
+    },
+
+    /**
+     * Genera la cola de entrenamiento basada en errores y respuestas lentas
+     */
+    generateTrainingQueue() {
+        // Calcular tiempo promedio
+        const totalTime = this.sessionMetrics.reduce((acc, m) => acc + m.responseTime, 0);
+        const avgTime = totalTime / this.sessionMetrics.length;
+        const speedThreshold = avgTime * this.SLOW_THRESHOLD_MULTIPLIER;
+
+        // Guardar avgTime para ayuda visual en entrenamiento
+        this.avgDiagnosisTime = avgTime;
+
+        // Filtrar operaciones problematicas
+        this.trainingQueue = this.sessionMetrics.filter(m => {
+            const isWrong = !m.isCorrect;
+            const isSlow = m.responseTime > speedThreshold;
+            return isWrong || isSlow;
+        }).map(m => ({ row: m.row, col: m.col }));
+
+        console.log(`[Adaptativo] Promedio: ${Math.round(avgTime)}ms, Umbral: ${Math.round(speedThreshold)}ms`);
+        console.log(`[Adaptativo] Debilidades detectadas: ${this.trainingQueue.length}`);
+    },
+
+    /**
+     * Inicia la fase de entrenamiento
+     */
+    startTrainingPhase() {
+        // Cerrar modal de transición
+        this.elements.adaptiveTransitionModal.classList.remove('active');
+
+        // Cambiar a fase de entrenamiento
+        this.adaptivePhase = 'TRAINING';
+        this.trainingRounds = 1;
+
+        // Actualizar UI
+        this.elements.adaptivePhaseIndicator.innerHTML = '<span class="phase-badge phase-training">🎯 Fase Entrenamiento</span>';
+        this.elements.matrixTitle.textContent = 'Entrenamiento - Dominando Debilidades';
+        this.elements.timerLabel.textContent = 'Entrenamiento';
+
+        // Mostrar contador de debilidades
+        this.elements.weaknessesCounter.hidden = false;
+        this.elements.weaknessesValue.textContent = this.trainingQueue.length;
+
+        // Filtrar el grid para mostrar solo las debilidades
+        GridManager.filterForTraining(this.trainingQueue);
+
+        // Reset stats para la fase de entrenamiento
+        this.correctCount = 0;
+        this.wrongCount = 0;
+        this.updateStats();
+
+        // Reiniciar timer (ahora es cronometro sin limite)
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+        }
+        this.elements.timerDisplayEl.classList.remove('warning');
+        this.elapsedTime = 0;
+        this.startTime = Date.now();
+        this.startTimer();
+        // NO iniciar timer de inactividad en fase de entrenamiento
+
+        // Cargar primera operación de entrenamiento
+        this.loadNextOperation();
+        this.elements.answerInput.focus();
+    },
+
+    /**
+     * Muestra el modal de victoria del modo adaptativo
+     */
+    showAdaptiveVictory() {
+        // Detener timers
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+        this.clearInactivityTimer();
+
+        // Actualizar estadísticas de victoria
+        this.elements.victoryInitial.textContent = this.initialWeaknessCount;
+        this.elements.victoryRounds.textContent = this.trainingRounds;
+
+        // Mostrar modal
+        this.elements.adaptiveVictoryModal.classList.add('active');
+    },
+
+    /**
+     * Finaliza el modo adaptativo y muestra el dashboard
+     */
+    finishAdaptiveMode() {
+        // Cerrar modal
+        this.elements.adaptiveVictoryModal.classList.remove('active');
+
+        // Ir al dashboard normal
+        this.endGame();
+    },
+
+    // ========================================
+    // === FUNCIONES DE AYUDA VISUAL ===
+    // ========================================
+
+    /**
+     * Inicia el intervalo de chequeo para mostrar ayuda visual
+     */
+    startHelpCheck() {
+        this.clearHelpCheck();
+
+        // Verificar cada 500ms si hay que mostrar la ayuda
+        this.helpCheckInterval = setInterval(() => {
+            if (!this.helpShown && this.currentOperation) {
+                const elapsed = Date.now() - this.operationStartTime;
+
+                if (elapsed > this.avgDiagnosisTime) {
+                    this.showVisualHelp();
+                }
+            }
+        }, 500);
+    },
+
+    /**
+     * Limpia el intervalo de chequeo de ayuda
+     */
+    clearHelpCheck() {
+        if (this.helpCheckInterval) {
+            clearInterval(this.helpCheckInterval);
+            this.helpCheckInterval = null;
+        }
+    },
+
+    /**
+     * Muestra la ayuda visual en la celda de la matriz
+     */
+    showVisualHelp() {
+        if (!this.currentOperation || this.helpShown) return;
+
+        this.helpShown = true;
+        const { row, col } = this.currentOperation;
+        const result = row * col;
+
+        // Mostrar respuesta en la celda
+        GridManager.showAnswerInCell(row, col, result);
+
+        console.log(`[Ayuda Visual] Mostrando ${row} x ${col} = ${result}`);
+
+        // Ocultar despues de 2 segundos
+        setTimeout(() => {
+            GridManager.hideAnswerFromCell(row, col);
+        }, this.HELP_DISPLAY_DURATION);
     }
 };
 
