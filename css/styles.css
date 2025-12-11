@@ -1587,3 +1587,34 @@ input[type="number"]:focus {
     font-weight: 800;
     z-index: 20;
 }
+
+/* ===== ADAPTIVE MODE CELL STATES ===== */
+
+/* Celda de debilidad (a entrenar) */
+.matrix-cell.weakness {
+    background: var(--clr-gold-500) !important;
+    color: white !important;
+    border: 2px solid var(--clr-gold-500) !important;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Celda oculta en modo adaptativo (dominada durante diagnóstico) */
+.matrix-cell.hidden-adaptive {
+    background: var(--clr-sand-100) !important;
+    color: #ccc !important;
+    border-color: var(--clr-sand-300) !important;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Celda dominada (completada en entrenamiento) */
+.matrix-cell.mastered {
+    background: var(--clr-green-500) !important;
+    color: white !important;
+    border-color: var(--clr-green-500) !important;
+}

@@ -243,14 +243,44 @@ Todos los paneles principales usan el mismo estilo base:
     color: #ccc;
     cursor: not-allowed;
 }
+
+/* === MODO ADAPTATIVO === */
+
+/* Celda de debilidad (a entrenar) */
+.matrix-cell.weakness {
+    background: var(--clr-gold-500);
+    color: white;
+    border: 2px solid var(--clr-gold-500);
+    animation: pulse 1.5s infinite;
+}
+
+/* Celda oculta (dominada en diagnóstico) */
+.matrix-cell.hidden-adaptive {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Celda dominada (completada en entrenamiento) */
+.matrix-cell.mastered {
+    background: var(--clr-green-500);
+    color: white;
+}
 ```
 
 ### 5.4.1. Interacción de Celdas
 
 Al hacer clic en cualquier celda de la matriz:
 1. Se muestra el **resultado de la operación** en blanco y negro.
-2. El resultado permanece visible por **2 segundos**.
+2. El resultado permanece visible por **3 segundos**.
 3. Luego restaura el estado original de la celda.
+
+### 5.4.2. Modo Adaptativo - Fase de Entrenamiento
+
+Durante la fase de entrenamiento:
+*   Solo se muestran las **operaciones detectadas como debilidades**.
+*   Las celdas de debilidad tienen animación de pulso (dorado).
+*   Las celdas dominadas se atenúan y desactivan.
+*   Al completar una debilidad, cambia a verde (`.mastered`).
 
 ### 5.5. Modales
 

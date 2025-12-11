@@ -248,7 +248,7 @@ const GridManager = {
 
     /**
      * Muestra el resultado de la operación al hacer clic en la celda
-     * El resultado se muestra temporalmente (2 segundos) en blanco y negro
+     * El resultado se muestra temporalmente (3 segundos) en blanco y negro
      */
     showResultOnClick(row, col) {
         const key = `${row}-${col}`;
@@ -263,11 +263,11 @@ const GridManager = {
         cell.textContent = result;
         cell.classList.add('show-answer');
 
-        // Restaurar después de 2 segundos
+        // Restaurar después de 3 segundos
         setTimeout(() => {
             cell.textContent = originalContent;
             cell.className = originalClasses;
-        }, 2000);
+        }, 3000);
     }
 };
 
