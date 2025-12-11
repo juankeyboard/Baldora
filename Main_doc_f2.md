@@ -90,7 +90,7 @@ Durante la Fase de Entrenamiento, se activa una **ayuda visual automatica**:
 |---------|-------------|
 | **Activacion** | Cuando el tiempo de respuesta actual supera el tiempo promedio de la sesion de diagnostico |
 | **Accion** | Se muestra el resultado correcto de la operacion en la celda de la matriz |
-| **Duracion** | La ayuda se muestra por **2 segundos** cada 3 segundos |
+| **Duracion** | La ayuda se muestra por **2 segundos** cada 10 segundos |
 | **Despues** | La operacion vuelve a presentarse para que el usuario la responda |
 | **Objetivo** | Reforzar el aprendizaje mediante visualizacion antes de requerir la respuesta |
 

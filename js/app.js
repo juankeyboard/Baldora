@@ -43,7 +43,14 @@ const App = {
     avgDiagnosisTime: 0, // Tiempo promedio del diagnostico
     helpCheckInterval: null, // Intervalo para verificar si mostrar ayuda
     helpShown: false, // Si ya se mostro la ayuda para esta operacion
+    helpIsVisible: false, // Si la ayuda está actualmente visible
     HELP_DISPLAY_DURATION: 2000, // 2 segundos de ayuda visual
+    HELP_CYCLE_INTERVAL: 10000, // 10 segundos entre ciclos de ayuda
+    helpUsedCount: 0, // Contador de veces que se usó la ayuda visual
+
+    // Timer por operación en diagnóstico
+    DIAGNOSIS_OP_TIME: 30000, // 30 segundos por operación en diagnóstico
+    diagnosisOpTimer: null, // Timer para cada operación en diagnóstico
 
     // Elementos DOM
     elements: {},
@@ -112,7 +119,8 @@ const App = {
             weaknessCount: document.getElementById('weakness-count'),
             adaptiveVictoryModal: document.getElementById('adaptive-victory-modal'),
             victoryInitial: document.getElementById('victory-initial'),
-            victoryRounds: document.getElementById('victory-rounds')
+            victoryRounds: document.getElementById('victory-rounds'),
+            victoryHelpCount: document.getElementById('victory-help-count')
         };
     },
 
@@ -318,9 +326,10 @@ const App = {
             this.remainingTime = this.timeLimit;
             this.elements.timerLabel.textContent = 'Tiempo Restante';
         } else if (this.gameMode === 'ADAPTIVE') {
-            // Modo adaptativo: cuenta regresiva de 60 segundos en diagnostico
-            this.remainingTime = 60 * 1000; // 60 segundos
-            this.elements.timerLabel.textContent = 'Diagnostico';
+            // Modo adaptativo: cuenta regresiva de 30 segundos por operación en diagnostico
+            this.remainingTime = this.DIAGNOSIS_OP_TIME;
+            this.elements.timerLabel.textContent = 'Tiempo Operación';
+            this.helpUsedCount = 0; // Reset contador de ayudas
         } else {
             // FREE usa cronometro
             this.elapsedTime = 0;
@@ -366,19 +375,21 @@ const App = {
 
                 this.updateTimerDisplay(this.remainingTime);
             } else if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'DIAGNOSIS') {
-                // Modo adaptativo fase diagnostico: cuenta regresiva de 60s
-                this.remainingTime = (60 * 1000) - (Date.now() - this.startTime);
+                // Modo adaptativo fase diagnostico: cuenta regresiva de 30s por operación
+                this.remainingTime = this.DIAGNOSIS_OP_TIME - (Date.now() - this.operationStartTime);
 
                 if (this.remainingTime <= 0) {
                     this.remainingTime = 0;
-                    // Tiempo agotado en diagnostico - mostrar transicion con lo que hay
-                    this.showAdaptiveTransition();
+                    // Tiempo agotado para esta operación - registrar como timeout y pasar a siguiente
+                    this.handleDiagnosisTimeout();
                     return;
                 }
 
-                // Warning cuando queda poco tiempo (menos de 15 segundos)
-                if (this.remainingTime < 15000) {
+                // Warning cuando queda poco tiempo (menos de 10 segundos)
+                if (this.remainingTime < 10000) {
                     this.elements.timerDisplayEl.classList.add('warning');
+                } else {
+                    this.elements.timerDisplayEl.classList.remove('warning');
                 }
 
                 this.updateTimerDisplay(this.remainingTime);
@@ -754,6 +765,7 @@ const App = {
         // Actualizar estadísticas de victoria
         this.elements.victoryInitial.textContent = this.initialWeaknessCount;
         this.elements.victoryRounds.textContent = this.trainingRounds;
+        this.elements.victoryHelpCount.textContent = this.helpUsedCount;
 
         // Mostrar modal
         this.elements.adaptiveVictoryModal.classList.add('active');
@@ -775,17 +787,66 @@ const App = {
     // ========================================
 
     /**
-     * Inicia el intervalo de chequeo para mostrar ayuda visual
+     * Maneja el timeout de una operación en fase de diagnóstico
+     * Registra la operación como "no respondida" y pasa a la siguiente
+     */
+    handleDiagnosisTimeout() {
+        if (!this.currentOperation) return;
+
+        const { row, col } = this.currentOperation;
+        const responseTime = this.DIAGNOSIS_OP_TIME; // Tiempo máximo
+
+        // Registrar como error (timeout)
+        this.sessionMetrics.push({
+            row,
+            col,
+            isCorrect: false,
+            responseTime,
+            isTimeout: true
+        });
+
+        // Marcar como error en la grilla
+        GridManager.markWrong(row, col);
+        this.wrongCount++;
+        this.updateStats();
+        GridManager.updateProgress();
+
+        // Quitar de pendientes (no volver a preguntar en diagnóstico)
+        GridManager.pendingOperations = GridManager.pendingOperations.filter(
+            op => !(op.row === row && op.col === col)
+        );
+
+        // Verificar si terminó el diagnóstico
+        if (GridManager.isComplete()) {
+            this.showAdaptiveTransition();
+            return;
+        }
+
+        // Reset timer para siguiente operación
+        this.elements.timerDisplayEl.classList.remove('warning');
+
+        // Cargar siguiente operación
+        this.loadNextOperation();
+    },
+
+    /**
+     * Inicia el intervalo de chequeo para mostrar ayuda visual (cíclica)
+     * Se muestra por 2 segundos cada 10 segundos
      */
     startHelpCheck() {
         this.clearHelpCheck();
+        this.helpShown = false;
+        this.helpIsVisible = false;
+        this.nextHelpTime = 0; // Permitir mostrar ayuda inmediatamente si cumple el tiempo promedio
 
         // Verificar cada 500ms si hay que mostrar la ayuda
         this.helpCheckInterval = setInterval(() => {
-            if (!this.helpShown && this.currentOperation) {
+            if (this.currentOperation && !this.helpIsVisible) {
                 const elapsed = Date.now() - this.operationStartTime;
 
-                if (elapsed > this.avgDiagnosisTime) {
+                const now = Date.now();
+                // Si superó el tiempo promedio del diagnóstico Y ya pasó el cooldown
+                if (elapsed > this.avgDiagnosisTime && now >= this.nextHelpTime) {
                     this.showVisualHelp();
                 }
             }
@@ -803,12 +864,21 @@ const App = {
     },
 
     /**
-     * Muestra la ayuda visual en la celda de la matriz
+     * Muestra la ayuda visual en la celda de la matriz (cíclica)
+     * Se muestra por 2 segundos, luego se oculta por 1 segundo, y se repite
      */
     showVisualHelp() {
-        if (!this.currentOperation || this.helpShown) return;
+        if (!this.currentOperation || this.helpIsVisible) return;
 
-        this.helpShown = true;
+        this.helpIsVisible = true;
+
+        // Solo contar la primera vez que se muestra para esta operación
+        if (!this.helpShown) {
+            this.helpShown = true;
+            this.helpUsedCount++;
+            console.log(`[Ayuda Visual] Primera ayuda para esta operación. Total: ${this.helpUsedCount}`);
+        }
+
         const { row, col } = this.currentOperation;
         const result = row * col;
 
@@ -819,7 +889,12 @@ const App = {
 
         // Ocultar despues de 2 segundos
         setTimeout(() => {
-            GridManager.hideAnswerFromCell(row, col);
+            if (this.currentOperation && this.currentOperation.row === row && this.currentOperation.col === col) {
+                GridManager.hideAnswerFromCell(row, col);
+                this.helpIsVisible = false;
+                // Establecer cooldown de 10 segundos antes de la próxima ayuda
+                this.nextHelpTime = Date.now() + this.HELP_CYCLE_INTERVAL;
+            }
         }, this.HELP_DISPLAY_DURATION);
     }
 };
