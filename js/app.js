@@ -10,8 +10,9 @@ const App = {
 
     timeLimit: 1 * 60 * 1000, // 1 minuto en ms
 
-    // Tablas seleccionadas (por defecto solo la tabla 1)
-    selectedTables: [1],
+    // Tablas seleccionadas (Filas y Columnas)
+    selectedRows: [1],
+    selectedCols: [1],
 
     // Timer/Cronómetro
     timerInterval: null,
@@ -86,7 +87,10 @@ const App = {
 
 
             // Tables selector
-            tablesGrid: document.getElementById('tables-grid'),
+            rowsGrid: document.getElementById('rows-grid'),
+            colsGrid: document.getElementById('cols-grid'),
+            btnSelectAllRows: document.getElementById('btn-select-all-rows'),
+            btnSelectAllCols: document.getElementById('btn-select-all-cols'),
 
             // Game
             timerLabel: document.getElementById('timer-label'),
@@ -175,12 +179,30 @@ const App = {
             this.resetGame();
         });
 
-        // Tables selection
-        this.elements.tablesGrid.addEventListener('click', (e) => {
+        // Tables selection (Rows)
+        this.elements.rowsGrid.addEventListener('click', (e) => {
             const btn = e.target.closest('.table-btn');
             if (btn && btn.dataset.table) {
-                this.toggleTable(parseInt(btn.dataset.table));
+                this.toggleRow(parseInt(btn.dataset.table));
             }
+        });
+
+        // Tables selection (Cols)
+        this.elements.colsGrid.addEventListener('click', (e) => {
+            const btn = e.target.closest('.table-btn');
+            if (btn && btn.dataset.table) {
+                this.toggleCol(parseInt(btn.dataset.table));
+            }
+        });
+
+        // Select All Rows
+        this.elements.btnSelectAllRows.addEventListener('click', () => {
+            this.selectAllRows();
+        });
+
+        // Select All Cols
+        this.elements.btnSelectAllCols.addEventListener('click', () => {
+            this.selectAllCols();
         });
     },
 
@@ -224,36 +246,70 @@ const App = {
         this.elements.adaptiveInfo.hidden = !isAdaptive;
 
         // Si es modo adaptativo, seleccionar todas las tablas por defecto
-        if (isAdaptive && this.selectedTables.length === 1 && this.selectedTables[0] === 1) {
-            this.selectAllTables();
+        if (isAdaptive && this.selectedRows.length === 1 && this.selectedRows[0] === 1 && this.selectedCols.length === 1 && this.selectedCols[0] === 1) {
+            this.selectAllRows();
+            this.selectAllCols();
         }
     },
 
     /**
-     * Selecciona todas las tablas
+     * Selecciona todas las filas
      */
-    selectAllTables() {
-        this.selectedTables = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-        document.querySelectorAll('.table-btn').forEach(btn => {
-            btn.classList.add('active');
-        });
+    selectAllRows() {
+        const allSelected = this.selectedRows.length === 15;
+        if (allSelected) {
+            this.selectedRows = [];
+            document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.remove('active'));
+        } else {
+            this.selectedRows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+            document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.add('active'));
+        }
     },
 
     /**
-     * Alterna la selección de una tabla específica
+     * Selecciona todas las columnas
      */
-    toggleTable(tableNum) {
-        const index = this.selectedTables.indexOf(tableNum);
-        const btn = document.querySelector(`.table-btn[data-table="${tableNum}"]`);
+    selectAllCols() {
+        const allSelected = this.selectedCols.length === 15;
+        if (allSelected) {
+            this.selectedCols = [];
+            document.querySelectorAll('#cols-grid .table-btn').forEach(btn => btn.classList.remove('active'));
+        } else {
+            this.selectedCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+            document.querySelectorAll('#cols-grid .table-btn').forEach(btn => btn.classList.add('active'));
+        }
+    },
+
+    /**
+     * Alterna la selección de una fila
+     */
+    toggleRow(rowNum) {
+        const index = this.selectedRows.indexOf(rowNum);
+        const btn = document.querySelector(`#rows-grid .table-btn[data-table="${rowNum}"]`);
 
         if (index === -1) {
-            // Agregar tabla
-            this.selectedTables.push(tableNum);
-            this.selectedTables.sort((a, b) => a - b);
+            this.selectedRows.push(rowNum);
+            this.selectedRows.sort((a, b) => a - b);
             btn.classList.add('active');
         } else {
-            // Quitar tabla
-            this.selectedTables.splice(index, 1);
+            this.selectedRows.splice(index, 1);
+            btn.classList.remove('active');
+        }
+    },
+
+    /**
+     * Alterna la selección de una columna
+     */
+    toggleCol(colNum) {
+        const index = this.selectedCols.indexOf(colNum);
+        const btn = document.querySelector(`#cols-grid .table-btn[data-table="${colNum}"]`);
+
+        if (index === -1) {
+            this.selectedCols.push(colNum);
+            this.selectedCols.sort((a, b) => a - b);
+            btn.classList.add('active');
+        } else {
+            this.selectedCols.splice(index, 1);
             btn.classList.remove('active');
         }
     },
@@ -280,8 +336,8 @@ const App = {
         }
 
         // Validar que hay al menos una tabla seleccionada (aplica para todos los modos)
-        if (this.selectedTables.length === 0) {
-            alert('Por favor selecciona al menos una tabla para practicar');
+        if (this.selectedRows.length === 0 || this.selectedCols.length === 0) {
+            alert('Por favor selecciona al menos una fila y una columna para practicar');
             return;
         }
 
@@ -299,10 +355,10 @@ const App = {
             this.initialWeaknessCount = 0;
 
             // Usar las tablas seleccionadas por el usuario
-            GridManager.init(this.selectedTables);
+            GridManager.init(this.selectedRows, this.selectedCols);
 
             // Calcular total de operaciones para el título
-            const totalOps = this.selectedTables.length * 15;
+            const totalOps = this.selectedRows.length * this.selectedCols.length;
 
             // Mostrar indicador de fase
             this.elements.adaptivePhaseIndicator.hidden = false;
@@ -310,7 +366,7 @@ const App = {
             this.elements.matrixTitle.textContent = `Diagnóstico - ${totalOps} operaciones`;
             this.elements.weaknessesCounter.hidden = true;
         } else {
-            GridManager.init(this.selectedTables);
+            GridManager.init(this.selectedRows, this.selectedCols);
             this.elements.adaptivePhaseIndicator.hidden = true;
             this.elements.matrixTitle.textContent = 'Tabla de Multiplicar';
             this.elements.weaknessesCounter.hidden = true;

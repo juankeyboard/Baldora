@@ -36,11 +36,11 @@ Al iniciar, el jugador configura la sesión mediante las siguientes opciones:
 *   **Selección de Modo:**
     *   **Contrarreloj (Time Attack):** El jugador define un tiempo límite (Máx. 15 minutos). El juego termina cuando el contador llega a cero.
     *   **Práctica Libre (Free Mode):** Uso de un cronómetro ascendente sin límite de tiempo, enfocado en completar la grilla a ritmo propio.
-*   **Selección de Tablas:** El jugador puede elegir practicar tablas específicas (del 1 al 15) o todas a la vez:
-    *   Botones individuales para cada tabla (1-15) que pueden activarse/desactivarse.
-    *   Botón "Todas" para seleccionar o deseleccionar todas las tablas rápidamente.
+*   **Selección de Tablas:** El jugador puede elegir practicar tablas específicas seleccionando botones del 1 al 15 para el factor A (Filas) y botones del 1 al 15 para el factor B (Columnas).
+    *   Botones individuales para cada factor A y B (1-15) que pueden activarse/desactivarse.
+    *   Botón "Seleccionar Todo" para cada uno de los factores A y B.
     *   La matriz se ajusta visualmente, oscureciendo las celdas de tablas no seleccionadas.
-    *   El contador de progreso refleja el total de operaciones según las tablas elegidas.
+    *   El contador de progreso refleja el total de operaciones según las tablas seleccionadas.
 
 ## 4. Condiciones de Fin de Juego (Game Over)
 

@@ -9,16 +9,18 @@ const GridManager = {
     activeCell: null,
     cellStates: {},
     pendingOperations: [],
-    selectedTables: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    selectedRows: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    selectedCols: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
     totalOperations: 225,
 
-    init(tables = null) {
+    init(rows = null, cols = null) {
         this.container = document.getElementById('matrix-grid');
         this.cells = {};
         this.cellStates = {};
         this.activeCell = null;
         this.pendingOperations = [];
-        this.selectedTables = tables || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        this.selectedRows = rows || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+        this.selectedCols = cols || [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
         this.render();
         this.initPendingOperations();
         this.updateProgress();
@@ -35,6 +37,10 @@ const GridManager = {
         for (let i = 1; i <= 15; i++) {
             const headerCell = document.createElement('div');
             headerCell.className = 'matrix-cell header';
+            // Marcar headers de columnas deshabilitadas
+            if (!this.selectedCols.includes(i)) {
+                headerCell.classList.add('disabled');
+            }
             headerCell.textContent = i;
             this.container.appendChild(headerCell);
         }
@@ -43,7 +49,7 @@ const GridManager = {
             const rowHeader = document.createElement('div');
             rowHeader.className = 'matrix-cell header';
             // Marcar headers de filas deshabilitadas
-            if (!this.selectedTables.includes(row)) {
+            if (!this.selectedRows.includes(row)) {
                 rowHeader.classList.add('disabled');
             }
             rowHeader.textContent = row;
@@ -56,9 +62,11 @@ const GridManager = {
                 cell.dataset.col = col;
                 cell.textContent = `${row}×${col}`;
 
-                // Marcar celdas fuera de las tablas seleccionadas (solo se verifica la fila)
-                const isRowSelected = this.selectedTables.includes(row);
-                if (!isRowSelected) {
+                // Marcar celdas fuera de las tablas seleccionadas (intersección)
+                const isRowSelected = this.selectedRows.includes(row);
+                const isColSelected = this.selectedCols.includes(col);
+
+                if (!isRowSelected || !isColSelected) {
                     cell.classList.add('disabled');
                 }
 
@@ -72,9 +80,9 @@ const GridManager = {
 
     initPendingOperations() {
         this.pendingOperations = [];
-        // Generar operaciones: para cada tabla seleccionada, incluir toda la fila (de 1 a 15)
-        for (const row of this.selectedTables) {
-            for (let col = 1; col <= 15; col++) {
+        // Generar operaciones: intersección de filas y columnas seleccionadas
+        for (const row of this.selectedRows) {
+            for (const col of this.selectedCols) {
                 this.pendingOperations.push({ row, col });
             }
         }

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -82,24 +82,61 @@
                 </div>
 
                 <div class="form-group" id="tables-config">
-                    <label>Tablas a Practicar</label>
-                    <div class="tables-selector" id="tables-selector">
-                        <div class="tables-grid" id="tables-grid">
-                            <button type="button" class="table-btn active" data-table="1">1</button>
-                            <button type="button" class="table-btn" data-table="2">2</button>
-                            <button type="button" class="table-btn" data-table="3">3</button>
-                            <button type="button" class="table-btn" data-table="4">4</button>
-                            <button type="button" class="table-btn" data-table="5">5</button>
-                            <button type="button" class="table-btn" data-table="6">6</button>
-                            <button type="button" class="table-btn" data-table="7">7</button>
-                            <button type="button" class="table-btn" data-table="8">8</button>
-                            <button type="button" class="table-btn" data-table="9">9</button>
-                            <button type="button" class="table-btn" data-table="10">10</button>
-                            <button type="button" class="table-btn" data-table="11">11</button>
-                            <button type="button" class="table-btn" data-table="12">12</button>
-                            <button type="button" class="table-btn" data-table="13">13</button>
-                            <button type="button" class="table-btn" data-table="14">14</button>
-                            <button type="button" class="table-btn" data-table="15">15</button>
+                    <div class="factors-selection-container">
+                        <!-- Factor A (Filas) -->
+                        <div class="factor-selector">
+                            <div class="factor-header">
+                                <label>Factor A (Filas)</label>
+                                <button type="button" class="btn-select-all" id="btn-select-all-rows">Todas</button>
+                            </div>
+                            <div class="tables-selector" id="rows-selector">
+                                <div class="tables-grid" id="rows-grid">
+                                    <button type="button" class="table-btn active" data-table="1"
+                                        data-type="row">1</button>
+                                    <button type="button" class="table-btn" data-table="2" data-type="row">2</button>
+                                    <button type="button" class="table-btn" data-table="3" data-type="row">3</button>
+                                    <button type="button" class="table-btn" data-table="4" data-type="row">4</button>
+                                    <button type="button" class="table-btn" data-table="5" data-type="row">5</button>
+                                    <button type="button" class="table-btn" data-table="6" data-type="row">6</button>
+                                    <button type="button" class="table-btn" data-table="7" data-type="row">7</button>
+                                    <button type="button" class="table-btn" data-table="8" data-type="row">8</button>
+                                    <button type="button" class="table-btn" data-table="9" data-type="row">9</button>
+                                    <button type="button" class="table-btn" data-table="10" data-type="row">10</button>
+                                    <button type="button" class="table-btn" data-table="11" data-type="row">11</button>
+                                    <button type="button" class="table-btn" data-table="12" data-type="row">12</button>
+                                    <button type="button" class="table-btn" data-table="13" data-type="row">13</button>
+                                    <button type="button" class="table-btn" data-table="14" data-type="row">14</button>
+                                    <button type="button" class="table-btn" data-table="15" data-type="row">15</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Factor B (Columnas) -->
+                        <div class="factor-selector">
+                            <div class="factor-header">
+                                <label>Factor B (Columnas)</label>
+                                <button type="button" class="btn-select-all" id="btn-select-all-cols">Todas</button>
+                            </div>
+                            <div class="tables-selector" id="cols-selector">
+                                <div class="tables-grid" id="cols-grid">
+                                    <button type="button" class="table-btn active" data-table="1"
+                                        data-type="col">1</button>
+                                    <button type="button" class="table-btn" data-table="2" data-type="col">2</button>
+                                    <button type="button" class="table-btn" data-table="3" data-type="col">3</button>
+                                    <button type="button" class="table-btn" data-table="4" data-type="col">4</button>
+                                    <button type="button" class="table-btn" data-table="5" data-type="col">5</button>
+                                    <button type="button" class="table-btn" data-table="6" data-type="col">6</button>
+                                    <button type="button" class="table-btn" data-table="7" data-type="col">7</button>
+                                    <button type="button" class="table-btn" data-table="8" data-type="col">8</button>
+                                    <button type="button" class="table-btn" data-table="9" data-type="col">9</button>
+                                    <button type="button" class="table-btn" data-table="10" data-type="col">10</button>
+                                    <button type="button" class="table-btn" data-table="11" data-type="col">11</button>
+                                    <button type="button" class="table-btn" data-table="12" data-type="col">12</button>
+                                    <button type="button" class="table-btn" data-table="13" data-type="col">13</button>
+                                    <button type="button" class="table-btn" data-table="14" data-type="col">14</button>
+                                    <button type="button" class="table-btn" data-table="15" data-type="col">15</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -296,7 +333,7 @@
                     <span class="victory-stat-value" id="victory-rounds">0</span>
                     <span class="victory-stat-label">Rondas completadas</span>
                 </div>
-                            <div class="victory-stat">
+                <div class="victory-stat">
                     <span class="victory-stat-value" id="victory-help-count">0</span>
                     <span class="victory-stat-label">Ayudas visuales</span>
                 </div>
