@@ -139,12 +139,13 @@ const App = {
         });
 
         // Mode toggle
-        this.elements.modeTimer.addEventListener('change', () => this.updateModeUI());
-        this.elements.modeFree.addEventListener('change', () => this.updateModeUI());
-        this.elements.modeAdaptive.addEventListener('change', () => this.updateModeUI());
+        this.elements.modeTimer.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
+        this.elements.modeFree.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
+        this.elements.modeAdaptive.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
 
         // Time slider
         this.elements.timeLimit.addEventListener('input', (e) => {
+        AudioManager.playClick();
             this.elements.timeDisplay.textContent = `${e.target.value} min`;
         });
 
@@ -170,20 +171,23 @@ const App = {
         // Download CSV
         this.elements.btnDownloadCsv.addEventListener('click', () => {
             if (DataManager.history.length > 0) {
-                DataManager.downloadCSV();
+                AudioManager.playClick();
+            DataManager.downloadCSV();
             }
         });
 
         // New game
         this.elements.btnNewGame.addEventListener('click', () => {
-            this.resetGame();
+            AudioManager.playClick();
+        this.resetGame();
         });
 
         // Tables selection (Rows)
         this.elements.rowsGrid.addEventListener('click', (e) => {
             const btn = e.target.closest('.table-btn');
             if (btn && btn.dataset.table) {
-                this.toggleRow(parseInt(btn.dataset.table));
+                AudioManager.playClick();
+            this.toggleRow(parseInt(btn.dataset.table));
             }
         });
 
@@ -191,19 +195,31 @@ const App = {
         this.elements.colsGrid.addEventListener('click', (e) => {
             const btn = e.target.closest('.table-btn');
             if (btn && btn.dataset.table) {
-                this.toggleCol(parseInt(btn.dataset.table));
+                AudioManager.playClick();
+            this.toggleCol(parseInt(btn.dataset.table));
             }
         });
 
         // Select All Rows
         this.elements.btnSelectAllRows.addEventListener('click', () => {
-            this.selectAllRows();
-        });
+            AudioManager.playClick();
+        this.selectAllRows();
+    });
 
         // Select All Cols
         this.elements.btnSelectAllCols.addEventListener('click', () => {
+            AudioManager.playClick();
             this.selectAllCols();
         });
+
+        // Hover sound for buttons and cells
+        document.body.addEventListener('mouseenter', (e) => {
+            const target = e.target;
+            // Check if hovering over a button or matrix cell
+            if (target.matches('button, .table-btn, .mode-option, .matrix-cell, .btn-select-all')) {
+                AudioManager.playHover();
+            }
+        }, true);
     },
 
     /**

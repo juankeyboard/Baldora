@@ -26,7 +26,8 @@ const AudioManager = (() => {
             correct: 'audio/sfx/baldora_sfx_right.mp3',
             wrong: 'audio/sfx/baldora_sfx_wrong.mp3',
             start: 'audio/sfx/baldora_sfx_start.mp3',
-            click: 'audio/sfx/baldora_sfx_ui_click.mp3',
+            click: 'audio/sfx/baldora_sfx_click.mp3',
+            hover: 'audio/sfx/baldora_sfx_hover.mp3',
             win: 'audio/sfx/baldora_sfx_win.mp3',
             gameover: 'audio/sfx/baldora_sfx_gameover.mp3'
         }
@@ -74,7 +75,7 @@ const AudioManager = (() => {
             const audio = new Audio();
             audio.src = path;
             audio.loop = true;
-            audio.volume = 0.3; // Volumen reducido para BGM
+            audio.volume = 0.2; // Volumen reducido para BGM
             audio.preload = 'auto';
 
             // Manejar errores de carga silenciosamente
@@ -95,7 +96,7 @@ const AudioManager = (() => {
         try {
             const audio = new Audio();
             audio.src = path;
-            audio.volume = 0.5;
+            audio.volume = 0.7;
             audio.preload = 'auto';
 
             // Manejar errores de carga silenciosamente
@@ -289,6 +290,10 @@ const AudioManager = (() => {
         playSFX('start');
     }
 
+    function playHover() {
+        playSFX('hover');
+    }
+
     // ===== API PÚBLICA =====
     return {
         init,
@@ -303,6 +308,7 @@ const AudioManager = (() => {
         playWin,
         playGameover,
         playStart,
+        playHover,
         toggleMute,
         getMuteState
     };
