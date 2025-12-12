@@ -408,8 +408,8 @@ const App = {
         // Focus en input
         this.elements.answerInput.focus();
 
-    // Iniciar música de fondo
-    AudioManager.playBGM('gameplay');
+        // Iniciar música de fondo
+        AudioManager.playBGM('gameplay');
     },
 
     /**
@@ -509,9 +509,6 @@ const App = {
 
         // Focus
         this.elements.answerInput.focus();
-
-    // Iniciar música de fondo
-    AudioManager.playBGM('gameplay');
     },
 
     /**
@@ -816,9 +813,6 @@ const App = {
         // Cargar primera operación de entrenamiento
         this.loadNextOperation();
         this.elements.answerInput.focus();
-
-    // Iniciar música de fondo
-    AudioManager.playBGM('gameplay');
     },
 
     /**
