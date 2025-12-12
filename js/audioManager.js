@@ -25,6 +25,7 @@ const AudioManager = (() => {
         sfx: {
             correct: 'audio/sfx/baldora_sfx_right.mp3',
             wrong: 'audio/sfx/baldora_sfx_wrong.mp3',
+            start: 'audio/sfx/baldora_sfx_start.mp3',
             click: 'audio/sfx/baldora_sfx_ui_click.mp3',
             win: 'audio/sfx/baldora_sfx_win.mp3',
             gameover: 'audio/sfx/baldora_sfx_gameover.mp3'
@@ -284,6 +285,10 @@ const AudioManager = (() => {
         playSFX('gameover');
     }
 
+    function playStart() {
+        playSFX('start');
+    }
+
     // ===== API PÚBLICA =====
     return {
         init,
@@ -297,6 +302,7 @@ const AudioManager = (() => {
         playClick,
         playWin,
         playGameover,
+        playStart,
         toggleMute,
         getMuteState
     };

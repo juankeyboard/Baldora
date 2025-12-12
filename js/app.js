@@ -219,6 +219,7 @@ const App = {
         switch (view) {
             case 'CONFIG':
                 this.elements.configView.classList.add('active');
+                AudioManager.playBGM('menu');
                 break;
             case 'PLAYING':
                 this.elements.gameView.classList.add('active');
@@ -407,6 +408,9 @@ const App = {
 
         // Focus en input
         this.elements.answerInput.focus();
+
+        // Reproducir sonido de inicio
+        AudioManager.playStart();
 
         // Iniciar música de fondo
         AudioManager.playBGM('gameplay');
