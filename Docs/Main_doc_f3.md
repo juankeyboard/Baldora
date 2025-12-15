@@ -1,10 +1,10 @@
-# Documento Maestro de Ingeniería: Fase 3 - UX/UI Design System
+# Documento Maestro de Ingeniería: UX/UI Design System
 
-**Proyecto:** Fast Math Game (Visual Overhaul)  
-**Versión:** 3.4 (Production Ready)  
-**Fecha:** 11 de Diciembre, 2025  
+**Versión:** 3.5 (Actualizado)  
+**Proyecto:** Fast Math Game  
+**Fecha:** 15 de Diciembre, 2025  
 **Concepto:** "Baldor Watercolor" - Acuarela Digital  
-**Autor:** Expert UX/CSS Lead
+**Estado:** ✅ Implementado
 
 ---
 
@@ -20,7 +20,7 @@ Fusionamos la autoridad clásica del texto "Aritmética de Baldor" con la suavid
 | **Accesibilidad (a11y)** | Contraste AA/AAA, textos siempre oscuros sobre fondos claros |
 | **Touch-First** | Botones mínimo 48px, áreas de clic amplias |
 | **Modo Oscuro** | Soporte via `[data-theme="dark"]` |
-| **Imagen de Fondo** | `images/background.png` con 60% transparencia |
+| **Imagen de Fondo** | `images/baldora_background.png` con 60% opacidad |
 
 ---
 
@@ -46,7 +46,7 @@ Fusionamos la autoridad clásica del texto "Aritmética de Baldor" con la suavid
     --clr-rose-700: #A84B82;  /* Rosa oscuro */
 
     /* --- FEEDBACK --- */
-    --clr-gold-500: #DAA520;  /* Dorado (advertencias) */
+    --clr-gold-500: #DAA520;  /* Dorado (advertencias/errores) */
     --clr-green-500:#6E8C38;  /* Verde oliva (éxito) */
     --clr-ink-900:  #2C241B;  /* Negro tinta (texto principal) */
     --clr-ink-100:  #4A4A4A;  /* Gris oscuro */
@@ -128,7 +128,7 @@ Todos los paneles principales usan el mismo estilo base:
 **Clases que usan este estilo:**
 - `.config-form`
 - `.matrix-panel`
-- `.controls-panel`
+- `.controls-panel` (con fondo amarillo claro #fdf6b4)
 - `.modal-content`
 - `.chart-card`
 
@@ -172,12 +172,26 @@ Todos los paneles principales usan el mismo estilo base:
     border: 2px solid var(--clr-sand-300);
     border-radius: var(--radius-sm);
     color: var(--clr-ink-900);
+    min-width: 48px;
+    min-height: 48px;
 }
 
 .table-btn.active {
     background: var(--clr-rose-500);
     border-color: var(--clr-rose-500);
     color: white;
+}
+```
+
+#### Botón "Todas"
+```css
+.btn-select-all {
+    background: var(--clr-sand-100);
+    border: 2px solid var(--clr-sand-300);
+    border-radius: var(--radius-sm);
+    height: 36px;  /* Reducido a 3/4 */
+    width: 100%;
+    font-weight: 600;
 }
 ```
 
@@ -198,92 +212,36 @@ Todos los paneles principales usan el mismo estilo base:
     aspect-ratio: 1;
     min-width: 32px;
     cursor: pointer;
-}
-
-/* Estado activo (operación actual) */
-.matrix-cell.active-cell {
-    background: var(--clr-sand-300);
-    border: 2px solid var(--clr-rose-500);
-    transform: scale(1.1);
-}
-
-/* Respuesta correcta */
-.matrix-cell.correct {
-    background: var(--clr-green-500);
-    color: white;
-    border-color: var(--clr-green-500);
-}
-
-/* Respuesta incorrecta */
-.matrix-cell.wrong {
-    background: var(--clr-gold-500);
-    color: white;
-    border-color: var(--clr-gold-500);
-    animation: shake 0.3s ease;
-}
-
-/* Mostrar resultado al clic */
-.matrix-cell.show-answer {
-    background: white;
-    color: var(--clr-ink-900);
-    border: 2px solid var(--clr-ink-900);
-    font-weight: 800;
-}
-
-/* Celda de encabezado */
-.matrix-cell.header {
-    background: transparent;
-    border: none;
-    color: var(--clr-rock-500);
-    cursor: default;
-}
-
-/* Celda deshabilitada */
-.matrix-cell.disabled {
-    background: var(--clr-sand-100);
-    color: #ccc;
-    cursor: not-allowed;
-}
-
-/* === MODO ADAPTATIVO === */
-
-/* Celda de debilidad (a entrenar) */
-.matrix-cell.weakness {
-    background: var(--clr-gold-500);
-    color: white;
-    border: 2px solid var(--clr-gold-500);
-    animation: pulse 1.5s infinite;
-}
-
-/* Celda oculta (dominada en diagnóstico) */
-.matrix-cell.hidden-adaptive {
-    opacity: 0.4;
-    pointer-events: none;
-}
-
-/* Celda dominada (completada en entrenamiento) */
-.matrix-cell.mastered {
-    background: var(--clr-green-500);
-    color: white;
+    font-size: 0.65rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 ```
 
-### 5.4.1. Interacción de Celdas
+#### Estados de Celda
+
+| Clase | Apariencia | Uso |
+|-------|------------|-----|
+| `.active` | Borde rosa, escala 1.15 | Operación actual |
+| `.correct` | Fondo verde | Respondida correctamente |
+| `.wrong` | Fondo dorado + shake | Respondida incorrectamente |
+| `.show-answer` | Fondo blanco, borde negro | Mostrando resultado al clic |
+| `.header` | Transparente, sin borde | Encabezados de fila/columna |
+| `.disabled` | Gris atenuado | Fuera de tablas seleccionadas |
+| `.weakness` | Dorado + pulse | Debilidad en modo adaptativo |
+| `.hidden-adaptive` | Opacidad 0.4 | Dominada en diagnóstico |
+| `.mastered` | Verde | Dominada en entrenamiento |
+
+### 5.5. Interacción de Celdas
 
 Al hacer clic en cualquier celda de la matriz:
-1. Se muestra el **resultado de la operación** en blanco y negro.
-2. El resultado permanece visible por **3 segundos**.
-3. Luego restaura el estado original de la celda.
+1. Se reproduce sonido de hint (`baldora_sfx_hint.mp3`)
+2. Se muestra el **resultado de la operación** en blanco y negro
+3. El resultado permanece visible por **3 segundos**
+4. Luego restaura el estado original de la celda
 
-### 5.4.2. Modo Adaptativo - Fase de Entrenamiento
-
-Durante la fase de entrenamiento:
-*   Solo se muestran las **operaciones detectadas como debilidades**.
-*   Las celdas de debilidad tienen animación de pulso (dorado).
-*   Las celdas dominadas se atenúan y desactivan.
-*   Al completar una debilidad, cambia a verde (`.mastered`).
-
-### 5.5. Modales
+### 5.6. Modales
 
 ```css
 .modal-overlay {
@@ -303,9 +261,38 @@ Durante la fase de entrenamiento:
 
 ---
 
-## 6. Layout Responsive
+## 6. Imagen de Fondo
 
-### 6.1. Breakpoints
+La aplicación usa una imagen de fondo con transparencia controlable:
+
+```css
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('../images/baldora_background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.6;  /* Ajustable: 0.0 - 1.0 */
+    z-index: -1;
+    pointer-events: none;
+}
+
+/* Modo oscuro - reducir más la opacidad */
+[data-theme="dark"] body::before {
+    opacity: 0.2;
+}
+```
+
+---
+
+## 7. Layout Responsive
+
+### 7.1. Breakpoints
 
 | Breakpoint | Descripción |
 |------------|-------------|
@@ -313,7 +300,7 @@ Durante la fase de entrenamiento:
 | `600-900px` | Tablet: Columna única, controles arriba |
 | `< 600px` | Mobile: Todo apilado, celdas más pequeñas |
 
-### 6.2. Game Layout
+### 7.2. Game Layout
 
 ```css
 .game-container {
@@ -332,7 +319,7 @@ Durante la fase de entrenamiento:
 
 ---
 
-## 7. Transiciones
+## 8. Transiciones
 
 ```css
 --transition-fast: 0.15s ease;
@@ -344,13 +331,37 @@ Usadas en:
 - Hover de botones
 - Animación de modales
 - Cambio de tema (colores)
+- Estado de celdas
 
 ---
 
-## 8. Estructura de Vistas
+## 9. Animaciones Implementadas
+
+| Animación | Uso |
+|-----------|-----|
+| `shake` | Celda incorrecta |
+| `pulse` | Celda de debilidad (modo adaptativo) |
+| `modalSlideIn` | Entrada de modales |
+
+```css
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+```
+
+---
+
+## 10. Estructura de Vistas
 
 | Vista | ID | Clases Principales |
-|-------|----|--------------------|
+|-------|----|-------------------|
 | **Configuración** | `#config-view` | `.config-container`, `.config-form` |
 | **Juego** | `#game-view` | `.game-container`, `.matrix-panel`, `.controls-panel` |
 | **Dashboard** | `#dashboard-view` | `.dashboard-container`, `.summary-cards`, `.charts-grid` |
@@ -364,51 +375,49 @@ Usadas en:
 
 ---
 
-## 9. Cambio de Tema
+## 11. Botón de Audio
 
-### Implementación JS
+```css
+.audio-toggle-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--clr-surface-high);
+    border: 2px solid var(--clr-sand-300);
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 1500;
+}
 
-```javascript
-// Leer preferencia guardada
-const savedTheme = localStorage.getItem('theme') || 'light';
-document.documentElement.setAttribute('data-theme', savedTheme);
-
-// Toggle
-const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-document.documentElement.setAttribute('data-theme', newTheme);
-localStorage.setItem('theme', newTheme);
+.audio-toggle-btn.muted {
+    background: var(--clr-sand-300);
+    opacity: 0.7;
+}
 ```
 
-### Botón Toggle
-
-```html
-<button id="theme-toggle" class="theme-toggle">
-    <!-- SVG Sol/Luna -->
-</button>
-```
+| Estado | Icono |
+|--------|-------|
+| Sonido activo | 🔊 |
+| Silenciado | 🔇 |
 
 ---
 
-## 10. Archivos Relacionados
-
-| Archivo | Propósito |
-|---------|-----------|
-| `css/styles.css` | Design System completo |
-| `index.html` | Estructura HTML con vistas |
-| `js/app.js` | Lógica de inicialización y tema |
-| `js/grid.js` | Renderizado de la matriz |
-
----
-
-## 11. Checklist de Implementación
+## 12. Checklist de Implementación
 
 - [x] Variables CSS definidas
 - [x] Tipografía configurada (Oswald, Nunito)
 - [x] Contenedores con bordes y sombras azuladas
 - [x] Botones con efecto 3D (borde inferior)
 - [x] Matriz responsive con scroll
+- [x] Celdas muestran operación (ej: "7×8")
 - [x] Modales con overlay y animación
 - [x] Modo oscuro funcional
 - [x] Toggle de tema persistente
 - [x] Layout responsive (3 breakpoints)
 - [x] Dashboard con gráficos
+- [x] Imagen de fondo con opacidad configurable (60%)
+- [x] Botón de audio global
+- [x] Interacción de clic en celdas (mostrar resultado 3s)
