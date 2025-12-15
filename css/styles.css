@@ -1276,9 +1276,9 @@ input[type="number"]:focus {
 
 .matrix-grid {
     display: grid;
-    grid-template-columns: repeat(16, minmax(32px, 1fr));
+    /* grid-template-columns es establecido dinámicamente por JavaScript */
+    grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
     gap: 3px;
-    overflow-x: auto;
 }
 
 /* ===== TIMER DISPLAY ===== */
@@ -1563,7 +1563,7 @@ input[type="number"]:focus {
     }
 
     .matrix-grid {
-        grid-template-columns: repeat(16, minmax(28px, 1fr));
+        /* Mantener gap reducido en tablets */
         gap: 2px;
     }
 }

@@ -12,7 +12,7 @@
 
 const AudioManager = (() => {
     // ===== ESTADO PRIVADO =====
-    let isMuted = false;
+    let isMuted = true; // Silenciado por defecto
     const STORAGE_KEY = 'baldora_audioMuted';
 
     // ===== CONFIGURACIÓN DE AUDIO =====

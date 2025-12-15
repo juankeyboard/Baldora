@@ -29,46 +29,41 @@ const GridManager = {
     render() {
         this.container.innerHTML = '';
 
+        // Calcular número de columnas: columnas seleccionadas + 1 (header de fila)
+        const numCols = this.selectedCols.length + 1;
+
+        // Ajustar el grid dinámicamente
+        this.container.style.gridTemplateColumns = `repeat(${numCols}, minmax(32px, 1fr))`;
+
+        // Celda esquinera
         const cornerCell = document.createElement('div');
         cornerCell.className = 'matrix-cell header';
         cornerCell.textContent = '×';
         this.container.appendChild(cornerCell);
 
-        for (let i = 1; i <= 15; i++) {
+        // Headers de columnas (solo las seleccionadas)
+        for (const col of this.selectedCols) {
             const headerCell = document.createElement('div');
             headerCell.className = 'matrix-cell header';
-            // Marcar headers de columnas deshabilitadas
-            if (!this.selectedCols.includes(i)) {
-                headerCell.classList.add('disabled');
-            }
-            headerCell.textContent = i;
+            headerCell.textContent = col;
             this.container.appendChild(headerCell);
         }
 
-        for (let row = 1; row <= 15; row++) {
+        // Filas (solo las seleccionadas)
+        for (const row of this.selectedRows) {
+            // Header de fila
             const rowHeader = document.createElement('div');
             rowHeader.className = 'matrix-cell header';
-            // Marcar headers de filas deshabilitadas
-            if (!this.selectedRows.includes(row)) {
-                rowHeader.classList.add('disabled');
-            }
             rowHeader.textContent = row;
             this.container.appendChild(rowHeader);
 
-            for (let col = 1; col <= 15; col++) {
+            // Celdas de la fila (solo columnas seleccionadas)
+            for (const col of this.selectedCols) {
                 const cell = document.createElement('div');
                 cell.className = 'matrix-cell';
                 cell.dataset.row = row;
                 cell.dataset.col = col;
                 cell.textContent = `${row}×${col}`;
-
-                // Marcar celdas fuera de las tablas seleccionadas (intersección)
-                const isRowSelected = this.selectedRows.includes(row);
-                const isColSelected = this.selectedCols.includes(col);
-
-                if (!isRowSelected || !isColSelected) {
-                    cell.classList.add('disabled');
-                }
 
                 const key = `${row}-${col}`;
                 this.cells[key] = cell;

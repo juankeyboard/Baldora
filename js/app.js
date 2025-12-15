@@ -165,6 +165,7 @@ const App = {
 
         // End session
         this.elements.btnEndSession.addEventListener('click', () => {
+            AudioManager.playClick();
             this.endGame();
         });
 
