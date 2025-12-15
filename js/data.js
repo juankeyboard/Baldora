@@ -15,10 +15,12 @@ const DataManager = {
 
     /**
      * Inicializa el DataManager con un nickname
+     * Reinicia todos los datos para una nueva partida
      */
     init(nickname) {
         this.nickname = nickname;
         this.sessionData = [];
+        this.history = []; // Reiniciar historial para nueva partida
     },
 
     /**
