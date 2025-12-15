@@ -145,7 +145,7 @@ const App = {
 
         // Time slider
         this.elements.timeLimit.addEventListener('input', (e) => {
-        AudioManager.playClick();
+            AudioManager.playClick();
             this.elements.timeDisplay.textContent = `${e.target.value} min`;
         });
 
@@ -172,14 +172,14 @@ const App = {
         this.elements.btnDownloadCsv.addEventListener('click', () => {
             if (DataManager.history.length > 0) {
                 AudioManager.playClick();
-            DataManager.downloadCSV();
+                DataManager.downloadCSV();
             }
         });
 
         // New game
         this.elements.btnNewGame.addEventListener('click', () => {
             AudioManager.playClick();
-        this.resetGame();
+            this.resetGame();
         });
 
         // Tables selection (Rows)
@@ -187,7 +187,7 @@ const App = {
             const btn = e.target.closest('.table-btn');
             if (btn && btn.dataset.table) {
                 AudioManager.playClick();
-            this.toggleRow(parseInt(btn.dataset.table));
+                this.toggleRow(parseInt(btn.dataset.table));
             }
         });
 
@@ -196,15 +196,15 @@ const App = {
             const btn = e.target.closest('.table-btn');
             if (btn && btn.dataset.table) {
                 AudioManager.playClick();
-            this.toggleCol(parseInt(btn.dataset.table));
+                this.toggleCol(parseInt(btn.dataset.table));
             }
         });
 
         // Select All Rows
         this.elements.btnSelectAllRows.addEventListener('click', () => {
             AudioManager.playClick();
-        this.selectAllRows();
-    });
+            this.selectAllRows();
+        });
 
         // Select All Cols
         this.elements.btnSelectAllCols.addEventListener('click', () => {
@@ -558,8 +558,8 @@ const App = {
         } else {
             GridManager.markWrong(row, col);
             this.wrongCount++;
-        // Reproducir sonido de error
-        AudioManager.playWrong();
+            // Reproducir sonido de error
+            AudioManager.playWrong();
         }
 
         // === MODO ADAPTATIVO: Guardar métricas ===
@@ -632,6 +632,9 @@ const App = {
         // Detener timer de inactividad
         this.clearInactivityTimer();
 
+        // Detener intervalo de ayuda visual
+        this.clearHelpCheck();
+
         // Obtener estadísticas
         const stats = DataManager.getSessionStats();
 
@@ -642,12 +645,12 @@ const App = {
         this.elements.summaryAccuracy.textContent = `${stats.accuracy}%`;
 
         // Detener música de fondo
-    AudioManager.stopBGM();
+        AudioManager.stopBGM();
 
         // Iniciar música de estadísticas
         AudioManager.playBGM('stats');
 
-    // Mostrar dashboard
+        // Mostrar dashboard
         this.showView('DASHBOARD');
 
         // Renderizar gráficas
@@ -661,6 +664,8 @@ const App = {
      */
     resetGame() {
         this.clearInactivityTimer();
+        // Detener intervalo de ayuda visual
+        this.clearHelpCheck();
         // Detener cualquier música
         AudioManager.stopBGM();
         this.elements.timerDisplayEl.classList.remove('warning');
@@ -671,11 +676,16 @@ const App = {
 
     /**
      * Inicia el temporizador de inactividad
-     * NOTA: Desactivado durante fase de entrenamiento adaptativo
+     * NOTA: Desactivado durante fase de entrenamiento adaptativo y modo contrarreloj
      */
     startInactivityTimer() {
         // No activar inactividad durante fase de entrenamiento
         if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+            return;
+        }
+
+        // No activar inactividad en modo contrarreloj (el tiempo total es el límite)
+        if (this.gameMode === 'TIMER') {
             return;
         }
 
@@ -691,6 +701,11 @@ const App = {
     resetInactivityTimer() {
         // No activar inactividad durante fase de entrenamiento
         if (this.gameMode === 'ADAPTIVE' && this.adaptivePhase === 'TRAINING') {
+            return;
+        }
+
+        // No activar inactividad en modo contrarreloj
+        if (this.gameMode === 'TIMER') {
             return;
         }
 

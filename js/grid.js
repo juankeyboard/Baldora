@@ -226,6 +226,10 @@ const GridManager = {
         const key = `${row}-${col}`;
         const cell = this.cells[key];
         if (cell) {
+            // Reproducir sonido de pista
+            if (typeof AudioManager !== 'undefined') {
+                AudioManager.playHint();
+            }
             // Guardar contenido original
             cell.dataset.originalContent = cell.textContent;
             cell.textContent = answer;
@@ -254,6 +258,11 @@ const GridManager = {
         const key = `${row}-${col}`;
         const cell = this.cells[key];
         if (!cell) return;
+
+        // Reproducir sonido de pista
+        if (typeof AudioManager !== 'undefined') {
+            AudioManager.playHint();
+        }
 
         const result = row * col;
         const originalContent = cell.textContent;

@@ -29,7 +29,8 @@ const AudioManager = (() => {
             click: 'audio/sfx/baldora_sfx_click.mp3',
             hover: 'audio/sfx/baldora_sfx_hover.mp3',
             win: 'audio/sfx/baldora_sfx_win.mp3',
-            gameover: 'audio/sfx/baldora_sfx_gameover.mp3'
+            gameover: 'audio/sfx/baldora_sfx_gameover.mp3',
+            hint: 'audio/sfx/baldora_sfx_hint.mp3'
         }
     };
 
@@ -294,6 +295,10 @@ const AudioManager = (() => {
         playSFX('hover');
     }
 
+    function playHint() {
+        playSFX('hint');
+    }
+
     // ===== API PÚBLICA =====
     return {
         init,
@@ -309,6 +314,7 @@ const AudioManager = (() => {
         playGameover,
         playStart,
         playHover,
+        playHint,
         toggleMute,
         getMuteState
     };
