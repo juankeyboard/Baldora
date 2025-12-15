@@ -1693,7 +1693,7 @@ body::before {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.4;
+    opacity: 0.6;
     /* 60% transparencia = 40% opacidad */
     z-index: -1;
     pointer-events: none;
@@ -1721,6 +1721,7 @@ body::before {
     margin-top: var(--space-lg);
     width: 100%;
 }
+
 /* ===== AUDIO TOGGLE BUTTON ===== */
 
 .audio-toggle-btn {
