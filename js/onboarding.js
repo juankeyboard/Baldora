@@ -39,10 +39,14 @@ const Onboarding = {
             onHighlightStarted: () => {
                 // Pausar el timer del juego al iniciar el tour
                 this.pauseGameTimer();
+                // Pausar el timer de inactividad
+                this.pauseInactivityTimer();
             },
             onDestroyed: () => {
                 // Reanudar el timer del juego al terminar el tour
                 this.resumeGameTimer();
+                // Reiniciar el timer de inactividad
+                this.resumeInactivityTimer();
 
                 // Re-enfocar el input si estamos en la vista de juego
                 const answerInput = document.getElementById('answer-input');
@@ -325,6 +329,32 @@ const Onboarding = {
             App.startTimer();
             App.timerPausedByOnboarding = false;
             console.log('[Onboarding] Timer reanudado');
+        }
+    },
+
+    /**
+     * Pausa el timer de inactividad durante el onboarding
+     */
+    pauseInactivityTimer() {
+        if (typeof App !== 'undefined') {
+            // Limpiar el timer de inactividad existente
+            App.clearInactivityTimer();
+            App.inactivityPausedByOnboarding = true;
+            console.log('[Onboarding] Timer de inactividad pausado');
+        }
+    },
+
+    /**
+     * Reinicia el timer de inactividad después del onboarding
+     */
+    resumeInactivityTimer() {
+        if (typeof App !== 'undefined' && App.inactivityPausedByOnboarding) {
+            // Solo reiniciar si estamos en modo de juego activo
+            if (App.state === 'PLAYING' || App.state === 'PLAYING_DIAGNOSIS') {
+                App.startInactivityTimer();
+            }
+            App.inactivityPausedByOnboarding = false;
+            console.log('[Onboarding] Timer de inactividad reiniciado');
         }
     }
 };
