@@ -252,9 +252,9 @@ const App = {
                 break;
             case 'PLAYING':
                 this.elements.gameView.classList.add('active');
+                // Ocultar botón de ayuda en vista de juego (onboarding solo en menú)
                 if (helpBtn) {
-                    helpBtn.onclick = () => Onboarding.replayTour('game');
-                    helpBtn.style.display = 'flex';
+                    helpBtn.style.display = 'none';
                 }
                 break;
             case 'DASHBOARD':
@@ -288,10 +288,7 @@ const App = {
             this.selectAllCols();
         }
 
-        // Disparar tour de modo adaptativo si se selecciona por primera vez
-        if (isAdaptive && typeof Onboarding !== 'undefined') {
-            Onboarding.startAdaptiveTour();
-        }
+        // NOTA: Tour de modo adaptativo deshabilitado - onboarding solo en menú
     },
 
     /**
@@ -461,10 +458,7 @@ const App = {
         // Iniciar música de fondo
         AudioManager.playBGM('gameplay');
 
-        // Disparar tour de gameplay si es primera vez
-        if (typeof Onboarding !== 'undefined') {
-            Onboarding.startGameplayTour();
-        }
+        // NOTA: Tour de gameplay deshabilitado - onboarding solo en menú
     },
 
     /**
