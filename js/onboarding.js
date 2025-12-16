@@ -73,7 +73,7 @@ const Onboarding = {
             {
                 element: '.config-form-content',
                 popover: {
-                    title: '⚙️ Configura tu Sesión',
+                    title: '⚙️ Configura tu sesión',
                     description: 'Ingresa tu nickname y elige un modo de juego.',
                     side: 'right',
                     align: 'start'
@@ -82,8 +82,8 @@ const Onboarding = {
             {
                 element: '.factors-selection-container',
                 popover: {
-                    title: '🔢 Diseña tu Matriz y ¡A jugar!',
-                    description: 'Selecciona las tablas que quieres practicar (<strong>Factor A</strong> = filas, <strong>Factor B</strong> = columnas). Presiona comenzar para probar habilidad.',
+                    title: '🔢 Diseña tu ejercicio!',
+                    description: 'Selecciona los factores de las operaciones que quieres practicar. Presiona comenzar a entrenar tu habilidad matemática.',
                     side: 'top',
                     align: 'center'
                 }
