@@ -1953,13 +1953,27 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
 }
 
 /* --- BLOQUE DE MARCA --- */
 .footer-brand {
     display: flex;
     align-items: center;
+}
+
+.brand-link {
+    display: flex;
+    align-items: center;
     gap: var(--space-sm);
+    text-decoration: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.brand-link:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
 }
 
 .brand-logo {
@@ -1974,6 +1988,11 @@ body::before {
     font-size: 1.1rem;
     letter-spacing: 1px;
     color: var(--clr-ink-100);
+    transition: color 0.2s ease;
+}
+
+.brand-link:hover .brand-name {
+    color: var(--clr-rose-500);
 }
 
 /* --- BLOQUE LEGAL --- */
@@ -1982,18 +2001,17 @@ body::before {
     align-items: center;
     flex-wrap: wrap;
     justify-content: center;
+    gap: 0;
 }
 
 .footer-legal a {
     color: var(--clr-rock-500);
     text-decoration: none;
-    border-bottom: 1px dotted var(--clr-rock-500);
-    transition: color 0.2s ease, border-color 0.2s ease;
+    transition: color 0.2s ease;
 }
 
 .footer-legal a:hover {
     color: var(--clr-rose-500);
-    border-color: var(--clr-rose-500);
 }
 
 .footer-legal .separator {
@@ -2019,26 +2037,62 @@ body::before {
     display: block;
 }
 
-/* --- RESPONSIVE FOOTER --- */
-@media (max-width: 600px) {
+/* --- RESPONSIVE FOOTER (Tablet) --- */
+@media (max-width: 768px) {
+    .main-footer {
+        padding: var(--space-md) var(--space-lg);
+    }
+
+    .footer-content {
+        justify-content: center;
+        gap: var(--space-md);
+    }
+
+    .brand-logo {
+        height: 28px;
+    }
+
+    .brand-name {
+        font-size: 1rem;
+    }
+}
+
+/* --- RESPONSIVE FOOTER (Mobile) --- */
+@media (max-width: 480px) {
+    .main-footer {
+        padding: var(--space-md);
+    }
+
     .footer-content {
         flex-direction: column;
-        gap: var(--space-md);
+        gap: var(--space-sm);
         text-align: center;
     }
-    
+
     .footer-brand {
-        flex-direction: column;
-        gap: 4px;
+        order: 1;
     }
-    
+
     .footer-legal {
+        order: 2;
         flex-direction: column;
-        gap: 4px;
+        gap: 2px;
     }
-    
+
     .footer-legal .separator {
         display: none;
+    }
+
+    .footer-social {
+        order: 3;
+    }
+
+    .brand-logo {
+        height: 24px;
+    }
+
+    .brand-name {
+        font-size: 0.95rem;
     }
 }
 
@@ -2053,9 +2107,12 @@ body::before {
     color: var(--clr-ink-900);
 }
 
+[data-theme="dark"] .brand-link:hover .brand-name {
+    color: var(--clr-rose-500);
+}
+
 [data-theme="dark"] .footer-legal a {
     color: var(--clr-rock-500);
-    border-color: var(--clr-rock-500);
 }
 
 [data-theme="dark"] .footer-social a {
