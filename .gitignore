@@ -29,3 +29,8 @@ build/
 # Firebase
 .firebase/
 firebase-debug.log
+
+# Google Cloud Service Account credentials (SECURITY - DO NOT COMMIT)
+gen-lang-client*.json
+*-service-account.json
+*.pem
