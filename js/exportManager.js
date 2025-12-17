@@ -26,98 +26,342 @@ const ExportManager = {
         this.closeModal();
     },
 
-    // 4. Opción PDF (Genera reporte visual)
+    // Almacenar las instancias de Chart.js del PDF para destruirlas después
+    pdfCharts: {},
+
+    // 4. Opción PDF (Genera reporte visual usando jsPDF directamente)
     async downloadPDF() {
-        // Verificar que html2pdf esté disponible
-        if (typeof html2pdf === 'undefined') {
-            alert('Error: La librería html2pdf no está cargada');
+        // Verificar que jsPDF esté disponible (viene incluido en html2pdf bundle)
+        if (!window.jspdf) {
+            alert('Error: La librería jsPDF no está cargada');
             return;
         }
 
-        // A. Poblar Datos de Sesión (usando DataManager y App del proyecto)
+        // Obtener jsPDF del bundle de html2pdf
+        const { jsPDF } = window.jspdf;
+
+        // A. Recopilar datos de sesión
         const nickname = DataManager.nickname || 'Invitado';
         const mode = App.gameMode || 'TIMER';
         const history = DataManager.sessionData || [];
-
-        document.getElementById('pdf-nick').innerText = nickname || "Invitado";
-        document.getElementById('pdf-date').innerText = new Date().toLocaleDateString('es-CO');
-
-        // Traducir modo
         const modeNames = { 'TIMER': 'Contrarreloj', 'FREE': 'Práctica Libre', 'ADAPTIVE': 'Adaptativo' };
-        document.getElementById('pdf-mode').innerText = modeNames[mode] || mode;
-
+        const modeName = modeNames[mode] || mode;
         const total = history.length;
         const correct = history.filter(h => h.is_correct === 1).length;
-        document.getElementById('pdf-score').innerText = `${correct} / ${total}`;
-
-        // B. Generar Análisis AI (Placeholder inteligente basado en datos)
         const accuracy = total > 0 ? (correct / total * 100).toFixed(0) : 0;
         const aiText = this.generateAIAnalysis(accuracy, total, correct);
-        document.getElementById('pdf-ai-comment').innerText = `"${aiText}"`;
 
-        // C. Clonar Gráficas (Canvas -> Imagen)
-        // IDs de los canvas originales del Dashboard
-        const chartIDs = ['chart-pie', 'chart-bar-tables', 'chart-bar-top', 'chart-histogram'];
-        // IDs de los contenedores en el PDF
-        const slotIDs = ['slot-chart-1', 'slot-chart-2', 'slot-chart-3', 'slot-chart-4'];
-
-        chartIDs.forEach((id, i) => {
-            const canvas = document.getElementById(id);
-            const slot = document.getElementById(slotIDs[i]);
-            if (canvas && slot) {
-                try {
-                    // Convertir a imagen de alta calidad
-                    const img = new Image();
-                    img.src = canvas.toDataURL('image/png', 1.0);
-                    img.style.maxWidth = '100%';
-                    img.style.maxHeight = '140px';
-                    img.style.objectFit = 'contain';
-                    slot.innerHTML = ''; // Limpiar slot previo
-                    slot.appendChild(img);
-                } catch (e) {
-                    console.warn(`No se pudo clonar el canvas ${id}:`, e);
-                }
-            }
-        });
-
-        // D. Configurar y Generar PDF
-        const element = document.getElementById('pdf-template');
-
-        const opt = {
-            margin: 0,
-            filename: `Baldora_Reporte_${nickname || 'Sesion'}_${Date.now()}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                letterRendering: true,
-                logging: false
-            },
-            jsPDF: { unit: 'mm', format: 'letter', orientation: 'portrait' }
-        };
+        // B. Mostrar indicador de carga
+        const btnPDF = document.querySelector('#modal-export .btn-export-option');
+        const originalText = btnPDF ? btnPDF.innerHTML : '';
+        if (btnPDF) {
+            btnPDF.innerHTML = '<span style="font-size: 2.5rem;">⏳</span><span>Generando...</span>';
+            btnPDF.disabled = true;
+        }
 
         try {
-            // Mostrar indicador de carga
-            const btnPDF = document.querySelector('#modal-export .btn-primary');
-            const originalText = btnPDF ? btnPDF.innerHTML : '';
-            if (btnPDF) {
-                btnPDF.innerHTML = '<span style="font-size: 2.5rem;">⏳</span><span>Generando...</span>';
-                btnPDF.disabled = true;
+            // C. Crear documento PDF (tamaño carta: 215.9 x 279.4 mm)
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'letter'
+            });
+
+            const pageWidth = 215.9;
+            const pageHeight = 279.4;
+            const margin = 15;
+            let y = margin;
+
+            // D. HEADER
+            doc.setFillColor(209, 107, 165); // Rosa Baldora
+            doc.rect(0, 0, pageWidth, 25, 'F');
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(24);
+            doc.setTextColor(255, 255, 255);
+            doc.text('BALDORA', margin, 16);
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Analiticas de Sesion', pageWidth - margin, 12, { align: 'right' });
+            doc.text('Reporte de Rendimiento Aritmetico', pageWidth - margin, 18, { align: 'right' });
+
+            y = 35;
+
+            // E. MÉTRICAS
+            doc.setFillColor(240, 240, 240);
+            doc.roundedRect(margin, y, pageWidth - (margin * 2), 20, 3, 3, 'F');
+
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+
+            const metricsY = y + 8;
+            const col1 = margin + 10;
+            const col2 = col1 + 45;
+            const col3 = col2 + 45;
+            const col4 = col3 + 45;
+
+            doc.text('JUGADOR', col1, metricsY);
+            doc.text('FECHA', col2, metricsY);
+            doc.text('MODO', col3, metricsY);
+            doc.text('ACIERTOS', col4, metricsY);
+
+            doc.setTextColor(30, 30, 30);
+            doc.setFontSize(11);
+            doc.text(nickname, col1, metricsY + 6);
+            doc.text(new Date().toLocaleDateString('es-CO'), col2, metricsY + 6);
+            doc.text(modeName, col3, metricsY + 6);
+            doc.text(`${correct} / ${total}`, col4, metricsY + 6);
+
+            y += 28;
+
+            // F. ANÁLISIS AI
+            doc.setFillColor(252, 236, 246); // Rosa claro
+            doc.setDrawColor(209, 107, 165);
+            doc.roundedRect(margin, y, pageWidth - (margin * 2), 28, 3, 3, 'FD');
+
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(150, 60, 120);
+            doc.text('Analisis de Entrenador Virtual', margin + 5, y + 8);
+
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(9);
+            doc.setTextColor(80, 80, 80);
+
+            // Dividir texto largo en líneas
+            const splitAI = doc.splitTextToSize('"' + aiText + '"', pageWidth - (margin * 2) - 10);
+            doc.text(splitAI, margin + 5, y + 16);
+
+            y += 36;
+
+            // G. GRÁFICOS (usando los canvas del dashboard)
+            const chartHeight = 70;
+            const chartWidth = (pageWidth - (margin * 2) - 10) / 2;
+
+            // Títulos de gráficos
+            const chartTitles = ['Rendimiento', 'Errores por Tabla', 'Top Errores', 'Velocidad'];
+            const chartCanvasIds = ['chart-pie', 'chart-bar-tables', 'chart-bar-top', 'chart-histogram'];
+
+            // Esperar un momento para asegurar que los gráficos están renderizados
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Posiciones de las 4 gráficas (2x2)
+            const positions = [
+                { x: margin, y: y },
+                { x: margin + chartWidth + 10, y: y },
+                { x: margin, y: y + chartHeight + 15 },
+                { x: margin + chartWidth + 10, y: y + chartHeight + 15 }
+            ];
+
+            for (let i = 0; i < 4; i++) {
+                const pos = positions[i];
+                const canvas = document.getElementById(chartCanvasIds[i]);
+
+                // Marco del gráfico
+                doc.setDrawColor(200, 200, 200);
+                doc.setFillColor(255, 255, 255);
+                doc.roundedRect(pos.x, pos.y, chartWidth, chartHeight, 2, 2, 'FD');
+
+                // Título del gráfico
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                doc.text(chartTitles[i], pos.x + chartWidth / 2, pos.y + 7, { align: 'center' });
+
+                // Intentar agregar el gráfico como imagen
+                if (canvas) {
+                    try {
+                        const imgData = canvas.toDataURL('image/png', 1.0);
+                        doc.addImage(imgData, 'PNG', pos.x + 3, pos.y + 10, chartWidth - 6, chartHeight - 15);
+                    } catch (e) {
+                        // Si falla toDataURL, mostrar mensaje alternativo
+                        console.warn('No se pudo exportar el grafico ' + chartTitles[i] + ':', e);
+                        doc.setFontSize(8);
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('Grafico no disponible', pos.x + chartWidth / 2, pos.y + chartHeight / 2, { align: 'center' });
+                    }
+                } else {
+                    doc.setFontSize(8);
+                    doc.setTextColor(150, 150, 150);
+                    doc.text('Sin datos', pos.x + chartWidth / 2, pos.y + chartHeight / 2, { align: 'center' });
+                }
             }
 
-            await html2pdf().set(opt).from(element).save();
+            y += (chartHeight * 2) + 30;
 
-            // Restaurar botón
-            if (btnPDF) {
-                btnPDF.innerHTML = originalText;
-                btnPDF.disabled = false;
-            }
+            // H. FOOTER
+            const footerY = pageHeight - 15;
+            doc.setDrawColor(200, 200, 200);
+            doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+
+            doc.setFontSize(8);
+            doc.setTextColor(120, 120, 120);
+            doc.setFont('helvetica', 'normal');
+            doc.text('JCG Games', margin, footerY);
+            doc.text('Generado por Baldora', pageWidth / 2, footerY, { align: 'center' });
+            doc.text('@baldoragame', pageWidth - margin, footerY, { align: 'right' });
+
+            // I. GUARDAR PDF
+            doc.save('Baldora_Reporte_' + nickname + '_' + Date.now() + '.pdf');
+
+            console.log('PDF generado exitosamente');
         } catch (e) {
             console.error("Error generando PDF:", e);
             alert("Error generando el reporte. Verifique la consola.");
         }
 
+        // Restaurar botón
+        if (btnPDF) {
+            btnPDF.innerHTML = originalText;
+            btnPDF.disabled = false;
+        }
+
         this.closeModal();
+    },
+
+    // Renderizar los 4 gráficos directamente en los canvas del template PDF
+    renderPDFCharts() {
+        // Destruir gráficos previos si existen
+        this.destroyPDFCharts();
+
+        // Colores para los gráficos (versión para fondo claro/PDF)
+        const colors = {
+            primary: '#6366f1',
+            success: '#22c55e',
+            warning: '#f59e0b',
+            error: '#ef4444',
+            text: '#4a5568',
+            grid: 'rgba(0, 0, 0, 0.1)'
+        };
+
+        // Opciones base para gráficos del PDF (fondo claro)
+        const pdfOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false, // Sin animación para PDF
+            plugins: {
+                legend: {
+                    labels: { color: colors.text, font: { family: 'Nunito', size: 10 } }
+                }
+            }
+        };
+
+        // 1. Gráfico de Rendimiento (Pie/Doughnut)
+        const { correct, wrong } = DataManager.getAccuracyDistribution();
+        const ctxPie = document.getElementById('pdf-chart-pie');
+        if (ctxPie) {
+            this.pdfCharts.pie = new Chart(ctxPie.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Correctas', 'Incorrectas'],
+                    datasets: [{
+                        data: [correct, wrong],
+                        backgroundColor: [colors.success, colors.warning],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    ...pdfOptions,
+                    cutout: '60%',
+                    plugins: {
+                        ...pdfOptions.plugins,
+                        legend: { position: 'bottom', labels: { color: colors.text, font: { size: 9 } } }
+                    }
+                }
+            });
+        }
+
+        // 2. Gráfico de Errores por Tabla (Bar)
+        const errorsByTable = DataManager.getErrorsByTable();
+        const tablesLabels = Object.keys(errorsByTable).map(k => `T${k}`);
+        const tablesData = Object.values(errorsByTable);
+        const ctxTables = document.getElementById('pdf-chart-tables');
+        if (ctxTables) {
+            this.pdfCharts.tables = new Chart(ctxTables.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: tablesLabels,
+                    datasets: [{
+                        label: 'Errores',
+                        data: tablesData,
+                        backgroundColor: colors.warning,
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    ...pdfOptions,
+                    scales: {
+                        x: { ticks: { color: colors.text, font: { size: 8 } }, grid: { display: false } },
+                        y: { ticks: { color: colors.text, font: { size: 8 } }, grid: { color: colors.grid } }
+                    }
+                }
+            });
+        }
+
+        // 3. Gráfico de Top Errores (Bar Horizontal)
+        const topErrors = DataManager.getTopErrors(5);
+        const topLabels = topErrors.map(e => e.operation);
+        const topData = topErrors.map(e => e.count);
+        const ctxTop = document.getElementById('pdf-chart-top');
+        if (ctxTop) {
+            this.pdfCharts.top = new Chart(ctxTop.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: topLabels,
+                    datasets: [{
+                        label: 'Fallos',
+                        data: topData,
+                        backgroundColor: colors.error,
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    ...pdfOptions,
+                    indexAxis: 'y',
+                    scales: {
+                        x: { ticks: { color: colors.text, font: { size: 8 } }, grid: { color: colors.grid } },
+                        y: { ticks: { color: colors.text, font: { size: 8 } }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 4. Gráfico de Velocidad (Histograma)
+        const distribution = DataManager.getResponseTimeDistribution();
+        const ctxHistogram = document.getElementById('pdf-chart-histogram');
+        if (ctxHistogram) {
+            this.pdfCharts.histogram = new Chart(ctxHistogram.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: distribution.labels,
+                    datasets: [{
+                        label: 'Respuestas',
+                        data: distribution.counts,
+                        backgroundColor: colors.primary,
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    ...pdfOptions,
+                    scales: {
+                        x: { ticks: { color: colors.text, font: { size: 8 } }, grid: { display: false } },
+                        y: { ticks: { color: colors.text, font: { size: 8 } }, grid: { color: colors.grid } }
+                    }
+                }
+            });
+        }
+    },
+
+    // Destruir los gráficos del PDF para liberar memoria
+    destroyPDFCharts() {
+        Object.values(this.pdfCharts).forEach(chart => {
+            if (chart && typeof chart.destroy === 'function') {
+                chart.destroy();
+            }
+        });
+        this.pdfCharts = {};
     },
 
     // 5. Generador de análisis AI (Simulado)

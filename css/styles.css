@@ -2198,6 +2198,12 @@ body::before {
     pointer-events: none;
 }
 
+/* Clase para ocultar marca de agua (usado al generar PDF desde file://) */
+.pdf-letter-container.no-watermark::before {
+    display: none !important;
+    background-image: none !important;
+}
+
 /* Elevar contenido sobre la marca de agua */
 .pdf-letter-container>* {
     position: relative;
@@ -2330,6 +2336,22 @@ body::before {
     max-width: 100%;
     max-height: 140px;
     object-fit: contain;
+}
+
+/* Contenedor de canvas para gráficos regenerados */
+.pdf-charts-area .canvas-slot {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    min-height: 120px;
+    position: relative;
+}
+
+.pdf-charts-area .canvas-slot canvas {
+    max-width: 100%;
+    max-height: 140px;
 }
 
 /* Footer del PDF */
