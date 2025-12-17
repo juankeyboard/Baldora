@@ -1945,6 +1945,25 @@ body::before {
     font-family: var(--font-main);
     color: var(--clr-rock-500);
     font-size: 0.9rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Imagen de fondo desvanecida al 15% */
+.main-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('../images/footer_background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.06;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .footer-content {
@@ -1955,6 +1974,8 @@ body::before {
     align-items: center;
     gap: var(--space-md);
     flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
 }
 
 /* --- BLOQUE DE MARCA --- */
