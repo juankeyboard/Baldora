@@ -2533,16 +2533,13 @@ body::before {
 }
 
 .character-avatar-wrapper {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    border: 3px solid var(--clr-sky-500);
-    overflow: hidden;
-    background: linear-gradient(135deg, #e8f4fc 0%, #fff 100%);
+    width: 70px;
+    height: auto;
+    overflow: visible;
+    background: transparent;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(126, 200, 227, 0.3);
 }
 
 .character-avatar-wrapper img {

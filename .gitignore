@@ -1,9 +1,5 @@
 # ===== Baldora - Git Ignore =====
 
-# API Keys and sensitive config
-js/api-config.js
-api-config.js
-
 # Node modules
 node_modules/
 

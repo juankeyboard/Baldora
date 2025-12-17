@@ -127,122 +127,40 @@ Reglas de Tono y Formato:
     },
 
     /**
-     * Muestra el resultado del análisis y revela las gráficas
+     * Muestra el resultado del análisis
      */
     showResult(text) {
-        // A. Mostrar Texto en la burbuja
+        // Mostrar Texto en la burbuja
         const textContainer = document.getElementById('ai-response-text');
         if (textContainer) {
             textContainer.innerText = text;
         }
         this.setUIState('success');
-
-        // B. REVELAR GRÁFICAS (La parte clave)
-        const chartsArea = document.getElementById('dashboard-charts-area');
-        if (chartsArea) {
-            chartsArea.classList.remove('charts-hidden');
-            chartsArea.classList.add('charts-visible');
-
-            // Forzar re-render de Chart.js si es necesario
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 100);
-        }
     },
 
     /**
-     * Maneja errores de la API - ofrece análisis local de fallback
+     * Maneja errores de la API - muestra mensaje de error con opción de reintentar
      */
     handleError(error) {
         const errorMessage = error.message || 'Error desconocido';
-        console.warn('Gemini API no disponible, usando análisis local:', errorMessage);
+        console.error('Error Gemini API:', errorMessage);
 
-        // Generar análisis local de fallback
-        const localAnalysis = this.generateLocalAnalysis();
-
-        // Mostrar en la burbuja de respuesta con indicación de que es análisis local
+        // Mostrar mensaje de error con opción de reintentar
         const textContainer = document.getElementById('ai-response-text');
         if (textContainer) {
             textContainer.innerHTML = `
-                <p style="font-size: 0.75rem; color: var(--clr-rock-500); margin-bottom: 8px; font-style: italic;">
-                    (Análisis local - conexión a IA no disponible)
+                <p style="color: #c0392b; margin-bottom: 10px; font-weight: 500;">
+                    No se pudo conectar con el entrenador virtual.
                 </p>
-                <p style="line-height: 1.6;">${localAnalysis}</p>
+                <p style="font-size: 0.85rem; color: var(--clr-rock-500); margin-bottom: 15px;">
+                    ${errorMessage}
+                </p>
+                <button onclick="GeminiService.triggerAnalysis()" class="btn-secondary" style="font-size: 0.9rem;">
+                    🔄 Reintentar
+                </button>
             `;
         }
-
-        // Guardar para el PDF
-        window.lastAIAnalysis = localAnalysis;
-
-        // Revelar las gráficas
         this.setUIState('success');
-        const chartsArea = document.getElementById('dashboard-charts-area');
-        if (chartsArea) {
-            chartsArea.classList.remove('charts-hidden');
-            chartsArea.classList.add('charts-visible');
-            setTimeout(() => {
-                window.dispatchEvent(new Event('resize'));
-            }, 100);
-        }
-    },
-
-    /**
-     * Genera un análisis local cuando la API no está disponible
-     */
-    generateLocalAnalysis() {
-        const history = DataManager.sessionData || [];
-        const stats = DataManager.getSessionStats();
-
-        if (!history || history.length === 0) {
-            return "No hay suficientes datos para generar un análisis. Completa una sesión de práctica primero.";
-        }
-
-        const accuracy = parseFloat(stats.accuracy);
-        const total = stats.total;
-        const errors = history.filter(h => h.is_correct === 0);
-
-        let analysis = "";
-
-        // Párrafo 1: Resumen general
-        if (accuracy >= 90) {
-            analysis += "Excelente sesión de práctica. Tu dominio de las tablas de multiplicar es sobresaliente.";
-        } else if (accuracy >= 70) {
-            analysis += "Buen trabajo en esta sesión. Muestras un progreso sólido en el dominio de las tablas.";
-        } else if (accuracy >= 50) {
-            analysis += "Sesión de práctica completada. Hay oportunidades claras para mejorar con más práctica.";
-        } else {
-            analysis += "Has dado el primer paso practicando. Cada intento te acerca más al dominio de las tablas.";
-        }
-
-        analysis += " ";
-
-        // Párrafo 2: Análisis de errores
-        if (errors.length === 0) {
-            analysis += "No cometiste ningún error en esta sesión, lo cual demuestra una excelente preparación. ";
-        } else {
-            const errorTables = [...new Set(errors.map(e => e.factor_a))].sort((a, b) => a - b);
-            if (errorTables.length <= 3) {
-                analysis += `Las tablas que necesitan más atención son: ${errorTables.join(', ')}. Enfócate en practicarlas más. `;
-            } else {
-                analysis += `Se detectaron ${errors.length} errores distribuidos en varias tablas. Practica de forma consistente para mejorar. `;
-            }
-        }
-
-        // Párrafo 3: Recomendaciones
-        analysis += "Te recomiendo escribir a mano las operaciones que más te cuestan. La escritura manual activa áreas del cerebro que refuerzan la memoria a largo plazo. Dedica 5 minutos diarios a escribir las tablas problemáticas en un cuaderno.";
-
-        return analysis;
-    },
-
-    /**
-     * Permite saltar el análisis y ver las gráficas directamente
-     */
-    skipAnalysis() {
-        const textContainer = document.getElementById('ai-response-text');
-        if (textContainer) {
-            textContainer.innerText = 'Análisis omitido. Revisa tus estadísticas abajo.';
-        }
-        this.showResult('');
     },
 
     /**
@@ -250,13 +168,6 @@ Reglas de Tono y Formato:
      */
     reset() {
         this.setUIState('idle');
-
-        // Ocultar gráficas
-        const chartsArea = document.getElementById('dashboard-charts-area');
-        if (chartsArea) {
-            chartsArea.classList.add('charts-hidden');
-            chartsArea.classList.remove('charts-visible');
-        }
 
         // Limpiar texto de respuesta
         const textContainer = document.getElementById('ai-response-text');
