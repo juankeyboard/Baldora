@@ -36,11 +36,13 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css">
     <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <!-- Firebase SDK v11+ (con soporte para AI Logic) -->
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-database-compat.js"></script>
+    <!-- Firebase AI Logic SDK (Gemini Developer API) -->
+    <script src="https://www.gstatic.com/firebasejs/11.0.0/firebase-ai-compat.js"></script>
     <script>
-        // Configuración de Firebase
+        // Configuración de Firebase (según Main_doc_f8_AI.md)
         const firebaseConfig = {
             apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
             authDomain: "baldora-89866.firebaseapp.com",
@@ -52,7 +54,10 @@
             measurementId: "G-RHWK9J2Z3S"
         };
         // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
+        const firebaseApp = firebase.initializeApp(firebaseConfig);
+        // Exponer config para GeminiService
+        window.firebaseConfig = firebaseConfig;
+        window.firebaseApp = firebaseApp;
     </script>
 
     <!-- Styles -->
@@ -316,8 +321,8 @@
                         <div id="ai-state-idle" class="ai-state-box">
                             <p class="ai-prompt-text">Sesion finalizada. Quieres que analice tu rendimiento y desbloquee
                                 tus graficas?</p>
-                            <button onclick="GeminiService.triggerAnalysis()" class="btn-primary ai-action-btn">&#10024;
-                                Analizar mis Resultados</button>
+                            <button onclick="GeminiService.triggerAnalysis()" class="btn-primary ai-action-btn">Analizar
+                                mis Resultados</button>
                         </div>
                         <div id="ai-state-loading" class="ai-state-box" style="display: none;">
                             <div class="ai-loading-spinner">

@@ -69,6 +69,11 @@ const App = {
         if (typeof Onboarding !== 'undefined') {
             Onboarding.init();
         }
+
+        // Inicializar GeminiService con Firebase AI Logic (Main_doc_f8_AI.md)
+        if (typeof GeminiService !== 'undefined' && window.firebaseApp) {
+            GeminiService.init(window.firebaseApp);
+        }
     },
 
     /**

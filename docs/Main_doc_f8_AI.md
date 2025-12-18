@@ -7,7 +7,7 @@
 | **Proyecto**  | Baldora                                    |
 | **Módulo**    | AI Coach / Análisis Cognitivo              |
 | **Dependencias** | Firebase SDK v11.0+, Firebase AI Logic  |
-| **Estado**    | 🚀 Actualizado con Documentación Oficial   |
+| **Estado**    | ✅ Implementación Completada               |
 
 ---
 
@@ -153,5 +153,16 @@ export default GeminiService;
 
 - [x] Eliminar claves de API de Google AI Studio del código fuente.
 - [x] Confirmar que el plan de Firebase es compatible con la API (Spark es suficiente para Gemini Developer API).
-- [ ] Implementar `GeminiService.init()` en el punto de entrada de la aplicación.
-- [ ] Validar la transición de estados visuales en el Dashboard tras el análisis.
+- [x] Implementar `GeminiService.init()` en el punto de entrada de la aplicación.
+- [x] Validar la transición de estados visuales en el Dashboard tras el análisis.
+
+---
+
+## 8. Archivos Modificados
+
+| Archivo | Cambio |
+|---------|--------|
+| `index.html` | Actualizado Firebase SDK a v11.0.0, agregado firebase-ai-compat.js, gráficas inician ocultas |
+| `js/gemini-service.js` | Reescrito para usar Firebase AI Logic SDK con fallback a API REST |
+| `js/api-config.js` | Documentación de seguridad, solo para desarrollo local |
+| `js/app.js` | Agregada inicialización de GeminiService en `App.init()` |

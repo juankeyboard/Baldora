@@ -1,24 +1,41 @@
 /**
- * GEMINI SERVICE - Integración con Gemini 1.5 Flash
+ * GEMINI SERVICE - Integración con Firebase AI Logic
  * Baldora - AI Coach / Análisis Cognitivo
- * Versión: 1.1
+ * Versión: 1.9 (Integración Oficial SDK AI Logic)
  * 
- * NOTA: La API Key debe configurarse en js/api-config.js (archivo gitignored)
- * Para producción en Firebase, usar Cloud Functions
+ * Implementación según Main_doc_f8_AI.md
+ * Usa Firebase AI Logic para acceso seguro a Gemini Developer API
  */
 
 const GeminiService = {
-    // API Configuration - Se carga desde api-config.js (no incluido en Git)
-    get apiKey() {
-        return (window.API_CONFIG && window.API_CONFIG.GEMINI_API_KEY) || null;
-    },
-    get apiUrl() {
-        return (window.API_CONFIG && window.API_CONFIG.GEMINI_API_URL) ||
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
-    },
+    // Modelo de IA (se inicializa con Firebase AI Logic)
+    model: null,
 
     // Estado actual del servicio
     currentState: 'idle', // idle, loading, success, error
+
+    /**
+     * Inicializa el servicio usando Firebase AI Logic
+     * @param {Object} firebaseApp - Instancia de Firebase App ya inicializada
+     */
+    async init(firebaseApp) {
+        try {
+            // Verificar si el SDK de Firebase AI está disponible
+            if (typeof firebase !== 'undefined' && firebase.ai) {
+                // Usar Firebase AI Logic SDK
+                const ai = firebase.ai(firebaseApp);
+                this.model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+                console.log('[GeminiService] Inicializado con Firebase AI Logic SDK');
+            } else {
+                // Fallback: Usar API REST directa (para desarrollo local)
+                console.log('[GeminiService] Firebase AI no disponible, usando API REST');
+                this.model = null;
+            }
+        } catch (error) {
+            console.warn('[GeminiService] Error al inicializar:', error);
+            this.model = null;
+        }
+    },
 
     /**
      * Método principal llamado por el botón "Analizar"
@@ -35,49 +52,20 @@ const GeminiService = {
         const promptData = this.formatDataForPrompt(history, stats);
 
         // Construir el prompt completo
-        const promptText = `
-Actúa como un experto en neuroeducación y memoria.
-Analiza los siguientes datos de una sesión de entrenamiento de tablas de multiplicar:
-
-${promptData}
-
-Instrucciones de Respuesta (Estrictas):
-1. La respuesta debe tener EXACTAMENTE 3 párrafos cortos.
-   - Párrafo 1: Resumen general del rendimiento (máximo 2 oraciones).
-   - Párrafo 2: Análisis específico de las fallas (si las hay).
-   - Párrafo 3: Recomendaciones concretas de mejora, incluyendo obligatoriamente ejercicios de escritura a mano alzada para reforzar la memoria.
-
-Reglas de Tono y Formato:
-1. TONO: Debe ser SIEMPRE positivo, pedagógico y motivador. Nunca uses lenguaje negativo o crítico. Si hay errores, enfócalos como oportunidades de mejora.
-2. NO uses emoticones ni emojis.
-3. Responde en español.
-4. Limita la respuesta total a máximo 150 palabras.
-`;
+        const promptText = this.buildPrompt(promptData);
 
         try {
-            const response = await fetch(`${this.apiUrl}?key=${this.apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }],
-                    generationConfig: {
-                        temperature: 0.7,
-                        maxOutputTokens: 300
-                    }
-                })
-            });
+            let aiText;
 
-            if (!response.ok) {
-                throw new Error(`HTTP Error: ${response.status}`);
+            if (this.model && typeof this.model.generateContent === 'function') {
+                // Usar Firebase AI Logic SDK
+                const result = await this.model.generateContent(promptText);
+                const response = await result.response;
+                aiText = response.text();
+            } else {
+                // Fallback: API REST directa
+                aiText = await this.callRestAPI(promptText);
             }
-
-            const data = await response.json();
-
-            if (!data.candidates || data.candidates.length === 0) {
-                throw new Error("No se recibió respuesta del modelo");
-            }
-
-            const aiText = data.candidates[0].content.parts[0].text;
 
             // 2. Éxito: Mostrar texto y REVELAR GRÁFICAS
             this.showResult(aiText);
@@ -90,6 +78,66 @@ Reglas de Tono y Formato:
             // 3. Error: Mostrar mensaje de error y permitir reintentar
             this.handleError(error);
         }
+    },
+
+    /**
+     * Fallback: Llamar a la API REST directamente
+     * NOTA: Solo para desarrollo local. En producción usar Firebase AI Logic.
+     */
+    async callRestAPI(promptText) {
+        const apiKey = (window.API_CONFIG && window.API_CONFIG.GEMINI_API_KEY) || null;
+        const apiUrl = (window.API_CONFIG && window.API_CONFIG.GEMINI_API_URL) ||
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+        if (!apiKey) {
+            throw new Error('API Key no configurada. Ver js/api-config.js');
+        }
+
+        const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 300
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error('Análisis de depuración - Error HTTP:', response.status, errorBody);
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error("No se recibió respuesta del modelo");
+        }
+
+        return data.candidates[0].content.parts[0].text;
+    },
+
+    /**
+     * Construye el prompt completo con contexto pedagógico
+     */
+    buildPrompt(promptData) {
+        return `Actúa como un experto en neuroeducación.
+Contexto: Usuario entrenando tablas de multiplicar.
+Datos: ${promptData}
+
+Instrucciones:
+- Responde en 3 párrafos cortos (Máximo 150 palabras total).
+- Párrafo 1: Refuerzo positivo del progreso.
+- Párrafo 2: Identificación de "puntos de fricción" (ej. tabla del 7).
+- Párrafo 3: Prescripción de ejercicios de ESCRITURA MANUAL.
+
+Reglas de Tono y Formato:
+1. TONO: Debe ser SIEMPRE positivo, pedagógico y motivador. Nunca uses lenguaje negativo o crítico. Si hay errores, enfócalos como oportunidades de mejora.
+2. NO uses emoticones ni emojis.
+3. Responde en español.`;
     },
 
     /**
@@ -143,7 +191,7 @@ Reglas de Tono y Formato:
      */
     handleError(error) {
         const errorMessage = error.message || 'Error desconocido';
-        console.error('Error Gemini API:', errorMessage);
+        console.error('Análisis de depuración - Error SDK AI Logic:', errorMessage);
 
         // Mostrar mensaje de error con opción de reintentar
         const textContainer = document.getElementById('ai-response-text');
@@ -156,7 +204,7 @@ Reglas de Tono y Formato:
                     ${errorMessage}
                 </p>
                 <button onclick="GeminiService.triggerAnalysis()" class="btn-secondary" style="font-size: 0.9rem;">
-                    🔄 Reintentar
+                    Reintentar
                 </button>
             `;
         }
@@ -187,34 +235,25 @@ Reglas de Tono y Formato:
             return 'Sin datos de sesión.';
         }
 
-        // Estadísticas generales
-        let prompt = `ESTADÍSTICAS GENERALES:\n`;
-        prompt += `- Total de operaciones: ${stats.total}\n`;
-        prompt += `- Respuestas correctas: ${stats.correct}\n`;
-        prompt += `- Respuestas incorrectas: ${stats.total - stats.correct}\n`;
-        prompt += `- Precisión: ${stats.accuracy}%\n`;
-        prompt += `- Tiempo promedio de respuesta: ${stats.avgTime}ms\n\n`;
+        // Formato compacto para el prompt según documentación
+        const historyStr = history.map(h =>
+            `${h.factor_a}x${h.factor_b}:${h.is_correct ? 'Si' : 'No'}`
+        ).join(', ');
+
+        // Estadísticas adicionales
+        let prompt = `Historial: ${historyStr}\n`;
+        prompt += `ESTADÍSTICAS: Total=${stats.total}, Correctas=${stats.correct}, `;
+        prompt += `Precisión=${stats.accuracy}%, TiempoPromedio=${stats.avgTime}ms\n`;
 
         // Errores específicos
         const errors = history.filter(h => h.is_correct === 0);
         if (errors.length > 0) {
-            prompt += `OPERACIONES CON ERRORES:\n`;
-            errors.forEach(e => {
+            prompt += `ERRORES: `;
+            prompt += errors.map(e => {
                 const correctAnswer = e.factor_a * e.factor_b;
-                prompt += `- ${e.factor_a} × ${e.factor_b} = ${correctAnswer} (el jugador respondió: ${e.user_input})\n`;
-            });
-        } else {
-            prompt += `OPERACIONES CON ERRORES: Ninguna - ¡Sesión perfecta!\n`;
+                return `${e.factor_a}x${e.factor_b}=${correctAnswer}(respondió:${e.user_input})`;
+            }).join(', ');
         }
-
-        // Operaciones más lentas
-        const sortedByTime = [...history].sort((a, b) => b.response_time - a.response_time);
-        const slowest = sortedByTime.slice(0, 3);
-
-        prompt += `\nOPERACIONES MÁS LENTAS:\n`;
-        slowest.forEach(s => {
-            prompt += `- ${s.factor_a} × ${s.factor_b}: ${s.response_time}ms\n`;
-        });
 
         return prompt;
     }
