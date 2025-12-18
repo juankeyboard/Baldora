@@ -95,7 +95,56 @@ const GeminiService = {
         }
     },
 
-    // ... (callRestAPI se mantiene igual) ...
+    /**
+     * Fallback: Llamar a la API REST directamente
+     * NOTA: Solo para desarrollo local. En producción usar Firebase AI Logic.
+     */
+    async callRestAPI(promptText) {
+        const apiKey = (window.API_CONFIG && window.API_CONFIG.GEMINI_API_KEY) || null;
+        const apiUrl = (window.API_CONFIG && window.API_CONFIG.GEMINI_API_URL) ||
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+
+        if (!apiKey) {
+            throw new Error('API Key no configurada. Ver js/api-config.js');
+        }
+
+        const fullUrl = `${apiUrl}?key=${apiKey}`;
+        console.log('[GeminiService] URL de la API:', apiUrl);
+        console.log('[GeminiService] API Key (primeros 10 chars):', apiKey.substring(0, 10) + '...');
+
+        const requestBody = {
+            contents: [{ parts: [{ text: promptText }] }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 300
+            }
+        };
+
+        console.log('[GeminiService] Enviando request...');
+
+        const response = await fetch(fullUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error('[GeminiService] Error HTTP:', response.status);
+            console.error('[GeminiService] Error Body:', errorBody);
+            console.error('[GeminiService] URL usada:', fullUrl);
+            throw new Error(`HTTP Error: ${response.status} - ${errorBody}`);
+        }
+
+        const data = await response.json();
+        console.log('[GeminiService] Respuesta recibida exitosamente');
+
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error("No se recibió respuesta del modelo");
+        }
+
+        return data.candidates[0].content.parts[0].text;
+    },
 
     /**
      * Construye el prompt completo con el contenido CSV
