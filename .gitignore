@@ -34,3 +34,6 @@ firebase-debug.log
 gen-lang-client*.json
 *-service-account.json
 *.pem
+
+# API Keys - NUNCA COMMITEAR (Regla de Oro - Main_doc_f8_AI.md)
+js/api-config.js

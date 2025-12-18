@@ -1,168 +1,133 @@
-# Documento Maestro de Ingeniería: Integración AI (Firebase AI Logic)
+# Guía de Configuración: Análisis de CSV con Gemini y Firebase AI Logic
 
-| Campo         | Valor                                      |
-|---------------|--------------------------------------------|
-| **Versión**   | 1.9 (Integración Oficial SDK AI Logic)     |
-| **Fecha**     | 18 de Diciembre, 2025                      |
-| **Proyecto**  | Baldora                                    |
-| **Módulo**    | AI Coach / Análisis Cognitivo              |
-| **Dependencias** | Firebase SDK v11.0+, Firebase AI Logic  |
-| **Estado**    | ✅ Implementación Completada               |
+Esta guía detalla el proceso técnico para integrar la API de Gemini en tu juego utilizando los SDKs de Firebase AI Logic, permitiendo el análisis de archivos `.csv` generados al final de la partida.
 
 ---
 
-## 1. Visión General y Requisitos
+## 1. Requisitos Previos
 
-Este módulo utiliza **Firebase AI Logic** para conectar la aplicación web con la **Gemini Developer API**. Según la documentación técnica oficial:
-
-- Se permite el acceso a modelos como **Gemini 1.5 Flash** de forma segura.
-- Se utiliza una arquitectura híbrida donde Firebase gestiona la autenticación y el ruteo hacia la IA.
-
----
-
-## 2. Directriz de Seguridad Crítica (Paso 2 PDF)
-
-> ⚠️ **REGLA DE ORO:** *"No agregues la clave de API de Gemini directamente a la base de código de tu app"*.
-
-Al usar Firebase AI Logic, la seguridad se maneja mediante:
-
-1. El aprovisionamiento de la clave en la consola de Firebase (**Secret Manager**).
-2. El uso opcional de **Firebase App Check** para mitigar el tráfico abusivo y asegurar que solo tu dominio (`baldorajuego.web.app`) acceda al modelo.
+- Un entorno de desarrollo para aplicaciones Web (JavaScript/Node.js).
+- Una cuenta de Google con acceso a Firebase Console.
+- El archivo `.csv` generado por tu juego debe ser accesible como cadena de texto (string) o buffer para ser enviado al modelo.
 
 ---
 
-## 3. Configuración del Backend
+## 2. Configuración del Proyecto en Firebase
 
-Para que los fragmentos de código del Paso 5 funcionen, se debe haber completado en la consola:
+### Paso 1: Crear y conectar el proyecto
+1. Accede a la consola de Firebase y selecciona tu proyecto.
+2. Ve a la sección **AI Logic** en el menú lateral.
+3. Haz clic en **Comenzar** para habilitar las APIs necesarias.
+4. Selecciona el proveedor **Gemini API**.
+   - *Recomendación:* Usa **Gemini Developer API** (disponible en el plan Spark sin costo) para pruebas iniciales.
+5. Registra tu aplicación web para obtener el objeto `firebaseConfig`.
 
-1. **Pestaña AI Logic:** Clic en "Comenzar".
-2. **Proveedor:** Seleccionar "Gemini API" (para usar el plan Spark sin costo obligatorio inicial).
-3. **APIs:** La consola habilitará automáticamente **Generative Language API**.
+### Paso 2: Seguridad (App Check)
+Se recomienda configurar **Firebase App Check** antes de pasar a producción para proteger tus llamadas a la API de Gemini de usos no autorizados.
 
 ---
 
-## 4. Ingeniería del Prompt (Contexto Pedagógico)
+## 3. Instalación e Inicialización del SDK
 
-El prompt debe inyectar los datos en un formato que el modelo entienda como una secuencia de eventos de aprendizaje:
+### Instalación
+Instala el SDK de Firebase mediante npm (si usas bundler) o usa CDN:
 
-```text
-Actúa como un experto en neuroeducación.
-Contexto: Usuario entrenando tablas de multiplicar.
-Datos: [HISTORIAL_SESION]
-
-Instrucciones:
-- Responde en 3 párrafos cortos (Máximo 150 palabras total).
-- Párrafo 1: Refuerzo positivo del progreso.
-- Párrafo 2: Identificación de "puntos de fricción" (ej. tabla del 7).
-- Párrafo 3: Prescripción de ejercicios de ESCRITURA MANUAL.
+```bash
+npm install firebase
 ```
 
----
-
-## 5. Implementación Técnica (SDK Modular Web)
-
-Siguiendo el **Paso 3 y 4** del documento técnico, esta es la implementación optimizada para el entorno de Baldora.
-
-### 5.1. Servicio de IA (`GeminiService.js`)
+### Inicialización técnica
+Configura el backend de AI Logic en tu código principal:
 
 ```javascript
-// Importaciones modulares oficiales (CDN para Antigravity)
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-ai.js";
+import { initializeApp } from "firebase/app";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
-const GeminiService = {
-    model: null,
-
-    // Inicializa el servicio usando el objeto config de Firebase
-    init(firebaseConfig) {
-        const app = initializeApp(firebaseConfig);
-        
-        // Inicializa el backend de Gemini API para desarrolladores
-        const ai = getAI(app, { 
-            backend: new GoogleAIBackend() 
-        });
-
-        // Crea la instancia del modelo (Gemini 1.5 Flash recomendado por velocidad/costo)
-        this.model = getGenerativeModel(ai, { 
-            model: "gemini-1.5-flash" 
-        });
-    },
-
-    async triggerAnalysis(sessionData) {
-        this.setUIState('loading');
-        
-        const prompt = this.buildPrompt(sessionData);
-
-        try {
-            // Llamada oficial al SDK: generateContent
-            const result = await this.model.generateContent(prompt);
-            const response = await result.response;
-            const text = response.text();
-
-            this.showResult(text);
-        } catch (error) {
-            console.error('Análisis de depuración - Error SDK AI Logic:', error);
-            this.handleError(error);
-        }
-    },
-
-    setUIState(state) {
-        const divs = ['idle', 'loading', 'success'];
-        divs.forEach(s => {
-            const el = document.getElementById(`ai-state-${s}`);
-            if (el) el.style.display = (s === state) ? 'block' : 'none';
-        });
-    },
-
-    showResult(text) {
-        const output = document.getElementById('ai-response-text');
-        if (output) output.innerText = text;
-        
-        this.setUIState('success');
-
-        // Revelación de gráficas (Regla de negocio Baldora)
-        const charts = document.getElementById('dashboard-charts-area');
-        if (charts) {
-            charts.classList.remove('charts-hidden');
-            charts.classList.add('charts-visible');
-        }
-    },
-
-    buildPrompt(data) {
-        const historyStr = data.map(h => `${h.fA}x${h.fB}:${h.ok?'Si':'No'}`).join(', ');
-        return `Neuro-coach: Analiza ${historyStr}. 3 párrafos. Enfócate en escritura manual. No emojis.`;
-    }
+// Configuración de tu app (obtenida en la consola de Firebase)
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "tu-app.firebaseapp.com",
+  projectId: "tu-app",
+  storageBucket: "tu-app.appspot.com",
+  messagingSenderId: "ID_SENDER",
+  appId: "ID_APP"
 };
 
-export default GeminiService;
+// Inicializar Firebase
+const firebaseApp = initializeApp(firebaseConfig);
+
+// Inicializar el servicio de backend de Gemini
+const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+
+// Crear instancia del modelo (se recomienda gemini-2.5-flash por su velocidad y costo)
+const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
 ```
 
 ---
 
-## 6. Análisis de Depuración (Preventivo)
+## 4. Lógica de Análisis del archivo .csv
 
-| Problema                    | Descripción                                                                                                              |
-|-----------------------------|--------------------------------------------------------------------------------------------------------------------------|
-| **Versiones Incompatibles** | Si usas `firebase-app.js` v11, no intentes usar `firebase-ai.js` v10. El SDK de AI Logic es nuevo y requiere versiones recientes. |
-| **Carga de Módulos**        | Asegúrate de que tu archivo HTML cargue el script como `type="module"`.                                                  |
-| **App Check**               | Si habilitas App Check, el SDK fallará en localhost a menos que configures un **token de depuración** (Debug Token).    |
+Para procesar el archivo `.csv` de tu juego, debes leer el contenido del archivo y enviarlo como parte del prompt. Gemini es excelente procesando datos estructurados en texto.
+
+### Función de análisis:
+
+```javascript
+async function analizarResultadosJuego(contenidoCSV) {
+  try {
+    // Definir el prompt de contexto para Gemini
+    const prompt = `
+      Actúa como un analista de datos de videojuegos. 
+      A continuación te proporciono un archivo CSV con los resultados de la partida actual. 
+      Por favor, analiza el desempeño del jugador y devuelve un resumen con:
+      1. Puntuación final y ranking.
+      2. Áreas de mejora detectadas.
+      3. Un mensaje motivador personalizado.
+
+      Datos del CSV:
+      ${contenidoCSV}
+    `;
+
+    // Llamada a la API de Gemini
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    const textoResultado = response.text();
+
+    console.log("Análisis de Gemini:", textoResultado);
+    return textoResultado;
+    
+  } catch (error) {
+    console.error("Error al analizar el CSV:", error);
+    // Implementar reintentos con backoff exponencial si es necesario
+  }
+}
+```
 
 ---
 
-## 7. Checklist de Implementación Final
+## 5. Detalles Técnicos Importantes
 
-- [x] Eliminar claves de API de Google AI Studio del código fuente.
-- [x] Confirmar que el plan de Firebase es compatible con la API (Spark es suficiente para Gemini Developer API).
-- [x] Implementar `GeminiService.init()` en el punto de entrada de la aplicación.
-- [x] Validar la transición de estados visuales en el Dashboard tras el análisis.
+### Modelos Disponibles
+- **Gemini 2.5 Flash:** Optimizado para velocidad y eficiencia. Ideal para análisis rápidos de fin de juego.
+- **Gemini 1.5 Pro:** Mayor capacidad de razonamiento para análisis complejos o archivos CSV muy extensos.
+
+### Parámetros de Generación (Opcional)
+Puedes ajustar la "creatividad" del análisis configurando la temperatura:
+
+```javascript
+const model = getGenerativeModel(ai, { 
+  model: "gemini-2.5-flash",
+  generationConfig: {
+    temperature: 0.7, // Ajusta entre 0 (preciso) y 1 (creativo)
+    maxOutputTokens: 1000
+  }
+});
+```
+
+### Manejo de Errores y Depuración
+Siguiendo las mejores prácticas de desarrollo:
+- **Validación:** Asegúrate de que el CSV no esté vacío antes de enviarlo.
+- **Backoff:** Si la API devuelve un error de cuota, implementa una espera de 1s, 2s, 4s antes de reintentar.
+- **Privacidad:** No incluyas datos personales sensibles del usuario en el CSV enviado a la API pública.
 
 ---
-
-## 8. Archivos Modificados
-
-| Archivo | Cambio |
-|---------|--------|
-| `index.html` | Actualizado Firebase SDK a v11.0.0, agregado firebase-ai-compat.js, gráficas inician ocultas |
-| `js/gemini-service.js` | Reescrito para usar Firebase AI Logic SDK con fallback a API REST |
-| `js/api-config.js` | Documentación de seguridad, solo para desarrollo local |
-| `js/app.js` | Agregada inicialización de GeminiService en `App.init()` |
+*Documentación generada a partir del manual de Firebase AI Logic - Diciembre 2025.*
