@@ -71,9 +71,10 @@ const App = {
         }
 
         // Inicializar GeminiService con Firebase AI Logic (Main_doc_f8_AI.md)
-        if (typeof GeminiService !== 'undefined' && window.firebaseApp) {
-            GeminiService.init(window.firebaseApp);
-        }
+        // Nota: GeminiService (Modular) se auto-inicializa al importar
+        // if (typeof GeminiService !== 'undefined' && window.firebaseApp) {
+        //     GeminiService.init(window.firebaseApp);
+        // }
     },
 
     /**
