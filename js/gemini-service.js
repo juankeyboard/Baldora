@@ -1,80 +1,99 @@
 /**
- * GEMINI SERVICE - Integración con Firebase AI Logic (Modular)
+ * GEMINI SERVICE - Integración con Firebase AI Logic (Compat/Global)
  * Baldora - AI Coach / Análisis Cognitivo
- * Versión: 3.0 (Modular ES6)
+ * Versión: 4.0 (Global Scope)
  */
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
-import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-ai.js";
-
-// Configuración de Firebase (debe coincidir con la de index.html)
-const firebaseConfig = {
-    apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
-    authDomain: "baldora-89866.firebaseapp.com",
-    databaseURL: "https://baldora-89866-default-rtdb.firebaseio.com",
-    projectId: "baldora-89866",
-    storageBucket: "baldora-89866.firebasestorage.app",
-    messagingSenderId: "801097863804",
-    appId: "1:801097863804:web:6526f17db5b8443d27eff9",
-    measurementId: "G-RHWK9J2Z3S"
-};
-
-// Inicializar Firebase App (Modular)
-// Nota: Usamos un nombre de app distinto para evitar conflicto con la app compat global si existe
-let app;
-try {
-    app = initializeApp(firebaseConfig, "GeminiServiceApp");
-} catch (e) {
-    // Si ya existe, intentamos obtenerla o usar la default
-    app = initializeApp(firebaseConfig);
-}
-
-// Inicializar AI Service
-const ai = getAI(app, { backend: new GoogleAIBackend() });
-
-// Inicializar Modelo
-const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
 
 const GeminiService = {
     currentState: 'idle',
+    model: null,
+
+    /**
+     * Inicializa el servicio usando el SDK global de Firebase
+     */
+    init() {
+        console.log('[GeminiService] Inicializando...');
+
+        if (typeof firebase === 'undefined') {
+            console.error('[GeminiService] Firebase SDK no encontrado.');
+            return;
+        }
+
+        if (!firebase.ai) {
+            console.error('[GeminiService] Firebase AI SDK no encontrado. Verifica que firebase-ai-compat.js esté cargado.');
+            return;
+        }
+
+        try {
+            // Obtener instancia de Vertex AI para Firebase
+            // En la versión compat, esto usa la app por defecto inicializada en index.html
+            const ai = firebase.ai();
+
+            // Obtener el modelo generativo
+            // Usamos gemini-1.5-flash que es el estándar actual, o gemini-pro si flash falla
+            this.model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+            console.log('[GeminiService] Modelo Gemini inicializado correctamente.');
+        } catch (error) {
+            console.error('[GeminiService] Error al inicializar modelo:', error);
+        }
+    },
 
     /**
      * Método principal llamado por el botón "Analizar"
      */
     async triggerAnalysis() {
+        console.log('[GeminiService] Trigger analysis solicitado.');
+
+        if (!this.model) {
+            // Intentar inicializar si no está listo
+            this.init();
+            if (!this.model) {
+                this.handleError(new Error("El servicio de IA no está disponible. Recarga la página."));
+                return;
+            }
+        }
+
         this.setUIState('loading');
 
         // Obtener historial de la sesión actual (DataManager es global)
         const history = window.DataManager ? window.DataManager.sessionData : [];
 
         if (!history || history.length === 0) {
-            this.handleError(new Error("No hay datos de sesión para analizar."));
+            this.handleError(new Error("No hay datos de sesión para analizar. Juega una partida primero."));
             return;
         }
 
         // Generar CSV usando PapaParse (Papa es global)
-        const csvContent = window.Papa.unparse(history, {
-            header: true,
-            columns: [
-                'timestamp', 'nickname', 'game_mode',
-                'factor_a', 'factor_b', 'user_input',
-                'correct_result', 'is_correct', 'response_time'
-            ]
-        });
+        let csvContent = "";
+        if (window.Papa) {
+            csvContent = window.Papa.unparse(history, {
+                header: true,
+                columns: [
+                    'timestamp', 'nickname', 'game_mode',
+                    'factor_a', 'factor_b', 'user_input',
+                    'correct_result', 'is_correct', 'response_time'
+                ]
+            });
+        } else {
+            this.handleError(new Error("Librería PapaParse no cargada."));
+            return;
+        }
 
         const promptText = this.buildPrompt(csvContent);
 
         try {
-            console.log('[GeminiService] Usando Firebase AI Logic (Modular)...');
-            const result = await model.generateContent(promptText);
+            console.log('[GeminiService] Enviando prompt a Gemini...');
+            const result = await this.model.generateContent(promptText);
             const response = await result.response;
             const aiText = response.text();
 
+            console.log('[GeminiService] Respuesta recibida.');
             this.showResult(aiText);
             window.lastAIAnalysis = aiText;
 
         } catch (error) {
-            console.error('Error Gemini:', error);
+            console.error('[GeminiService] Error en la petición:', error);
             this.handleError(error);
         }
     },
@@ -118,7 +137,11 @@ Reglas de Tono y Formato:
 
     showResult(text) {
         const textContainer = document.getElementById('ai-response-text');
-        if (textContainer) textContainer.innerText = text;
+        // Convertir markdown básico a HTML simple si es necesario, o usar innerText para seguridad
+        // Aquí usamos innerText para evitar XSS, pero reemplazamos saltos de línea
+        if (textContainer) {
+            textContainer.innerHTML = text.replace(/\n/g, '<br>');
+        }
         this.setUIState('success');
     },
 
@@ -151,5 +174,13 @@ Reglas de Tono y Formato:
     }
 };
 
-// Exponer globalmente para que app.js pueda usarlo
+// Exponer globalmente
 window.GeminiService = GeminiService;
+
+// Inicializar automáticamente cuando el script carga (ya que está al final del body)
+// O esperar a que Firebase esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => GeminiService.init());
+} else {
+    GeminiService.init();
+}
