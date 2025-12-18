@@ -20,7 +20,8 @@
 const API_CONFIG = {
     // Fallback para desarrollo local (cuando Firebase AI no está disponible)
     GEMINI_API_KEY: 'AIzaSyCvXVVmOxrAOjNXYORyXnqeoO8F2hamxwQ',
-    GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent'
+    // Usar gemini-2.5-flash (modelo oficial según documentación Firebase AI Logic)
+    GEMINI_API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 };
 
 window.API_CONFIG = API_CONFIG;

@@ -1,9 +1,9 @@
 /**
  * GEMINI SERVICE - Integración con Firebase AI Logic
  * Baldora - AI Coach / Análisis Cognitivo
- * Versión: 1.9 (Integración Oficial SDK AI Logic)
+ * Versión: 2.0 (Actualizado con gemini-2.5-flash)
  * 
- * Implementación según Main_doc_f8_AI.md
+ * Implementación según documentación oficial Firebase AI Logic
  * Usa Firebase AI Logic para acceso seguro a Gemini Developer API
  */
 
@@ -16,15 +16,16 @@ const GeminiService = {
 
     /**
      * Inicializa el servicio usando Firebase AI Logic
+     * Según documentación: getAI(firebaseApp, { backend: new GoogleAIBackend() })
      * @param {Object} firebaseApp - Instancia de Firebase App ya inicializada
      */
     async init(firebaseApp) {
         try {
-            // Verificar si el SDK de Firebase AI está disponible
+            // Verificar si el SDK de Firebase AI está disponible (modo modular)
             if (typeof firebase !== 'undefined' && firebase.ai) {
-                // Usar Firebase AI Logic SDK
-                const ai = firebase.ai(firebaseApp);
-                this.model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+                // Usar Firebase AI Logic SDK con GoogleAIBackend
+                const ai = firebase.ai(firebaseApp, { backend: new firebase.ai.GoogleAIBackend() });
+                this.model = ai.getGenerativeModel({ model: "gemini-2.5-flash" });
                 console.log('[GeminiService] Inicializado con Firebase AI Logic SDK');
             } else {
                 // Fallback: Usar API REST directa (para desarrollo local)
@@ -32,7 +33,8 @@ const GeminiService = {
                 this.model = null;
             }
         } catch (error) {
-            console.warn('[GeminiService] Error al inicializar:', error);
+            console.warn('[GeminiService] Error al inicializar Firebase AI:', error);
+            console.log('[GeminiService] Usando fallback API REST');
             this.model = null;
         }
     },
@@ -59,15 +61,17 @@ const GeminiService = {
 
             if (this.model && typeof this.model.generateContent === 'function') {
                 // Usar Firebase AI Logic SDK
+                console.log('[GeminiService] Usando Firebase AI Logic SDK...');
                 const result = await this.model.generateContent(promptText);
                 const response = await result.response;
                 aiText = response.text();
             } else {
                 // Fallback: API REST directa
+                console.log('[GeminiService] Usando API REST fallback...');
                 aiText = await this.callRestAPI(promptText);
             }
 
-            // 2. Éxito: Mostrar texto y REVELAR GRÁFICAS
+            // 2. Éxito: Mostrar texto
             this.showResult(aiText);
 
             // Guardar para el PDF
@@ -87,31 +91,42 @@ const GeminiService = {
     async callRestAPI(promptText) {
         const apiKey = (window.API_CONFIG && window.API_CONFIG.GEMINI_API_KEY) || null;
         const apiUrl = (window.API_CONFIG && window.API_CONFIG.GEMINI_API_URL) ||
-            'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+            'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
         if (!apiKey) {
             throw new Error('API Key no configurada. Ver js/api-config.js');
         }
 
-        const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+        const fullUrl = `${apiUrl}?key=${apiKey}`;
+        console.log('[GeminiService] URL de la API:', apiUrl);
+        console.log('[GeminiService] API Key (primeros 10 chars):', apiKey.substring(0, 10) + '...');
+
+        const requestBody = {
+            contents: [{ parts: [{ text: promptText }] }],
+            generationConfig: {
+                temperature: 0.7,
+                maxOutputTokens: 300
+            }
+        };
+
+        console.log('[GeminiService] Enviando request...');
+
+        const response = await fetch(fullUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: {
-                    temperature: 0.7,
-                    maxOutputTokens: 300
-                }
-            })
+            body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
             const errorBody = await response.text();
-            console.error('Análisis de depuración - Error HTTP:', response.status, errorBody);
-            throw new Error(`HTTP Error: ${response.status}`);
+            console.error('[GeminiService] Error HTTP:', response.status);
+            console.error('[GeminiService] Error Body:', errorBody);
+            console.error('[GeminiService] URL usada:', fullUrl);
+            throw new Error(`HTTP Error: ${response.status} - ${errorBody}`);
         }
 
         const data = await response.json();
+        console.log('[GeminiService] Respuesta recibida exitosamente');
 
         if (!data.candidates || data.candidates.length === 0) {
             throw new Error("No se recibió respuesta del modelo");
