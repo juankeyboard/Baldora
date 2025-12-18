@@ -31,8 +31,8 @@ try {
 const ai = getAI(app, { backend: new GoogleAIBackend() });
 
 // 3. Create a `GenerativeModel` instance
-// Usamos gemini-1.5-flash como modelo principal
-const model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
+// Usamos gemini-2.5-flash según documentación reciente
+const model = getGenerativeModel(ai, { model: "gemini-2.5-flash" });
 
 const GeminiService = {
     currentState: 'idle',
@@ -84,23 +84,24 @@ const GeminiService = {
     },
 
     buildPrompt(csvContent) {
-        return `Actúa como un experto en neuroeducación y analista de datos.
-A continuación te proporciono un archivo CSV con los resultados de la partida actual de un estudiante.
+        return `Actúa como un experto en aprendizaje acelerado y análisis de datos educativos para examinar mis resultados recientes en el juego 'Baldora' (adjuntos en CSV), generando un reporte estricto que inicie con un diagnóstico ejecutivo de mi estado actual, comparando mi precisión y velocidad frente a estándares de maestría para evaluar mi progreso y nivel de confianza.
 
 Datos del CSV:
 ${csvContent}
 
 Instrucciones:
-Analiza el desempeño del jugador basándote en los datos del CSV y devuelve un resumen en 3 párrafos cortos (Máximo 150 palabras total):
-
-1. Párrafo 1: Refuerzo positivo del progreso y análisis general de precisión/velocidad.
-2. Párrafo 2: Identificación precisa de "puntos de fricción" (tablas o multiplicaciones específicas donde falló o fue lento).
-3. Párrafo 3: Prescripción de ejercicios concretos (ej. "Practica la tabla del 7 escribiéndola a mano").
+1. Diagnóstico Ejecutivo: Evalúa mi estado actual basándote en los datos.
+2. Observaciones Detalladas: Identifica y explica la causa raíz de mis patrones de error, buscando 'cables cruzados' o fallos por velocidad para señalar mis tablas débiles de hoy.
+3. Plan de Acción Práctico:
+   - Tres ejercicios breves de escritura y mnemotecnia.
+   - Una rima para mi error más frecuente (si hubo errores).
+   - Una regla de oro mental para aplicar durante el juego.
 
 Reglas de Tono y Formato:
 1. TONO: Debe ser SIEMPRE positivo, pedagógico y motivador.
 2. NO uses emoticones ni emojis.
-3. Responde en español.`;
+3. Responde en español.
+4. Sé conciso pero profundo.`;
     },
 
     setUIState(state) {
