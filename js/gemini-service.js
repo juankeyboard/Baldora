@@ -1,70 +1,57 @@
 /**
- * GEMINI SERVICE - Integración con Firebase AI Logic (Compat/Global)
+ * GEMINI SERVICE - Integración con Firebase AI Logic (Modular - Gemini Developer API)
  * Baldora - AI Coach / Análisis Cognitivo
- * Versión: 4.0 (Global Scope)
+ * Versión: 6.0 (Modular ES6 - Strict Documentation Compliance)
  */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-ai.js";
+
+// Configuración de Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
+    authDomain: "baldora-89866.firebaseapp.com",
+    databaseURL: "https://baldora-89866-default-rtdb.firebaseio.com",
+    projectId: "baldora-89866",
+    storageBucket: "baldora-89866.firebasestorage.app",
+    messagingSenderId: "801097863804",
+    appId: "1:801097863804:web:6526f17db5b8443d27eff9",
+    measurementId: "G-RHWK9J2Z3S"
+};
+
+// 1. Initialize FirebaseApp
+// Usamos un nombre único para evitar conflictos con la app global si existe
+let app;
+try {
+    app = initializeApp(firebaseConfig, "GeminiModularApp");
+} catch (e) {
+    // Si falla (ej. nombre duplicado), intentamos inicializar sin nombre o reusar
+    app = initializeApp(firebaseConfig);
+}
+
+// 2. Initialize the Gemini Developer API backend service
+const ai = getAI(app, { backend: new GoogleAIBackend() });
+
+// 3. Create a `GenerativeModel` instance
+// Usamos gemini-1.5-flash como modelo principal
+const model = getGenerativeModel(ai, { model: "gemini-1.5-flash" });
 
 const GeminiService = {
     currentState: 'idle',
-    model: null,
 
-    /**
-     * Inicializa el servicio usando el SDK global de Firebase
-     */
-    init() {
-        console.log('[GeminiService] Inicializando...');
-
-        if (typeof firebase === 'undefined') {
-            console.error('[GeminiService] Firebase SDK no encontrado.');
-            return;
-        }
-
-        if (!firebase.ai) {
-            console.error('[GeminiService] Firebase AI SDK no encontrado. Verifica que firebase-ai-compat.js esté cargado.');
-            return;
-        }
-
-        try {
-            // Obtener instancia de Vertex AI para Firebase
-            // En la versión compat, esto usa la app por defecto inicializada en index.html
-            const ai = firebase.ai();
-
-            // Obtener el modelo generativo
-            // Usamos gemini-1.5-flash que es el estándar actual, o gemini-pro si flash falla
-            this.model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-            console.log('[GeminiService] Modelo Gemini inicializado correctamente.');
-        } catch (error) {
-            console.error('[GeminiService] Error al inicializar modelo:', error);
-        }
-    },
-
-    /**
-     * Método principal llamado por el botón "Analizar"
-     */
     async triggerAnalysis() {
-        console.log('[GeminiService] Trigger analysis solicitado.');
-
-        if (!this.model) {
-            // Intentar inicializar si no está listo
-            this.init();
-            if (!this.model) {
-                this.handleError(new Error("El servicio de IA no está disponible. Recarga la página."));
-                return;
-            }
-        }
-
+        console.log('[GeminiService Modular] Trigger analysis solicitado.');
         this.setUIState('loading');
 
-        // Obtener historial de la sesión actual (DataManager es global)
+        // Obtener historial (DataManager es global)
         const history = window.DataManager ? window.DataManager.sessionData : [];
 
         if (!history || history.length === 0) {
-            this.handleError(new Error("No hay datos de sesión para analizar. Juega una partida primero."));
+            this.handleError(new Error("No hay datos de sesión para analizar."));
             return;
         }
 
-        // Generar CSV usando PapaParse (Papa es global)
+        // Generar CSV
         let csvContent = "";
         if (window.Papa) {
             csvContent = window.Papa.unparse(history, {
@@ -83,17 +70,17 @@ const GeminiService = {
         const promptText = this.buildPrompt(csvContent);
 
         try {
-            console.log('[GeminiService] Enviando prompt a Gemini...');
-            const result = await this.model.generateContent(promptText);
+            console.log('[GeminiService Modular] Enviando prompt a Gemini...');
+            const result = await model.generateContent(promptText);
             const response = await result.response;
             const aiText = response.text();
 
-            console.log('[GeminiService] Respuesta recibida.');
+            console.log('[GeminiService Modular] Respuesta recibida.');
             this.showResult(aiText);
             window.lastAIAnalysis = aiText;
 
         } catch (error) {
-            console.error('[GeminiService] Error en la petición:', error);
+            console.error('[GeminiService Modular] Error:', error);
             this.handleError(error);
         }
     },
@@ -137,8 +124,6 @@ Reglas de Tono y Formato:
 
     showResult(text) {
         const textContainer = document.getElementById('ai-response-text');
-        // Convertir markdown básico a HTML simple si es necesario, o usar innerText para seguridad
-        // Aquí usamos innerText para evitar XSS, pero reemplazamos saltos de línea
         if (textContainer) {
             textContainer.innerHTML = text.replace(/\n/g, '<br>');
         }
@@ -174,13 +159,8 @@ Reglas de Tono y Formato:
     }
 };
 
-// Exponer globalmente
+// EXPOSICIÓN GLOBAL CRÍTICA
+// Al ser un módulo, GeminiService es local. Debemos asignarlo a window explícitamente
+// para que el onclick="GeminiService.triggerAnalysis()" del HTML funcione.
 window.GeminiService = GeminiService;
-
-// Inicializar automáticamente cuando el script carga (ya que está al final del body)
-// O esperar a que Firebase esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => GeminiService.init());
-} else {
-    GeminiService.init();
-}
+console.log('[GeminiService Modular] Servicio registrado globalmente.');
