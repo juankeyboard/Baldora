@@ -65,7 +65,7 @@ const Onboarding = {
                 element: '.logo-section',
                 popover: {
                     title: '🎉 ¡Bienvenido a Baldora!',
-                    description: 'Entrena tu mente y domina las tablas de multiplicar con nuestro sistema visual interactivo. ¡Aprenderás jugando!',
+                    description: 'Entrena tu mente y domina las tablas de multiplicar con nuestro sistema visual interactivo. ¡Aprenderás jugando! (Usa el PC para una mejor experiencia',
                     side: 'bottom',
                     align: 'center'
                 }
