@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Baldora - Videojuego educativo para aprender y practicar las tablas de multiplicar hasta 15x15">
-    <title>Baldora - ArimÃ©tica en lÃ­nea</title>
+    <title>Baldora - Arimética en línea</title>
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="images/baldora_favicon.svg">
 
@@ -27,9 +27,9 @@
     <!-- FileSaver.js -->
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-    <!-- jsPDF - GeneraciÃ³n de PDF -->
+    <!-- jsPDF - Generación de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- html2pdf.js - ExportaciÃ³n PDF -->
+    <!-- html2pdf.js - Exportación PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Driver.js - Onboarding Tours -->
@@ -45,13 +45,13 @@
       {
         "imports": {
           "firebase/app": "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js",
-          "firebase/ai": "https://www.gstatic.com/firebasejs/12.8.0/firebase-ai.js"
+          "firebase/app-check": "https://www.gstatic.com/firebasejs/12.8.0/firebase-app-check.js", "firebase/ai": "https://www.gstatic.com/firebasejs/12.8.0/firebase-ai.js"
         }
       }
     </script>
 
     <script>
-        // ConfiguraciÃ³n de Firebase (segÃºn Main_doc_f8_AI.md)
+        // Configuración de Firebase (según Main_doc_f8_AI.md)
         const firebaseConfig = {
             apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
             authDomain: "baldora-89866.firebaseapp.com",
@@ -103,14 +103,14 @@
                         <label for="mode-timer" class="mode-option">
                             <span class="mode-icon">&#9201;</span>
                             <span class="mode-name">Contrarreloj</span>
-                            <span class="mode-desc">Tiempo lÃ­mite</span>
+                            <span class="mode-desc">Tiempo límite</span>
                         </label>
 
                         <input type="radio" id="mode-free" name="game-mode" value="FREE">
                         <label for="mode-free" class="mode-option">
                             <span class="mode-icon">&#127919;</span>
-                            <span class="mode-name">PrÃ¡ctica Libre</span>
-                            <span class="mode-desc">Sin lÃ­mite</span>
+                            <span class="mode-name">Práctica Libre</span>
+                            <span class="mode-desc">Sin límite</span>
                         </label>
 
                         <input type="radio" id="mode-adaptive" name="game-mode" value="ADAPTIVE">
@@ -123,7 +123,7 @@
                 </div>
 
                 <div class="form-group timer-config" id="timer-config">
-                    <label for="time-limit">Tiempo LÃ­mite (minutos)</label>
+                    <label for="time-limit">Tiempo Límite (minutos)</label>
                     <div class="time-slider-container">
                         <input type="range" id="time-limit" name="time-limit" min="1" max="15" value="1">
                         <span class="time-display" id="time-display">1 min</span>
@@ -313,7 +313,7 @@
                 </div>
             </div>
 
-            <!-- ===== PANEL DE ANÃLISIS AI ===== -->
+            <!-- ===== PANEL DE ANÁLISIS AI ===== -->
             <div id="ai-analysis-container" class="ai-panel">
                 <div class="ai-header">
                     <span class="ai-icon">&#128161;</span>
@@ -437,7 +437,7 @@
                 <button onclick="ExportManager.downloadPDF()" class="btn-export-option">
                     <span class="export-icon">&#128196;</span>
                     <span class="export-title">Reporte PDF</span>
-                    <span class="export-desc">Con grÃ¡ficas y anÃ¡lisis</span>
+                    <span class="export-desc">Con gráficas y análisis</span>
                 </button>
                 <button onclick="ExportManager.downloadCSV()" class="btn-export-option">
                     <span class="export-icon">&#128202;</span>
@@ -517,7 +517,7 @@
 
             <!-- Legal -->
             <div class="footer-legal">
-                <span>Â© 2026 Baldora</span>
+                <span>© 2026 Baldora</span>
                 <span class="separator"></span>
                 <span>Cali-Colombia</span>
                 <span class="separator"></span>
@@ -535,7 +535,7 @@
             <!-- Social -->
             <div class="footer-social">
                 <a href="https://github.com/juankeyboard/Baldora.git" target="_blank" rel="noopener noreferrer"
-                    aria-label="Ver cÃ³digo en GitHub">
+                    aria-label="Ver código en GitHub">
                     <svg class="icon-github" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor"
                         fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -544,7 +544,7 @@
                     </svg>
                 </a>
                 <a href="https://www.instagram.com/baldoragame" target="_blank" rel="noopener noreferrer"
-                    aria-label="SÃ­guenos en Instagram">
+                    aria-label="Síguenos en Instagram">
                     <svg class="icon-instagram" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor"
                         fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -580,7 +580,7 @@
     <script src="js/visitor-counter.js"></script>
     <script src="js/exportManager.js"></script>
 
-    <script type="module" src="js/gemini-service.js?v=11.0"></script>
+    <script type="module" src="js/gemini-service.js?v=12.0"></script>
     <script src="js/app.js"></script>
 </body>
 
