@@ -1,127 +1,160 @@
 # Guía de Implementación: Entrenador Virtual con Firebase AI Logic
 
-Este documento detalla la arquitectura y configuración para el "Entrenador Virtual" de Baldora, utilizando **Firebase AI Logic** (Gemini Developer API) para analizar el rendimiento del jugador de forma segura y escalable, eliminando la necesidad de exponer API Keys sensibles directamente en los módulos de lógica.
+Este documento detalla la arquitectura y configuración para el "Entrenador Virtual" de Baldora, utilizando **Firebase AI Logic** (Gemini Developer API) para analizar el rendimiento del jugador de forma segura y escalable.
 
 ---
 
 ## 1. Arquitectura y Seguridad
 
 ### ¿Por qué Firebase AI Logic?
+
 Utilizamos el SDK de cliente de Firebase (`firebase/ai`) que actúa como un puente seguro hacia los modelos de Gemini.
-1.  **Abstracción de Credenciales:** No se requiere hardcodear la API Key en el archivo del servicio (`gemini-service.js`). El SDK utiliza la configuración global del proyecto Firebase.
-2.  **Seguridad:** Permite integrar **Firebase App Check** para validar que las peticiones provienen de tu app legítima, protegiendo tu cuota de uso.
-3.  **Integración:** Se conecta nativamente con la instancia de `firebaseApp` ya existente en el navegador.
+
+1. **Abstracción de Credenciales:** No se requiere hardcodear la API Key. El SDK utiliza la configuración del proyecto Firebase.
+2. **Seguridad:** Integra **Firebase App Check** con reCAPTCHA v3 para validar peticiones legítimas.
+3. **Integración:** Se conecta nativamente con la instancia de `firebaseApp`.
 
 ### Flujo de Datos
-1.  **Juego:** Recopila métricas (aciertos, errores, tiempos) en `DataManager`.
-2.  **Frontend:** `GeminiService` convierte el historial a formato CSV.
-3.  **SDK Firebase AI:** Envía el prompt + CSV a la infraestructura de Google (Vertex AI / Gemini API).
-4.  **Gemini:** Procesa la información y devuelve un diagnóstico pedagógico estructurado.
+
+1. **Juego:** Recopila métricas (aciertos, errores, tiempos) en `DataManager`.
+2. **Frontend:** `GeminiService` convierte el historial a formato CSV.
+3. **SDK Firebase AI:** Envía el prompt + CSV a la infraestructura de Google.
+4. **Gemini:** Procesa la información y devuelve un diagnóstico pedagógico.
 
 ---
 
 ## 2. Configuración del Proyecto
 
 ### Requisitos en Firebase Console
-1.  Habilitar **AI Logic (Vertex AI in Firebase)** en la consola de Firebase.
-2.  Asegurar que la **Gemini Developer API** esté habilitada (disponible en planes Spark y Blaze).
-3.  Agregar la Web App al proyecto para obtener el `firebaseConfig` (si no se ha hecho).
 
-### Inicialización Global
-Para evitar duplicidad y exposición de claves, la configuración de Firebase debe residir **únicamente** en el punto de entrada de la aplicación (`index.html` o `main.js`), no en los servicios individuales.
+1. Habilitar **AI Logic (Vertex AI in Firebase)** en la consola de Firebase.
+2. Asegurar que la **Gemini Developer API** esté habilitada.
+3. Configurar **App Check** con reCAPTCHA v3.
+
+### Inicialización Global (index.html)
 
 ```javascript
-// index.html
 const firebaseConfig = {
-  apiKey: "...", // Clave pública del proyecto (segura de exponer con App Check)
+  apiKey: "...",
   authDomain: "...",
-  projectId: "...",
+  projectId: "baldora-89866",
   // ...
 };
 const firebaseApp = firebase.initializeApp(firebaseConfig);
-// Exponer para uso en módulos
+window.firebaseConfig = firebaseConfig;
 window.firebaseApp = firebaseApp;
 ```
 
 ---
 
-## 3. Implementación del Servicio (GeminiService)
+## 3. Implementación del Servicio (GeminiService) - v15.0 FINAL
 
-El archivo `js/gemini-service.js` debe refactorizarse para usar la instancia global.
+### Import Map (index.html)
 
-### Importaciones (ES Modules / Import Map)
+```html
+<script type="importmap">
+  {
+    "imports": {
+      "firebase/app": "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js",
+      "firebase/app-check": "https://www.gstatic.com/firebasejs/12.8.0/firebase-app-check.js",
+      "firebase/ai": "https://www.gstatic.com/firebasejs/12.8.0/firebase-ai.js"
+    }
+  }
+</script>
+```
+
+### Importaciones (gemini-service.js)
+
 ```javascript
-import { getAI, getTemplateGenerativeModel, GoogleAIBackend } from "firebase/ai";
+import { initializeApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
+```
+
+### Inicialización con App Check
+
+```javascript
+const firebaseApp = initializeApp(firebaseConfig, "GeminiModularApp");
+
+// App Check con reCAPTCHA v3
+const RECAPTCHA_SITE_KEY = '6LdHG1gsAAAAAHfo4psSdnoXJobJZL0byWyj0eSV';
+
+if (location.hostname === 'localhost') {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
+const appCheck = initializeAppCheck(firebaseApp, {
+    provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true
+});
 ```
 
 ### Inicialización del Modelo
-En lugar de definir `firebaseConfig` nuevamente, accedemos a la instancia global.
 
 ```javascript
-// 1. Obtener la instancia de Firebase ya inicializada
-const app = window.firebaseApp; 
+const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
+```
 
-if (!app) {
-    console.error("Firebase App no inicializada. Verifique index.html");
+> **IMPORTANTE:** Se usa `getGenerativeModel` con el nombre del modelo, NO `getTemplateGenerativeModel`.
+
+---
+
+## 4. Ingeniería del Prompt
+
+El prompt está integrado directamente en el código:
+
+```javascript
+buildPrompt(csvContent) {
+    return `Actúa como un experto en aprendizaje acelerado para examinar mis resultados de multiplicaciones (CSV adjunto).
+
+Datos del CSV:
+${csvContent}
+
+Genera:
+1. Diagnóstico ejecutivo de mi estado actual
+2. Observaciones de patrones de error
+3. Plan de acción con ejercicios y mnemotecnias
+
+Reglas:
+- Tono SIEMPRE positivo y motivador
+- Sin emojis
+- Responde en español
+- Sé conciso pero profundo`;
 }
+```
 
-// 2. Inicializar Backend de AI (Gemini Developer API)
-// Esto conecta el SDK con el servicio de Google
-const ai = getAI(app, { backend: new GoogleAIBackend() });
+### Llamada a la API
 
-// 3. Instanciar el modelo usando el ID de la plantilla
-// Usamos 'baldora' que es el ID definido en Firebase Console
-// IMPORTANTE: Se usa getTemplateGenerativeModel para plantillas, no getGenerativeModel
-const model = getTemplateGenerativeModel(ai, { templateId: "baldora" });
+```javascript
+const result = await model.generateContent(prompt);
+const text = result.response.text();
 ```
 
 ---
 
-## 4. Ingeniería del Prompt con Plantillas (Prompt Templates)
+## 5. Manejo de Estados UI
 
-En lugar de escribir el prompt en el código, utilizamos la función de **Prompt Templates** de Firebase AI Logic. Esto permite a los diseñadores pedagógicos ajustar las instrucciones en la consola sin requerir cambios en el código.
-
-### Configuración en Consola
-- **Template ID:** `baldora`
-- **Modelo:** `gemini-2.5-pro`
-- **Input Schema:** `{ csv_data: string }`
-
-### Implementación en Código:
-
-```javascript
-async function analizarResultadosJuego(contenidoCSV) {
-  try {
-    // Llamada a la API usando la plantilla
-    // Solo enviamos los datos variables, no el prompt
-    const result = await model.generateContent({
-      csv_data: contenidoCSV
-    });
-    
-    const response = result.response;
-    const textoResultado = response.text();
-
-    console.log("Análisis de Gemini:", textoResultado);
-    return textoResultado;
-    
-  } catch (error) {
-    console.error("Error al analizar el CSV:", error);
-  }
-}
-```
+| Estado | Descripción |
+|--------|-------------|
+| **Idle** | Botón "Analizar mis Resultados" visible |
+| **Loading** | Spinner con mensajes de carga |
+| **Success** | Respuesta renderizada del modelo |
+| **Error** | Mensaje amigable + botón reintentar |
 
 ---
 
-## 5. Manejo de Errores y UI
+## 6. Resumen de Implementación Final
 
-El servicio debe manejar los estados de la interfaz de usuario:
-
-*   **Estado Idle:** Botón "Analizar mis Resultados" visible.
-*   **Estado Loading:** Spinner y mensajes de carga ("Conectando sinapsis...").
-*   **Estado Success:** Mostrar respuesta renderizada (respetando saltos de línea).
-*   **Manejo de Errores:**
-    *   Si `DataManager` está vacío: Avisar al usuario que debe jugar primero.
-    *   Si falla la API (red, cuota): Mostrar mensaje amigable y opción de reintentar.
+| Componente | Configuración |
+|------------|---------------|
+| **SDK Version** | Firebase 12.8.0 |
+| **Backend** | `GoogleAIBackend()` |
+| **Modelo** | `gemini-2.5-flash-lite` |
+| **App Check** | reCAPTCHA v3 habilitado |
+| **Site Key** | `6LdHG1gs...` |
+| **Versión** | v15.0 |
 
 ---
 
-*Documento de Diseño Técnico - Baldora 2026*
+*Documento de Diseño Técnico - Baldora 2026 - Última actualización: 2026-01-27*

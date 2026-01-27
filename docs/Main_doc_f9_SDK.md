@@ -8,10 +8,10 @@ El SDK de Firebase AI para la web permite la integración de modelos generativos
 
 ### `getAI(app, options)`
 
-Devuelve la instancia predeterminada de AI asociada con la `FirebaseApp` proporcionada. Si no existe una instancia, inicializa una nueva con la configuración por defecto.
+Devuelve la instancia predeterminada de AI asociada con la `FirebaseApp` proporcionada.
 
 **Parámetros:**
-- `app` (FirebaseApp): La aplicación de Firebase a utilizar.
+- `app` (FirebaseApp): La aplicación de Firebase.
 - `options` (AIOptions): Opciones que configuran la instancia de AI.
 
 **Retorno:** `AI`
@@ -20,7 +20,7 @@ Devuelve la instancia predeterminada de AI asociada con la `FirebaseApp` proporc
 ```javascript
 const ai = getAI(app);
 
-// O configurar un backend específico (Vertex AI o Google AI)
+// O configurar un backend específico
 const aiGoogle = getAI(app, { backend: new GoogleAIBackend() });
 ```
 
@@ -28,19 +28,32 @@ const aiGoogle = getAI(app, { backend: new GoogleAIBackend() });
 
 ### `getGenerativeModel(ai, modelParams, requestOptions)`
 
-Devuelve una clase `GenerativeModel` con métodos para inferencia (como Gemini).
+Devuelve una clase `GenerativeModel` con métodos para inferencia.
 
 **Parámetros:**
 - `ai` (AI): Instancia de AI.
-- `modelParams` (ModelParams | HybridParams): Parámetros del modelo (nombre, configuración).
+- `modelParams` (ModelParams): Parámetros del modelo (nombre, configuración).
 
 **Retorno:** `GenerativeModel`
+
+**Ejemplo (Implementación Baldora v15.0):**
+```javascript
+// Configurar backend de Gemini Developer API
+const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+
+// Modelo directo - ESTA ES LA FORMA QUE FUNCIONA
+const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
+
+// Llamar al modelo con un prompt
+const result = await model.generateContent("Tu prompt aquí");
+const text = result.response.text();
+```
 
 ---
 
 ### `getTemplateGenerativeModel(ai, templateParams)`
 
-Devuelve un modelo generativo basado en una **plantilla de prompt** almacenada en Firebase Console.
+Devuelve un modelo basado en una **plantilla de prompt** de Firebase Console.
 
 **Parámetros:**
 - `ai` (AI): Instancia de AI.
@@ -48,36 +61,15 @@ Devuelve un modelo generativo basado en una **plantilla de prompt** almacenada e
 
 **Retorno:** `TemplateGenerativeModel`
 
-**Ejemplo:**
-```javascript
-// Usar una plantilla definida en Firebase Console
-const model = getTemplateGenerativeModel(ai, { templateId: "baldora" });
-
-// Llamar pasando las variables del template
-const result = await model.generateContent({
-    csv_data: contenidoCSV
-});
-```
+> **NOTA:** Las plantillas requieren configuración adicional en Firebase Console y pueden no estar disponibles en todos los proyectos. Para Baldora, usamos `getGenerativeModel` directamente.
 
 ---
 
 ### `getImagenModel(ai, modelParams, requestOptions)`
 
-Devuelve una clase `ImagenModel` para generar imágenes. Actualmente solo soporta modelos Imagen 3 (`imagen-3.0-*`).
+Devuelve una clase `ImagenModel` para generar imágenes. Soporta Imagen 3 (`imagen-3.0-*`).
 
 **Retorno:** `ImagenModel`
-
----
-
-### `getLiveGenerativeModel(ai, modelParams)`
-
-*(Public Preview)* Devuelve un modelo para comunicación bidireccional en tiempo real. Solo soportado en navegadores modernos y Node >= 22.
-
----
-
-### `startAudioConversation(liveSession, options)`
-
-*(Public Preview)* Inicia una conversación de audio bidireccional. Gestiona el acceso al micrófono, grabación y reproducción. Debe llamarse tras un gesto del usuario.
 
 ---
 
@@ -89,20 +81,16 @@ Devuelve una clase `ImagenModel` para generar imágenes. Actualmente solo soport
 | `AIModel` | Clase base para los modelos de Firebase AI. |
 | `ChatSession` | Gestiona el historial de mensajes enviados y recibidos. |
 | `GenerativeModel` | Clase principal para interactuar con modelos de lenguaje. |
-| `TemplateGenerativeModel` | Modelo que usa plantillas de prompt de Firebase Console. |
 | `ImagenModel` | Clase para generar imágenes usando Imagen. |
-| `GoogleAIBackend` | Configuración para usar la API de Gemini Developer (Google AI). |
-| `VertexAIBackend` | Configuración para usar la API de Vertex AI en Google Cloud. |
-| `LiveSession` | Representa una sesión activa de comunicación en tiempo real. |
-| `Schema` | Clase base para definir esquemas de datos (Boolean, Integer, Object, etc.). |
+| `GoogleAIBackend` | Configuración para usar la API de Gemini Developer. |
+| `VertexAIBackend` | Configuración para usar la API de Vertex AI. |
+| `Schema` | Clase base para definir esquemas de datos. |
 
 ---
 
 ## Interfaces Clave
 
 ### `GenerationConfig`
-
-Opciones de configuración para la generación de contenido.
 
 | Propiedad | Descripción |
 |-----------|-------------|
@@ -111,77 +99,65 @@ Opciones de configuración para la generación de contenido.
 | `temperature` | Controla la aleatoriedad (0.0 - 2.0). |
 | `topP`, `topK` | Parámetros de muestreo. |
 
----
-
 ### `Content`
-
-Representa el contenido enviado o recibido.
 
 | Propiedad | Descripción |
 |-----------|-------------|
 | `role` | El rol del emisor (`user`, `model`, `system`, `function`). |
-| `parts` | Un arreglo de `Part` (texto, datos inline, llamadas a funciones). |
+| `parts` | Un arreglo de `Part` (texto, datos inline, funciones). |
 
 ---
 
-### `SafetySetting`
+## Implementación Baldora (FUNCIONAL)
 
-Configuración de seguridad para filtrar contenido dañino.
+### Configuración Final v15.0
 
-| Propiedad | Descripción |
-|-----------|-------------|
-| `category` | `HarmCategory` |
-| `threshold` | `HarmBlockThreshold` |
+```javascript
+import { initializeApp } from "firebase/app";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
+
+// Inicializar Firebase
+const firebaseApp = initializeApp(firebaseConfig, "GeminiModularApp");
+
+// App Check con reCAPTCHA v3
+const appCheck = initializeAppCheck(firebaseApp, {
+    provider: new ReCaptchaV3Provider('6LdHG1gsAAAAAHfo4psSdnoXJobJZL0byWyj0eSV'),
+    isTokenAutoRefreshEnabled: true
+});
+
+// Inicializar AI con Gemini Developer API
+const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+const model = getGenerativeModel(ai, { model: "gemini-2.5-flash-lite" });
+
+// Llamar al modelo
+const result = await model.generateContent(prompt);
+const text = result.response.text();
+```
+
+### Resumen de Configuración
+
+| Componente | Valor |
+|------------|-------|
+| SDK Version | `12.8.0` |
+| Backend | `GoogleAIBackend()` |
+| Modelo | `gemini-2.5-flash-lite` |
+| App Check | reCAPTCHA v3 |
+| Versión | v15.0 |
 
 ---
 
 ## Variables y Enums
 
 ### `AIErrorCode`
-- `ERROR`
-- `REQUEST_ERROR`
-- `RESPONSE_ERROR`
-- `FETCH_ERROR`
-- `SESSION_CLOSED`
-- `UNSUPPORTED`
+- `ERROR`, `REQUEST_ERROR`, `RESPONSE_ERROR`, `FETCH_ERROR`, `SESSION_CLOSED`, `UNSUPPORTED`
 
 ### `HarmCategory`
-- `HARM_CATEGORY_HATE_SPEECH`
-- `HARM_CATEGORY_SEXUALLY_EXPLICIT`
-- `HARM_CATEGORY_HARASSMENT`
-- `HARM_CATEGORY_DANGEROUS_CONTENT`
+- `HARM_CATEGORY_HATE_SPEECH`, `HARM_CATEGORY_SEXUALLY_EXPLICIT`, `HARM_CATEGORY_HARASSMENT`, `HARM_CATEGORY_DANGEROUS_CONTENT`
 
 ### `HarmBlockThreshold`
-- `BLOCK_LOW_AND_ABOVE`
-- `BLOCK_MEDIUM_AND_ABOVE`
-- `BLOCK_ONLY_HIGH`
-- `BLOCK_NONE`
-- `OFF`
-
-### `ImagenAspectRatio`
-- `SQUARE` (1:1)
-- `LANDSCAPE_16x9`
-- `PORTRAIT_9x16`
-- `LANDSCAPE_3x4`
-- `PORTRAIT_4x3`
-
-### `InferenceMode`
-*(Public Preview)* Define dónde ocurre la inferencia:
-- `PREFER_ON_DEVICE`
-- `ONLY_ON_DEVICE`
-- `ONLY_IN_CLOUD`
-- `PREFER_IN_CLOUD`
+- `BLOCK_LOW_AND_ABOVE`, `BLOCK_MEDIUM_AND_ABOVE`, `BLOCK_ONLY_HIGH`, `BLOCK_NONE`, `OFF`
 
 ---
 
-## Alias de Tipos
-
-| Tipo | Descripción |
-|------|-------------|
-| `Part` | Puede ser `TextPart`, `InlineDataPart`, `FunctionCallPart` o `FunctionResponsePart`. |
-| `Role` | `'user'` \| `'model'` \| `'function'` \| `'system'` |
-| `Tool` | Define herramientas externas que el modelo puede llamar (`FunctionDeclarationsTool`, `GoogleSearchTool`, `CodeExecutionTool`). |
-
----
-
-*Última actualización: 2026-01-27 UTC. Basado en la referencia oficial de Firebase AI Web SDK.*
+*Última actualización: 2026-01-27 UTC. Basado en la referencia oficial de Firebase AI Web SDK e implementación Baldora.*
