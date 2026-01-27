@@ -1,46 +1,47 @@
 /**
- * GEMINI SERVICE - Integración con Firebase AI Logic (Modular - Gemini Developer API)
+ * GEMINI SERVICE - Integración con Firebase Vertex AI (Compat Mode)
  * Baldora - AI Coach / Análisis Cognitivo
- * Versión: 7.0 (Modular con Import Map)
+ * Versión: 8.0 (Usando SDK Compat disponible en CDN)
  */
 
-import { initializeApp } from "firebase/app";
-import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
-
-// Configuración de Firebase
-// 1. Initialize FirebaseApp using global config
-const firebaseConfig = window.firebaseConfig;
-if (!firebaseConfig) {
-    console.error("Firebase Config not found. Ensure it is defined in index.html");
-}
-
-let app;
-try {
-    // Create a named app to avoid conflicts with the default compat app
-    app = initializeApp(firebaseConfig, "GeminiModularApp");
-} catch (e) {
-    // Fallback
-    app = initializeApp(firebaseConfig);
-}
-
-// 2. Initialize the Gemini Developer API backend service
-const ai = getAI(app, { backend: new GoogleAIBackend() });
-
-// 3. Create a `GenerativeModel` instance
-// Usamos el ID de la plantilla "baldora" configurada en Firebase Console.
-// Esta plantilla está configurada internamente para usar el modelo "gemini-2.5-pro".
-const model = getGenerativeModel(ai, { model: "baldora" });
+// Usamos el SDK de Vertex AI que está cargado globalmente via CDN (firebase-vertexai-compat.js)
+// No usamos ES6 imports porque firebase/ai no existe en la CDN
 
 const GeminiService = {
     currentState: 'idle',
+    model: null,
+
+    /**
+     * Inicializa el modelo de Gemini usando Vertex AI
+     */
+    init() {
+        try {
+            // Verificar que Firebase esté disponible
+            if (typeof firebase === 'undefined' || !window.firebaseApp) {
+                console.error('[GeminiService] Firebase no está inicializado.');
+                return false;
+            }
+
+            // Inicializar Vertex AI usando el SDK compat
+            const vertexAI = firebase.vertexAI(window.firebaseApp);
+
+            // Crear modelo generativo (gemini-2.5-pro según configuración)
+            this.model = vertexAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+
+            console.log('[GeminiService] Inicializado correctamente con gemini-2.5-pro');
+            return true;
+        } catch (error) {
+            console.error('[GeminiService] Error al inicializar:', error);
+            return false;
+        }
+    },
 
     async triggerAnalysis() {
-        console.log('[GeminiService Modular] Trigger analysis solicitado.');
+        console.log('[GeminiService] Trigger analysis solicitado.');
 
         // Confirmación visual inmediata en el botón (si existe)
         const btn = document.querySelector('.ai-action-btn');
         if (btn) {
-            const originalText = btn.innerText;
             btn.innerText = 'Procesando...';
             btn.disabled = true;
             btn.style.opacity = '0.7';
@@ -48,6 +49,14 @@ const GeminiService = {
         }
 
         this.setUIState('loading');
+
+        // Inicializar modelo si no está listo
+        if (!this.model) {
+            if (!this.init()) {
+                this.handleError(new Error("No se pudo inicializar el servicio de IA."));
+                return;
+            }
+        }
 
         // Obtener historial (DataManager es global)
         const history = window.DataManager ? window.DataManager.sessionData : [];
@@ -73,32 +82,39 @@ const GeminiService = {
             return;
         }
 
+        // Construir el prompt (ahora lo hacemos aquí porque no usamos plantillas remotas)
+        const prompt = this.buildPrompt(csvContent);
+
         try {
-            console.log('[GeminiService Modular] Enviando datos a la plantilla Baldora...');
+            console.log('[GeminiService] Enviando prompt a Gemini 2.5 Pro...');
 
-            // Al usar una plantilla, pasamos un objeto con las variables definidas en el esquema (csv_data)
-            // No enviamos el prompt de texto, solo los datos.
-            const result = await model.generateContent({
-                csv_data: csvContent
-            });
-
+            const result = await this.model.generateContent(prompt);
             const response = await result.response;
             const aiText = response.text();
 
-            console.log('[GeminiService Modular] Respuesta recibida.');
+            console.log('[GeminiService] Respuesta recibida.');
             this.showResult(aiText);
             window.lastAIAnalysis = aiText;
 
         } catch (error) {
-            console.error('[GeminiService Modular] Error:', error);
+            console.error('[GeminiService] Error:', error);
             this.handleError(error);
         }
     },
 
-    // buildPrompt ya no es necesario porque el prompt vive en Firebase Console
-    // Se mantiene vacío o se elimina para limpieza
     buildPrompt(csvContent) {
-        return "";
+        return `Actúa como un experto en aprendizaje acelerado y análisis de datos educativos para examinar mis resultados de multiplicaciones (adjuntos en CSV), generando un reporte estricto que inicie con un diagnóstico ejecutivo de mi estado actual, comparando mi precisión y velocidad frente a estándares de maestría para evaluar mi progreso y nivel de confianza.
+
+Datos del CSV:
+${csvContent}
+
+Continúa con observaciones detalladas que identifiquen y expliquen la causa raíz de mis patrones de error, buscando 'cables cruzados' o fallos por velocidad para señalar mis tablas débiles de hoy, y concluye con un plan de acción práctico que incluya tres ejercicios breves de escritura y mnemotecnia, una rima para mi error más frecuente y una regla de oro mental para aplicar.
+
+Reglas de Tono y Formato:
+1. TONO: Debe ser SIEMPRE positivo, pedagógico y motivador.
+2. NO uses emoticones ni emojis.
+3. Responde en español.
+4. Sé conciso pero profundo.`;
     },
 
     setUIState(state) {
@@ -124,6 +140,15 @@ const GeminiService = {
             textContainer.innerHTML = text.replace(/\n/g, '<br>');
         }
         this.setUIState('success');
+
+        // Restaurar botón
+        const btn = document.querySelector('.ai-action-btn');
+        if (btn) {
+            btn.innerText = 'Analizar mis Resultados';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
     },
 
     handleError(error) {
@@ -145,6 +170,15 @@ const GeminiService = {
             `;
         }
         this.setUIState('success');
+
+        // Restaurar botón
+        const btn = document.querySelector('.ai-action-btn');
+        if (btn) {
+            btn.innerText = 'Analizar mis Resultados';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
     },
 
     reset() {
@@ -157,3 +191,8 @@ const GeminiService = {
 
 // EXPOSICIÓN GLOBAL
 window.GeminiService = GeminiService;
+
+// Intentar inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function () {
+    GeminiService.init();
+});
