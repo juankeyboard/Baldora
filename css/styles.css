@@ -2753,17 +2753,18 @@ body::before {
     box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Tema Amarillo Claro (Solicitado) */
-.result-card.yellow-theme {
-    background-color: #fdf6b4;
-    /* Amarillo claro coincidente con config-form */
+/* Tema Azul Suave (Solicitado) */
+.result-card.blue-theme {
+    background-color: #e3f2fd;
+    /* Azul muy suave */
+    border-color: #bbdefb;
     color: var(--clr-ink-900);
 }
 
 .result-card h3 {
-    color: var(--clr-rose-500);
-    font-size: 1.25rem;
-    border-bottom: 2px solid rgba(209, 107, 165, 0.2);
+    color: var(--clr-sky-900);
+    /* Azul más oscuro para títulos */
+    border-bottom: 2px solid rgba(74, 144, 164, 0.2);
     padding-bottom: var(--space-sm);
     margin-bottom: var(--space-md);
 }
@@ -2810,4 +2811,6 @@ body::before {
     font-size: 1rem;
     line-height: 1.6;
     color: var(--clr-ink-900);
+    font-weight: 400;
+    /* Asegurar que no haya negrita */
 }

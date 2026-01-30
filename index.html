@@ -343,35 +343,15 @@
 
                             <!-- API Results Container -->
                             <div id="api-results-container" class="results-grid hidden">
+
                                 <!-- Bloque 1: Resumen General -->
-                                <div class="result-card yellow-theme">
+                                <div class="result-card blue-theme">
                                     <h3>&#128202; Resumen General</h3>
-                                    <div class="stats-grid">
-                                        <div class="stat-item">
-                                            <span class="label">M&aacute;s R&aacute;pida:</span>
-                                            <span id="res-rapid" class="value">--</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="label">M&aacute;s Lenta:</span>
-                                            <span id="res-slow" class="value">--</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="label">Promedio:</span>
-                                            <span id="res-avg" class="value">--</span>
-                                        </div>
-                                        <div class="stat-item">
-                                            <span class="label">Asertividad:</span>
-                                            <span id="res-accuracy" class="value">--</span>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span class="success">Correctas: <strong id="res-correct">0</strong></span>
-                                            <span class="danger">Incorrectas: <strong id="res-wrong">0</strong></span>
-                                        </div>
-                                    </div>
+                                    <p id="res-general-text" class="result-text">Analizando...</p>
                                 </div>
 
                                 <!-- Bloque 2: Patrón de Errores -->
-                                <div class="result-card yellow-theme">
+                                <div class="result-card blue-theme">
                                     <h3>&#9888;&#65039; Patr&oacute;n de Errores</h3>
                                     <p id="res-patterns" class="result-text">
                                         Analizando tus respuestas...
@@ -379,10 +359,18 @@
                                 </div>
 
                                 <!-- Bloque 3: Plan de Acción -->
-                                <div class="result-card yellow-theme">
+                                <div class="result-card blue-theme">
                                     <h3>&#128640; Plan de Acci&oacute;n</h3>
                                     <p id="res-plan" class="result-text">
                                         Generando recomendaciones...
+                                    </p>
+                                </div>
+
+                                <!-- Bloque 4: Sugerencia de Entrenamiento -->
+                                <div class="result-card blue-theme">
+                                    <h3>&#9881;&#65039; Sugerencia de Entrenamiento</h3>
+                                    <p id="res-training" class="result-text">
+                                        Calculando configuraci&oacute;n &oacute;ptima...
                                     </p>
                                 </div>
                             </div>

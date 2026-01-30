@@ -121,24 +121,17 @@ Actúa como un experto en aprendizaje acelerado y análisis de datos educativos.
 
 Reglas:
 1. TONO: SIEMPRE positivo, pedagógico y motivador.
-2. NO uses emoticones ni emojis.
-3. Responde en español.
-4. ESTRUCTURA: Redacta la respuesta narrativa en exactamente 3 párrafos fluidos (uno para diagnóstico, uno para patrones, uno para plan).
-5. FORMATO: PROHIBIDO usar viñetas, listas, guiones o saltos de línea dentro de los campos. Texto corrido en bloque.
-6. FORMATO DE SALIDA: Entrega SOLAMENTE el objeto JSON crudo. No uses bloques de código markdown (json) ni texto adicional.
+2. FORMATO: Texto corrido en párrafos simples. 
+3. PROHIBIDO: Usar negritas (**texto**), viñetas, listas, dos puntos (:) para separar ideas o saltos de línea excesivos.
+4. ESTRUCTURA: Redacta la respuesta narrativa en exactamente 4 párrafos fluidos (uno por cada clave del JSON).
+5. FORMATO DE SALIDA: Entrega SOLAMENTE el objeto JSON crudo. No uses bloques de código markdown (json) ni texto adicional.
 
 El JSON debe tener exactamente esta estructura:
 {
-  "resumen_general": {
-    "operacion_mas_rapida": "Texto descriptivo",
-    "operacion_mas_lenta": "Texto descriptivo",
-    "tiempo_promedio": "Valor en segundos",
-    "porcentaje_asertividad": "Valor porcentual",
-    "cantidad_buenas": 0,
-    "cantidad_malas": 0
-  },
-  "patron_errores": "Diagnóstico ejecutivo y observaciones detalladas de patrones de error.",
-  "plan_accion": "Plan de acción concreto con ejercicios mnemotecnias."
+  "resumen_general": "Párrafo narrativo describiendo el desempeño general, mencionando la operación más rápida, la más lenta y el promedio de velocidad y asertividad de forma integrada en el texto.",
+  "patron_errores": "Párrafo narrativo con el diagnóstico de errores.",
+  "plan_accion": "Párrafo narrativo con el plan de acción (ejercicios y mnemotecnias).",
+  "sugerencia_entrenamiento": "Párrafo narrativo sugiriendo una configuración específica de Factores A (Filas) y Factores B (Columnas) para la próxima sesión, basándose en las debilidades detectadas."
 }
 
 **Role: User**
@@ -146,7 +139,7 @@ Examina mis resultados de multiplicaciones en CSV:
 
 ${csvContent}
 
-Genera un diagnóstico ejecutivo, observaciones detalladas de patrones de error, y un plan de acción con ejercicios y mnemotecnias, respetando estrictamente el formato JSON solicitado.`;
+Genera el reporte JSON cumpliendo estrictamente con las reglas de formato (solo párrafos, sin negritas ni listas).`;
     },
 
     setUIState(state) {
@@ -203,29 +196,15 @@ Genera un diagnóstico ejecutivo, observaciones detalladas de patrones de error,
     },
 
     renderApiResults(data) {
-        // 1. Resumen General
-        if (data.resumen_general) {
-            const setVal = (id, val) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = val || '--';
-            };
-            setVal('res-rapid', data.resumen_general.operacion_mas_rapida);
-            setVal('res-slow', data.resumen_general.operacion_mas_lenta);
-            setVal('res-avg', data.resumen_general.tiempo_promedio);
-            setVal('res-accuracy', data.resumen_general.porcentaje_asertividad);
-            setVal('res-correct', data.resumen_general.cantidad_buenas);
-            setVal('res-wrong', data.resumen_general.cantidad_malas);
-        }
+        const setText = (id, text) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = text || 'Sin información.';
+        };
 
-        // 2 y 3. Narrativa
-        if (data.patron_errores) {
-            const el = document.getElementById('res-patterns');
-            if (el) el.textContent = data.patron_errores;
-        }
-        if (data.plan_accion) {
-            const el = document.getElementById('res-plan');
-            if (el) el.textContent = data.plan_accion;
-        }
+        if (data.resumen_general) setText('res-general-text', data.resumen_general);
+        if (data.patron_errores) setText('res-patterns', data.patron_errores);
+        if (data.plan_accion) setText('res-plan', data.plan_accion);
+        if (data.sugerencia_entrenamiento) setText('res-training', data.sugerencia_entrenamiento);
     },
 
     handleError(error) {
