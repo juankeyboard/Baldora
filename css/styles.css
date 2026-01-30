@@ -2814,3 +2814,52 @@ body::before {
     font-weight: 400;
     /* Asegurar que no haya negrita */
 }
+
+/* ===== DUAL MOBILE VIEW IMPLEMENTATION (Docs: f12) ===== */
+@media (max-width: 768px) {
+
+    /* 1. Ocultar Panel Matriz */
+    .matrix-panel {
+        display: none !important;
+    }
+
+    /* 2. Ajustar Contenedor Principal */
+    .game-container {
+        display: block;
+        /* Cambiar de grid a bloque para centrado simple */
+        border: none;
+        /* Opcional: limpiar bordes si queda solo el control */
+        box-shadow: none;
+        background: transparent;
+        padding: 0;
+        margin-top: var(--space-xl);
+    }
+
+    /* 3. Centrar y ajustar Panel de Controles */
+    .controls-panel {
+        width: 100%;
+        max-width: 100%;
+        /* Ocupar todo el ancho disponible */
+        margin: 0 auto;
+        position: static;
+        /* Quitar sticky */
+        background: var(--clr-surface-high);
+        /* Asegurar fondo visible */
+
+        /* Mejorar experiencia táctil */
+        padding: var(--space-lg);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Ajustes específicos para elementos internos en móvil */
+    .operation-display {
+        padding: var(--space-md) 0;
+    }
+
+    .answer-input {
+        width: 100%;
+        /* Input grande para fácil toque */
+        max-width: 200px;
+        font-size: 2rem;
+    }
+}
