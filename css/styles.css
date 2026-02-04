@@ -2863,3 +2863,51 @@ body::before {
         font-size: 2rem;
     }
 }
+
+/* ============================================================
+   FEATURE 13: Botón Compartir Instagram - NUEVO
+   ============================================================ */
+
+/* Botón Instagram - Estilo unificado VERDE */
+.export-button-instagram {
+    background: var(--clr-green-500);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    border-bottom: 3px solid #4A6B28;
+    /* Mismo borde oscuro que otros botones */
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    min-width: 180px;
+    justify-content: center;
+}
+
+.export-button-instagram:hover {
+    transform: translateY(-1px);
+    /* Eliminada sombra de color para mantener consistencia */
+}
+
+.export-button-instagram:active {
+    transform: translateY(1px);
+    border-bottom-width: 1px;
+}
+
+.export-button-instagram .icon-instagram {
+    width: 20px;
+    height: 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .export-button-instagram {
+        min-width: 100%;
+        margin-top: 10px;
+    }
+}

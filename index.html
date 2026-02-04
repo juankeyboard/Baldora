@@ -478,6 +478,13 @@
                     <span class="export-title">Datos CSV</span>
                     <span class="export-desc">Para Excel / Datos crudos</span>
                 </button>
+                <!-- BOTÓN INSTAGRAM (Nuevo Feature 13) -->
+                <button id="exportInstagram" class="btn-export-option export-button-instagram"
+                    style="grid-column: 1 / -1;">
+                    <span class="export-icon">&#128247;</span> <!-- Cámara -->
+                    <span class="export-title">Instagram</span>
+                    <span class="export-desc">Compartir Stories</span>
+                </button>
             </div>
             <button onclick="ExportManager.closeModal()"
                 style="background: none; border: none; text-decoration: underline; cursor: pointer; color: var(--clr-rock-500);">
@@ -616,6 +623,8 @@
 
     <script type="module" src="js/gemini-service.js?v=15.0"></script>
     <script src="js/app.js"></script>
+    <!-- Feature 13: Share to Instagram -->
+    <script src="js/share-instagram.js"></script>
 </body>
 
 </html>

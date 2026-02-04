@@ -151,40 +151,51 @@ La imagen generada debe incluir los siguientes cuatro datos estadísticos:
 
 Basado en el análisis de la imagen de referencia, los 4 contenedores tienen las siguientes características:
 
+**Estilo:**
+- **Color de fondo:** Verde (igual a PDF y CSV) - `var(--clr-green-500)`
+- **Estructura:** Idéntica a los otros botones (borde inferior sólido)
+- - Icono: Alusivo a redes sociales (Cámara/Instagram)
+- - Text: "Instagram"
+- - Efectos hover: Consistentes con los demás botones de descarga
+
+### 2. Plantilla de Imagen
+...
+
 #### 📏 Dimensiones Generales de cada Contenedor
-- **Ancho:** 210px
+- **Ancho:** **510px** (Aumentado para llenar el ancho)
 - **Alto:** 195px
-- **Border Radius:** 35px (bordes muy redondeados)
+- **Border Radius:** 35px
 - **Color de fondo:** `#FFF9C4` (Amarillo pastel suave)
 - **Padding interno:** 20px
 
 #### 📍 Posiciones en Canvas (1080×1920px)
 
-**Grid 2×2 - Disposición:**
+**Grid 2×2 - Centrado:**
+*Márgenes laterales de 20px y gap central de 20px*
 
 ```
 Contenedor Superior Izquierdo (Operaciones):
-- X: 60px
+- X: 20px
 - Y: 490px
 
 Contenedor Superior Derecho (Correctas):
-- X: 310px
+- X: 550px
 - Y: 490px
 
 Contenedor Inferior Izquierdo (Tiempo Promedio):
-- X: 60px
+- X: 20px
 - Y: 720px
 
 Contenedor Inferior Derecho (Precisión):
-- X: 310px
+- X: 550px
 - Y: 720px
 ```
 
 **Espaciado:**
-- Gap horizontal entre contenedores: 40px
+- Gap horizontal entre contenedores: 20px
 - Gap vertical entre filas: 35px
-- Margen desde el borde izquierdo: 60px
-- Margen desde el borde derecho: 60px
+- Margen desde el borde izquierdo: 20px
+- Margen desde el borde derecho: 20px
 
 #### 🎨 Estructura Visual de cada Contenedor
 
