@@ -127,6 +127,71 @@ Crear un botón "Instagram" en la sección de descarga de resultados que genere 
 
 ### 3. Datos a Mostrar
 
+La imagen generada debe incluir los siguientes elementos:
+
+#### 3.1 Contenedor de Nombre del Jugador (NUEVO - 2026-02-04)
+
+**Ubicación:** Zona superior central, debajo del header "BALDORA - Aritmética en línea"
+
+**Especificaciones Visuales:**
+
+- **Posición en Canvas:**
+  - X: **180px** (centrado horizontalmente)
+  - Y: **265px** (debajo del header principal)
+  
+- **Dimensiones:**
+  - Ancho: **225px**
+  - Alto: **85px**
+  - Border Radius: **42px** (bordes muy redondeados, casi elíptico)
+
+- **Colores:**
+  - Fondo: `#5FA052` (verde medio)
+  - Borde: `#4A8240` (verde oscuro) - Grosor: **3px**
+  - Texto: `#FFFFFF` (blanco)
+
+- **Tipografía:**
+  - Fuente: **Arial** (sans-serif)
+  - Peso: **Bold**
+  - Tamaño: **28px**
+  - Alineación: **Centrado** (horizontal y vertical)
+  - Text Transform: Capitalize (primera letra mayúscula)
+
+- **Efectos:**
+  - **Sombra del contenedor:**
+    ```javascript
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
+    ```
+  - **Sombra del texto (text shadow):**
+    ```javascript
+    // Sombra sutil para mejorar legibilidad
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+    ```
+
+**Fuente de datos:**
+- Obtener de `localStorage.getItem('playerName')` o 
+- Campo input en el modal si existe
+- Valor por defecto: `"Jugador"` si no hay nombre guardado
+
+**Ejemplo de Renderizado:**
+```
+┌─────────────────────────────────┐
+│                                 │  ← Fondo verde #5FA052
+│         Juan Pérez              │  ← Texto blanco Arial Bold 28px
+│                                 │  ← Bordes redondeados 42px
+└─────────────────────────────────┘  ← Borde verde oscuro 3px
+        Con sombra sutil
+```
+
+---
+
+#### 3.2 Contenedores de Estadísticas
+
 La imagen generada debe incluir los siguientes cuatro datos estadísticos:
 
 1. **Operaciones** 
@@ -252,6 +317,9 @@ box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 
 | Elemento | Color Hex | Uso |
 |----------|-----------|-----|
+| **Contenedor Nombre Jugador** | `#5FA052` | Fondo verde del nombre |
+| **Borde Nombre Jugador** | `#4A8240` | Borde verde oscuro (3px) |
+| **Texto Nombre Jugador** | `#FFFFFF` | Texto blanco |
 | Fondo contenedor | `#FFF9C4` | Background de los 4 contenedores |
 | Icono Operaciones | `#FF6B6B` | Diana roja |
 | Icono Correctas | `#4CAF50` | Check verde |

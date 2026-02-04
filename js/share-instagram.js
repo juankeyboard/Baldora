@@ -145,6 +145,10 @@ async function generateShareImage() {
 
         const statDetails = createStatDetails(stats);
 
+        // NUEVO (2026-02-04): Renderizar nombre del jugador
+        const playerName = getPlayerName();
+        drawPlayerNameContainer(ctx, playerName);
+
         drawStatContainer(ctx, containerConfig, positions.operations, statDetails.operations);
         drawStatContainer(ctx, containerConfig, positions.correct, statDetails.correct);
         drawStatContainer(ctx, containerConfig, positions.avgTime, statDetails.avgTime);
@@ -333,6 +337,114 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
     ctx.quadraticCurveTo(x, y, x + radius, y);
     ctx.closePath();
 }
+
+//==============================================================================
+// NUEVO (2026-02-04): CONTENEDOR DE NOMBRE DEL JUGADOR
+//==============================================================================
+
+/**
+ * Obtiene el nombre del jugador desde localStorage o fuente alternativa
+ * @returns {string} Nombre del jugador
+ */
+function getPlayerName() {
+    // Intentar obtener desde localStorage
+    let playerName = localStorage.getItem('playerName');
+
+    // Si no existe, intentar desde un input en el DOM (si existe)
+    if (!playerName) {
+        const nameInput = document.getElementById('playerNameInput') ||
+            document.querySelector('input[name="playerName"]');
+        if (nameInput && nameInput.value.trim()) {
+            playerName = nameInput.value.trim();
+        }
+    }
+
+    // Valor por defecto si no se encuentra
+    if (!playerName || playerName.trim() === '') {
+        playerName = 'Jugador';
+    }
+
+    // Capitalizar primera letra de cada palabra
+    playerName = playerName
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+
+    console.log('👤 Nombre del jugador:', playerName);
+    return playerName;
+}
+
+/**
+ * Dibuja el contenedor del nombre del jugador en el canvas
+ * @param {CanvasRenderingContext2D} ctx - Contexto del canvas
+ * @param {string} playerName - Nombre del jugador a mostrar
+ */
+function drawPlayerNameContainer(ctx, playerName) {
+    // Configuración basada en especificaciones (Main_doc_f13_Share.md)
+    const config = {
+        x: 180,
+        y: 265,
+        width: 225,
+        height: 85,
+        borderRadius: 42,
+        backgroundColor: '#5FA052',  // Verde medio
+        borderColor: '#4A8240',      // Verde oscuro
+        borderWidth: 3,
+        textColor: '#FFFFFF',        // Blanco
+        fontSize: 28,
+        fontFamily: 'Arial',
+        fontWeight: 'bold'
+    };
+
+    // Guardar estado del contexto
+    ctx.save();
+
+    // Sombra del contenedor
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+    ctx.shadowBlur = 8;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
+
+    // Dibujar fondo del contenedor con bordes redondeados
+    ctx.fillStyle = config.backgroundColor;
+    drawRoundedRect(ctx, config.x, config.y, config.width, config.height, config.borderRadius);
+    ctx.fill();
+
+    // Dibujar borde
+    ctx.strokeStyle = config.borderColor;
+    ctx.lineWidth = config.borderWidth;
+    drawRoundedRect(ctx, config.x, config.y, config.width, config.height, config.borderRadius);
+    ctx.stroke();
+
+    // Resetear sombra del contenedor
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+
+    // Configurar sombra del texto
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 1;
+    ctx.shadowOffsetY = 1;
+
+    // Renderizar texto del nombre
+    ctx.fillStyle = config.textColor;
+    ctx.font = `${config.fontWeight} ${config.fontSize}px ${config.fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Centrar texto en el contenedor
+    const textX = config.x + (config.width / 2);
+    const textY = config.y + (config.height / 2);
+
+    ctx.fillText(playerName, textX, textY);
+
+    // Restaurar estado del contexto
+    ctx.restore();
+
+    console.log(`✅ Contenedor de nombre renderizado: "${playerName}" en posición (${config.x}, ${config.y})`);
+}
+
+//==============================================================================
 
 /**
  * Inicializa el botón con texto dinámico según dispositivo
