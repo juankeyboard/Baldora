@@ -1724,7 +1724,248 @@ El código ya incluye fallback automático:
 
 ---
 
-## �🐛 Troubleshooting - Problemas Comunes
+## 🐛 Troubleshooting - Problemas Comunes
+
+### ⚠️ PROBLEMA CRÍTICO IDENTIFICADO - 2026-02-04
+
+### Problema 0: "Error al generar imagen: No se pudo cargar la plantilla Baldora_share.png" (EN PRODUCCIÓN)
+
+**Síntomas:**
+- ✅ La funcionalidad funciona perfectamente en PC local (development)
+- ❌ Al desplegar, aparece error: `Error: No se pudo cargar la plantilla Baldora_share.png` en consola
+- ❌ Alert muestra: "Error al generar la imagen. Por favor, intenta nuevamente."
+- 📍 Error ocurre en: `share-instagram.js:173` (línea del `img.onerror`)
+- 📍 Error se reporta en: `share-instagram.js:159` (línea del `console.error`)
+
+**Análisis del Problema Realizado:**
+
+1. **Problema Principal: Doble Extensión en el Archivo**
+   ```
+   ❌ Nombre actual del archivo: Baldora_share.png.png
+   ✅ Nombre esperado por el código: Baldora_share.png
+   ```
+   - El archivo fue guardado con extensión duplicada `.png.png`
+   - En Windows, si la extensión está visible, al guardar como "Baldora_share.png" el sistema agrega `.png` resultando en `.png.png`
+
+2. **Problema Secundario: Ruta Relativa**
+   ```javascript
+   // Línea 176 en share-instagram.js
+   img.src = 'images/Baldora_share.png';
+   ```
+   - Esta ruta funciona en local porque el servidor de desarrollo resuelve rutas relativas correctamente
+   - En producción (Firebase Hosting, GitHub Pages, etc.) las rutas relativas pueden fallar dependiendo del contexto de ejecución
+   - Falta la barra inicial `/` para indicar ruta absoluta desde el root del dominio
+
+3. **Por qué funciona en local pero no en producción:**
+   - **Local (Development Server):** 
+     - Servidor local (Live Server, http-server, etc.) tiene directorio raíz bien definido
+     - Rutas relativas se resuelven desde el contexto del archivo HTML
+     - El navegador puede cargar recursos con rutas flexibles
+   
+   - **Producción (Deployed):**
+     - Servidor web (Firebase, Apache, Nginx) tiene configuración estricta de rutas
+     - Puede haber reescritura de URLs, CDN, o configuración de caché
+     - Las rutas relativas sin `/` inicial pueden resolverse incorrectamente
+     - Si el script se ejecuta desde un contexto diferente, la ruta relativa apunta al lugar equivocado
+
+**Verificación del Problema:**
+
+```bash
+# 1. Verificar el nombre real del archivo
+# Resultado de find_by_name:
+# Found: images\Baldora_share.png.png
+# ❌ CONFIRMADO: El archivo tiene extensión duplicada
+
+# 2. Verificar qué busca el código
+# Línea 176 de share-instagram.js:
+# img.src = 'images/Baldora_share.png';
+# ❌ El código busca: Baldora_share.png
+# ❌ Pero el archivo es: Baldora_share.png.png
+# RESULTADO: 404 Not Found (archivo no existe con ese nombre)
+```
+
+**Soluciones Implementadas:**
+
+#### ✅ SOLUCIÓN 1: Renombrar el archivo (RECOMENDADO)
+```bash
+# Eliminar la extensión duplicada
+# Antes: Baldora_share.png.png
+# Después: Baldora_share.png
+
+# Windows PowerShell:
+Rename-Item "images/Baldora_share.png.png" "Baldora_share.png"
+
+# Windows CMD:
+ren "images\Baldora_share.png.png" "Baldora_share.png"
+
+# Git Bash / Linux / Mac:
+mv images/Baldora_share.png.png images/Baldora_share.png
+```
+
+#### ✅ SOLUCIÓN 2: Actualizar la ruta en el código para mayor robustez
+```javascript
+// Antes (línea 176):
+img.src = 'images/Baldora_share.png';
+
+// Después (RUTA ABSOLUTA desde root del dominio):
+img.src = '/images/Baldora_share.png';
+//         ^
+//         └── Barra inicial indica ruta absoluta desde el dominio raíz
+//             Funciona consistentemente en local y producción
+```
+
+#### ✅ SOLUCIÓN 3: Implementar sistema de fallback robusto (IMPLEMENTADO)
+```javascript
+// Sistema de múltiples rutas en orden de prioridad
+function loadTemplateImage() {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        
+        // Array de rutas posibles (orden de prioridad)
+        const possiblePaths = [
+            '/images/Baldora_share.png',      // Ruta absoluta (producción)
+            'images/Baldora_share.png',       // Ruta relativa (local)
+            './images/Baldora_share.png',     // Ruta relativa explícita
+            '../images/Baldora_share.png'     // Ruta relativa nivel superior
+        ];
+        
+        let currentPathIndex = 0;
+        
+        function tryNextPath() {
+            if (currentPathIndex >= possiblePaths.length) {
+                reject(new Error('No se pudo cargar la plantilla desde ninguna ruta'));
+                return;
+            }
+            
+            const currentPath = possiblePaths[currentPathIndex];
+            console.log(`🔍 Intentando cargar plantilla desde: ${currentPath}`);
+            
+            img.src = currentPath;
+            currentPathIndex++;
+        }
+        
+        img.onload = () => {
+            console.log(`✅ Plantilla cargada exitosamente desde: ${img.src}`);
+            resolve(img);
+        };
+        
+        img.onerror = () => {
+            console.warn(`⚠️ Fallo al cargar desde: ${possiblePaths[currentPathIndex - 1]}`);
+            tryNextPath();
+        };
+        
+        // Iniciar primer intento
+        tryNextPath();
+        
+        // Timeout de seguridad
+        setTimeout(() => {
+            if (!img.complete) {
+                reject(new Error('Timeout al cargar la plantilla'));
+            }
+        }, 10000);
+    });
+}
+```
+
+**Pasos de Implementación de la Solución:**
+
+1. ✅ **PASO 1:** Renombrar archivo en el sistema de archivos
+   ```bash
+   # Eliminar extensión duplicada
+   mv images/Baldora_share.png.png images/Baldora_share.png
+   ```
+
+2. ✅ **PASO 2:** Actualizar ruta en `share-instagram.js` línea 176
+   ```javascript
+   // Cambiar de:
+   img.src = 'images/Baldora_share.png';
+   
+   // A:
+   img.src = '/images/Baldora_share.png';
+   ```
+
+3. ✅ **PASO 3:** Agregar logging para debug
+   ```javascript
+   // Agregar después de la línea 176
+   console.log('🔍 Intentando cargar plantilla desde:', img.src);
+   console.log('📍 URL base del documento:', window.location.origin);
+   console.log('📍 Ruta completa esperada:', new URL(img.src, window.location.href).href);
+   ```
+
+4. ✅ **PASO 4:** Mejorar el mensaje de error
+   ```javascript
+   // Línea 173, reemplazar:
+   img.onerror = () => reject(new Error('No se pudo cargar la plantilla Baldora_share.png'));
+   
+   // Por:
+   img.onerror = () => {
+       const attemptedUrl = new URL(img.src, window.location.href).href;
+       console.error('❌ Error al cargar plantilla');
+       console.error('   Ruta intentada:', attemptedUrl);
+       console.error('   Verificar que el archivo existe en:', '/images/Baldora_share.png');
+       reject(new Error(`No se pudo cargar la plantilla desde: ${attemptedUrl}`));
+   };
+   ```
+
+5. ✅ **PASO 5:** Testear en producción
+   - Desplegar cambios
+   - Abrir DevTools → Network → Filtrar por "Baldora_share"
+   - Verificar que el status sea 200 OK (no 404)
+   - Confirmar que la imagen se descarga correctamente
+
+**Verificación Post-Implementación:**
+
+```javascript
+// En la consola del navegador (producción):
+// 1. Verificar que el archivo existe
+fetch('/images/Baldora_share.png')
+  .then(r => console.log('✅ Archivo encontrado:', r.status))
+  .catch(e => console.error('❌ Archivo no encontrado:', e));
+
+// 2. Verificar dimensiones de la imagen
+const testImg = new Image();
+testImg.onload = () => console.log(`✅ Dimensiones: ${testImg.width}x${testImg.height}`);
+testImg.src = '/images/Baldora_share.png';
+
+// 3. Probar la función completa
+generateShareImage();
+// Debe descargar la imagen sin errores
+```
+
+**Prevención de Futuros Problemas:**
+
+1. **📝 Documentar rutas en README:**
+   ```markdown
+   ## Assets de la Aplicación
+   
+   - Plantilla de compartir: `/images/Baldora_share.png` (1080x1920px)
+   - Siempre usar rutas absolutas desde root (`/images/...`)
+   - NO usar rutas relativas sin barra inicial
+   ```
+
+2. **🔧 Agregar validación en build:**
+   ```javascript
+   // scripts/validate-assets.js
+   const fs = require('fs');
+   const requiredAssets = [
+       'images/Baldora_share.png'
+   ];
+   
+   requiredAssets.forEach(asset => {
+       if (!fs.existsSync(asset)) {
+           console.error(`❌ Asset faltante: ${asset}`);
+           process.exit(1);
+       }
+   });
+   ```
+
+3. **📋 Checklist pre-deploy:**
+   - [ ] Verificar que `images/Baldora_share.png` existe (sin extensión duplicada)
+   - [ ] Verificar que todas las rutas en JavaScript usan `/images/...` (con barra inicial)
+   - [ ] Testear en ambiente de staging antes de producción
+   - [ ] Revisar Network tab para confirmar que recursos se cargan con status 200
+
+---
 
 ### Problema 1: "Botón no aparece"
 **Causa:** HTML no agregado correctamente

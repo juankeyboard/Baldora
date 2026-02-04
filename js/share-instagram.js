@@ -169,11 +169,28 @@ function loadTemplateImage() {
     return new Promise((resolve, reject) => {
         const img = new Image();
 
-        img.onload = () => resolve(img);
-        img.onerror = () => reject(new Error('No se pudo cargar la plantilla Baldora_share.png'));
+        img.onload = () => {
+            console.log('✅ Plantilla cargada exitosamente desde:', img.src);
+            resolve(img);
+        };
 
-        // Ruta verificada anteriormente
-        img.src = 'images/Baldora_share.png';
+        img.onerror = () => {
+            const attemptedUrl = new URL(img.src, window.location.href).href;
+            console.error('❌ Error al cargar plantilla');
+            console.error('   Ruta intentada:', attemptedUrl);
+            console.error('   Verificar que el archivo existe en: /images/Baldora_share.png');
+            console.error('   Extensión del archivo debe ser .png (NO .png.png)');
+            reject(new Error(`No se pudo cargar la plantilla desde: ${attemptedUrl}`));
+        };
+
+        // CORRECCIÓN CRÍTICA: Usar ruta absoluta para que funcione en producción
+        // Ruta absoluta (con / inicial) funciona consistentemente en local Y producción
+        img.src = '/images/Baldora_share.png';
+
+        // Logging para debugging en producción
+        console.log('🔍 Intentando cargar plantilla desde:', img.src);
+        console.log('📍 URL base del documento:', window.location.origin);
+        console.log('📍 Ruta completa esperada:', new URL(img.src, window.location.href).href);
 
         // Timeout de seguridad
         setTimeout(() => {
