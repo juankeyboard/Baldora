@@ -136,7 +136,7 @@ La imagen generada debe incluir los siguientes elementos:
 **Especificaciones Visuales:**
 
 - **Posición en Canvas:**
-  - X: **180px** (centrado horizontalmente)
+  - X: **428px** (centrado horizontalmente: (1080 - 225) / 2 = 427.5 ≈ 428px)
   - Y: **265px** (debajo del header principal)
   
 - **Dimensiones:**
@@ -145,8 +145,9 @@ La imagen generada debe incluir los siguientes elementos:
   - Border Radius: **42px** (bordes muy redondeados, casi elíptico)
 
 - **Colores:**
-  - Fondo: `#5FA052` (verde medio)
-  - Borde: `#4A8240` (verde oscuro) - Grosor: **3px**
+  - Fondo: `#6E8C38` (verde - mismo color que botones PDF/CSV)
+  - Borde: `#5A7330` (verde oscuro - 20% más oscuro que el fondo)
+  - Grosor del borde: **3px**
   - Texto: `#FFFFFF` (blanco)
 
 - **Tipografía:**
@@ -154,7 +155,7 @@ La imagen generada debe incluir los siguientes elementos:
   - Peso: **Bold**
   - Tamaño: **28px**
   - Alineación: **Centrado** (horizontal y vertical)
-  - Text Transform: Capitalize (primera letra mayúscula)
+  - Text Transform: **MAYÚSCULAS** (toUpperCase())
 
 - **Efectos:**
   - **Sombra del contenedor:**
@@ -177,16 +178,34 @@ La imagen generada debe incluir los siguientes elementos:
 - Obtener de `localStorage.getItem('playerName')` o 
 - Campo input en el modal si existe
 - Valor por defecto: `"Jugador"` si no hay nombre guardado
+- **IMPORTANTE:** Convertir a MAYÚSCULAS con `.toUpperCase()`
+
+**Cálculo de Centrado Horizontal:**
+```javascript
+// Canvas width: 1080px
+// Contenedor width: 225px
+// X centrado = (canvasWidth - containerWidth) / 2
+// X = (1080 - 225) / 2 = 427.5 ≈ 428px
+```
 
 **Ejemplo de Renderizado:**
 ```
-┌─────────────────────────────────┐
-│                                 │  ← Fondo verde #5FA052
-│         Juan Pérez              │  ← Texto blanco Arial Bold 28px
-│                                 │  ← Bordes redondeados 42px
-└─────────────────────────────────┘  ← Borde verde oscuro 3px
-        Con sombra sutil
+                    Canvas 1080px
+        ┌─────────────────────────────────┐
+        │                                 │  ← Fondo verde #6E8C38
+        │         JUAN PÉREZ              │  ← Texto blanco Arial Bold 28px MAYÚSCULAS
+        │                                 │  ← Bordes redondeados 42px
+        └─────────────────────────────────┘  ← Borde verde oscuro 3px
+                 Con sombra sutil
+         ←─────────── 428px ──────────→
+                  (centrado)
 ```
+
+**Actualización (2026-02-04 - 15:54):**
+- ✅ Texto cambiado a MAYÚSCULAS
+- ✅ Contenedor centrado horizontalmente (X: 428px)
+- ✅ Color actualizado a #6E8C38 (mismo que botones PDF/CSV)
+- ✅ Borde verde oscuro #5A7330
 
 ---
 
@@ -317,9 +336,9 @@ box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 
 | Elemento | Color Hex | Uso |
 |----------|-----------|-----|
-| **Contenedor Nombre Jugador** | `#5FA052` | Fondo verde del nombre |
-| **Borde Nombre Jugador** | `#4A8240` | Borde verde oscuro (3px) |
-| **Texto Nombre Jugador** | `#FFFFFF` | Texto blanco |
+| **Contenedor Nombre Jugador** | `#6E8C38` | Fondo verde (mismo que botones PDF/CSV) |
+| **Borde Nombre Jugador** | `#5A7330` | Borde verde oscuro (3px) |
+| **Texto Nombre Jugador** | `#FFFFFF` | Texto blanco en MAYÚSCULAS |
 | Fondo contenedor | `#FFF9C4` | Background de los 4 contenedores |
 | Icono Operaciones | `#FF6B6B` | Diana roja |
 | Icono Correctas | `#4CAF50` | Check verde |

@@ -249,7 +249,7 @@ function createStatDetails(stats) {
             label: 'Operaciones'
         },
         correct: {
-            icon: '✓',
+            icon: '✅',
             iconColor: '#4CAF50',
             value: stats.correct.toString(),
             label: 'Correctas'
@@ -307,8 +307,8 @@ function drawStatContainer(ctx, config, position, details) {
     ctx.fillText(details.value, position.x + config.width / 2, position.y + 95);
 
     // Renderizar etiqueta
-    ctx.font = '16px "Poppins", sans-serif';
-    ctx.fillStyle = '#A8A8A8';
+    ctx.font = '36px "Poppins", sans-serif';
+    ctx.fillStyle = '#646363ff';
     ctx.fillText(details.label, position.x + config.width / 2, position.y + 160);
 
     // Restaurar estado del contexto
@@ -364,11 +364,8 @@ function getPlayerName() {
         playerName = 'Jugador';
     }
 
-    // Capitalizar primera letra de cada palabra
-    playerName = playerName
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
+    // ACTUALIZACIÓN (2026-02-04): Convertir a MAYÚSCULAS
+    playerName = playerName.toUpperCase();
 
     console.log('👤 Nombre del jugador:', playerName);
     return playerName;
@@ -380,18 +377,24 @@ function getPlayerName() {
  * @param {string} playerName - Nombre del jugador a mostrar
  */
 function drawPlayerNameContainer(ctx, playerName) {
-    // Configuración basada en especificaciones (Main_doc_f13_Share.md)
+    // Configuración basada en el botón "Analizar Resultados" (ai-action-btn)
+    // CORRECCIÓN (2026-02-04 - 16:26): Colores AZULES correctos y bordes redondeados sin picos
     const config = {
-        x: 180,
-        y: 265,
-        width: 225,
-        height: 85,
-        borderRadius: 42,
-        backgroundColor: '#5FA052',  // Verde medio
-        borderColor: '#4A8240',      // Verde oscuro
-        borderWidth: 3,
+        x: 90,                       // CENTRADO: (1080 - 900) / 2 = 90px
+        y: 550,
+        width: 900,
+        height: 100,
+        borderRadius: 50,            // Bordes totalmente redondeados
+
+        // Gradiente AZUL igual al botón (#3498db → #2980b9)
+        backgroundColor: '#3498db',  // Azul claro (color superior del gradiente)
+        gradientEnd: '#2980b9',      // Azul oscuro (color inferior del gradiente)
+
+        borderColor: '#2471a3',      // Borde azul oscuro
+        borderWidth: 3,              // Borde uniforme de 3px
+
         textColor: '#FFFFFF',        // Blanco
-        fontSize: 28,
+        fontSize: 60,
         fontFamily: 'Arial',
         fontWeight: 'bold'
     };
@@ -399,28 +402,38 @@ function drawPlayerNameContainer(ctx, playerName) {
     // Guardar estado del contexto
     ctx.save();
 
-    // Sombra del contenedor
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-    ctx.shadowBlur = 8;
+    // Sombra con efecto GLOW azul (igual al botón)
+    // box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+    ctx.shadowColor = 'rgba(52, 152, 219, 0.4)';
+    ctx.shadowBlur = 20;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 3;
+    ctx.shadowOffsetY = 6;
 
-    // Dibujar fondo del contenedor con bordes redondeados
-    ctx.fillStyle = config.backgroundColor;
+    // Crear gradiente vertical AZUL (de arriba hacia abajo)
+    // linear-gradient(135deg, #3498db 0%, #2980b9 100%)
+    const gradient = ctx.createLinearGradient(
+        config.x,
+        config.y,
+        config.x,
+        config.y + config.height
+    );
+    gradient.addColorStop(0, config.backgroundColor);  // #3498db arriba
+    gradient.addColorStop(1, config.gradientEnd);      // #2980b9 abajo
+
+    // Dibujar fondo con gradiente y bordes redondeados
+    ctx.fillStyle = gradient;
     drawRoundedRect(ctx, config.x, config.y, config.width, config.height, config.borderRadius);
     ctx.fill();
 
-    // Dibujar borde
+    // Dibujar borde uniforme alrededor (sin picos ni puntas)
+    ctx.shadowColor = 'transparent';  // Quitar sombra para el borde
+    ctx.shadowBlur = 0;
     ctx.strokeStyle = config.borderColor;
     ctx.lineWidth = config.borderWidth;
     drawRoundedRect(ctx, config.x, config.y, config.width, config.height, config.borderRadius);
     ctx.stroke();
 
-    // Resetear sombra del contenedor
-    ctx.shadowColor = 'transparent';
-    ctx.shadowBlur = 0;
-
-    // Configurar sombra del texto
+    // Configurar sombra del texto (sutil)
     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetX = 1;
