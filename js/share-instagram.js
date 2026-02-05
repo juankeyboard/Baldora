@@ -347,21 +347,36 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
  * @returns {string} Nombre del jugador
  */
 function getPlayerName() {
-    // Intentar obtener desde localStorage
-    let playerName = localStorage.getItem('playerName');
-    let source = 'localStorage';
+    let playerName = null;
+    let source = 'unknown';
 
-    // Si no existe, intentar desde un input en el DOM (si existe)
+    // 1. PRIORITARIO: Intentar obtener desde DataManager.nickname (fuente principal en la app)
+    if (window.DataManager && window.DataManager.nickname) {
+        playerName = window.DataManager.nickname;
+        source = 'DataManager.nickname';
+    }
+
+    // 2. Fallback: Intentar desde localStorage
     if (!playerName) {
-        const nameInput = document.getElementById('playerNameInput') ||
-            document.querySelector('input[name="playerName"]');
+        playerName = localStorage.getItem('playerName');
+        if (playerName) {
+            source = 'localStorage';
+        }
+    }
+
+    // 3. Fallback: Intentar desde el input en el DOM (campo #nickname)
+    if (!playerName) {
+        const nameInput = document.getElementById('nickname') ||
+            document.getElementById('playerNameInput') ||
+            document.querySelector('input[name="playerName"]') ||
+            document.querySelector('input[name="nickname"]');
         if (nameInput && nameInput.value.trim()) {
             playerName = nameInput.value.trim();
             source = 'DOM input';
         }
     }
 
-    // Valor por defecto si no se encuentra
+    // 4. Valor por defecto si no se encuentra
     if (!playerName || playerName.trim() === '') {
         playerName = 'Jugador';
         source = 'default';
@@ -372,6 +387,17 @@ function getPlayerName() {
 
     console.log('👤 Nombre del jugador obtenido:', playerName);
     console.log(`   Fuente: ${source} | Longitud: ${playerName.length} caracteres | MAYÚSCULAS: ${playerName === playerName.toUpperCase()}`);
+
+    // Debug adicional: mostrar qué hay en DataManager
+    if (window.DataManager) {
+        console.log('   DataManager disponible:', {
+            nickname: window.DataManager.nickname || '(vacío)',
+            sessionDataLength: window.DataManager.sessionData?.length || 0
+        });
+    } else {
+        console.warn('   ⚠️ DataManager NO está disponible en window');
+    }
+
     return playerName;
 }
 
