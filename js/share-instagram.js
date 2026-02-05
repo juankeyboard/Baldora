@@ -349,6 +349,7 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
 function getPlayerName() {
     // Intentar obtener desde localStorage
     let playerName = localStorage.getItem('playerName');
+    let source = 'localStorage';
 
     // Si no existe, intentar desde un input en el DOM (si existe)
     if (!playerName) {
@@ -356,18 +357,21 @@ function getPlayerName() {
             document.querySelector('input[name="playerName"]');
         if (nameInput && nameInput.value.trim()) {
             playerName = nameInput.value.trim();
+            source = 'DOM input';
         }
     }
 
     // Valor por defecto si no se encuentra
     if (!playerName || playerName.trim() === '') {
         playerName = 'Jugador';
+        source = 'default';
     }
 
     // ACTUALIZACIÓN (2026-02-04): Convertir a MAYÚSCULAS
     playerName = playerName.toUpperCase();
 
-    console.log('👤 Nombre del jugador:', playerName);
+    console.log('👤 Nombre del jugador obtenido:', playerName);
+    console.log(`   Fuente: ${source} | Longitud: ${playerName.length} caracteres | MAYÚSCULAS: ${playerName === playerName.toUpperCase()}`);
     return playerName;
 }
 
@@ -433,6 +437,9 @@ function drawPlayerNameContainer(ctx, playerName) {
     drawRoundedRect(ctx, config.x, config.y, config.width, config.height, config.borderRadius);
     ctx.stroke();
 
+    // IMPORTANTE: Limpiar el path después del stroke para evitar interferencias
+    ctx.beginPath();
+
     // Configurar sombra del texto (sutil)
     ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
     ctx.shadowBlur = 4;
@@ -455,6 +462,7 @@ function drawPlayerNameContainer(ctx, playerName) {
     ctx.restore();
 
     console.log(`✅ Contenedor de nombre renderizado: "${playerName}" en posición (${config.x}, ${config.y})`);
+    console.log(`   Texto renderizado en: (${textX}, ${textY}) | Color: ${config.textColor} | Font: ${config.fontWeight} ${config.fontSize}px ${config.fontFamily}`);
 }
 
 //==============================================================================

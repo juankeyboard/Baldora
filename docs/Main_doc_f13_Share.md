@@ -129,41 +129,43 @@ Crear un botón "Instagram" en la sección de descarga de resultados que genere 
 
 La imagen generada debe incluir los siguientes elementos:
 
-#### 3.1 Contenedor de Nombre del Jugador (NUEVO - 2026-02-04)
+#### 3.1 Contenedor de Nombre del Jugador (ACTUALIZADO - 2026-02-05)
 
-**Ubicación:** Zona superior central, debajo del header "BALDORA - Aritmética en línea"
+**Ubicación:** Zona central de la imagen, sobre los contenedores de estadísticas
 
-**Especificaciones Visuales:**
+**Especificaciones Visuales (IMPLEMENTACIÓN ACTUAL):**
 
 - **Posición en Canvas:**
-  - X: **428px** (centrado horizontalmente: (1080 - 225) / 2 = 427.5 ≈ 428px)
-  - Y: **265px** (debajo del header principal)
+  - X: **90px** (centrado horizontalmente: (1080 - 900) / 2 = 90px)
+  - Y: **550px** (sobre los contenedores de estadísticas)
   
 - **Dimensiones:**
-  - Ancho: **225px**
-  - Alto: **85px**
-  - Border Radius: **42px** (bordes muy redondeados, casi elíptico)
+  - Ancho: **900px**
+  - Alto: **100px**
+  - Border Radius: **50px** (bordes totalmente redondeados)
 
 - **Colores:**
-  - Fondo: `#6E8C38` (verde - mismo color que botones PDF/CSV)
-  - Borde: `#5A7330` (verde oscuro - 20% más oscuro que el fondo)
+  - Fondo: **Gradiente azul vertical** (de arriba hacia abajo)
+    - Color superior: `#3498db` (azul claro)
+    - Color inferior: `#2980b9` (azul oscuro)
+  - Borde: `#2471a3` (azul oscuro)
   - Grosor del borde: **3px**
   - Texto: `#FFFFFF` (blanco)
 
 - **Tipografía:**
   - Fuente: **Arial** (sans-serif)
   - Peso: **Bold**
-  - Tamaño: **28px**
+  - Tamaño: **60px**
   - Alineación: **Centrado** (horizontal y vertical)
   - Text Transform: **MAYÚSCULAS** (toUpperCase())
 
 - **Efectos:**
-  - **Sombra del contenedor:**
+  - **Sombra del contenedor (efecto GLOW azul):**
     ```javascript
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
-    ctx.shadowBlur = 8;
+    ctx.shadowColor = 'rgba(52, 152, 219, 0.4)';
+    ctx.shadowBlur = 20;
     ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 3;
+    ctx.shadowOffsetY = 6;
     ```
   - **Sombra del texto (text shadow):**
     ```javascript
@@ -176,36 +178,44 @@ La imagen generada debe incluir los siguientes elementos:
 
 **Fuente de datos:**
 - Obtener de `localStorage.getItem('playerName')` o 
-- Campo input en el modal si existe
+- Campo input en el DOM (`#playerNameInput` o `input[name="playerName"]`)
 - Valor por defecto: `"Jugador"` si no hay nombre guardado
 - **IMPORTANTE:** Convertir a MAYÚSCULAS con `.toUpperCase()`
 
 **Cálculo de Centrado Horizontal:**
 ```javascript
 // Canvas width: 1080px
-// Contenedor width: 225px
+// Contenedor width: 900px
 // X centrado = (canvasWidth - containerWidth) / 2
-// X = (1080 - 225) / 2 = 427.5 ≈ 428px
+// X = (1080 - 900) / 2 = 90px
+```
+
+**Cálculo de Centrado del Texto:**
+```javascript
+// Text X = config.x + (config.width / 2) = 90 + 450 = 540px
+// Text Y = config.y + (config.height / 2) = 550 + 50 = 600px
 ```
 
 **Ejemplo de Renderizado:**
 ```
-                    Canvas 1080px
-        ┌─────────────────────────────────┐
-        │                                 │  ← Fondo verde #6E8C38
-        │         JUAN PÉREZ              │  ← Texto blanco Arial Bold 28px MAYÚSCULAS
-        │                                 │  ← Bordes redondeados 42px
-        └─────────────────────────────────┘  ← Borde verde oscuro 3px
-                 Con sombra sutil
-         ←─────────── 428px ──────────→
-                  (centrado)
+                        Canvas 1080px
+  ┌────────────────────────────────────────────────────┐
+  │ ╔════════════════════════════════════════════════╗ │  ← Y: 550px
+  │ ║                                                ║ │  ← Fondo: gradiente azul
+  │ ║              NOMBRE DEL JUGADOR                ║ │  ← Texto blanco Arial Bold 60px
+  │ ║                                                ║ │  ← Bordes redondeados 50px
+  │ ╚════════════════════════════════════════════════╝ │  ← Borde azul oscuro 3px
+  └────────────────────────────────────────────────────┘
+     ←─── X: 90px ────→ ←─── Width: 900px ───→
+                    Con sombra GLOW azul
 ```
 
-**Actualización (2026-02-04 - 15:54):**
-- ✅ Texto cambiado a MAYÚSCULAS
-- ✅ Contenedor centrado horizontalmente (X: 428px)
-- ✅ Color actualizado a #6E8C38 (mismo que botones PDF/CSV)
-- ✅ Borde verde oscuro #5A7330
+**Actualización (2026-02-05 - 16:15):**
+- ✅ Texto en MAYÚSCULAS
+- ✅ Contenedor centrado horizontalmente (X: 90px)
+- ✅ Diseño con gradiente azul (basado en botón "Analizar Resultados")
+- ✅ Dimensiones ampliadas: 900×100px
+- ✅ Posición Y: 550px (sobre contenedores de estadísticas)
 
 ---
 
@@ -336,8 +346,9 @@ box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 
 | Elemento | Color Hex | Uso |
 |----------|-----------|-----|
-| **Contenedor Nombre Jugador** | `#6E8C38` | Fondo verde (mismo que botones PDF/CSV) |
-| **Borde Nombre Jugador** | `#5A7330` | Borde verde oscuro (3px) |
+| **Contenedor Nombre Jugador - Gradiente Superior** | `#3498db` | Fondo azul claro (parte superior del gradiente) |
+| **Contenedor Nombre Jugador - Gradiente Inferior** | `#2980b9` | Fondo azul oscuro (parte inferior del gradiente) |
+| **Borde Nombre Jugador** | `#2471a3` | Borde azul oscuro (3px) |
 | **Texto Nombre Jugador** | `#FFFFFF` | Texto blanco en MAYÚSCULAS |
 | Fondo contenedor | `#FFF9C4` | Background de los 4 contenedores |
 | Icono Operaciones | `#FF6B6B` | Diana roja |
