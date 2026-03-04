@@ -210,11 +210,7 @@ const UserProfile = {
 
     async _renderCommunityScore(uid, stats) {
         const scoreEl = document.getElementById('community-score-value');
-        const posEl = document.getElementById('community-position');
-        const percentileEl = document.getElementById('community-percentile');
-        const barEl = document.getElementById('community-score-bar');
-
-        if (scoreEl) scoreEl.textContent = stats.community_score || 0;
+        const totalEl = document.getElementById('community-total-players');
 
         // Calcular posición en el leaderboard
         try {
@@ -228,19 +224,15 @@ const UserProfile = {
             players.sort((a, b) => (b.community_score || 0) - (a.community_score || 0));
 
             const position = players.findIndex(p => p.uid === uid) + 1;
-            const total = players.length;
-            const percentile = total > 0 ? Math.round(((total - position) / total) * 100) : 0;
+            const total = players.length || 100;
 
-            if (posEl) posEl.textContent = `#${position} de ${total} jugadores`;
-            if (percentileEl) {
-                percentileEl.textContent = position <= Math.ceil(total * 0.1)
-                    ? `Top ${Math.ceil((position / total) * 100)}% de la comunidad`
-                    : `Mejor que el ${percentile}% de la comunidad`;
-            }
-            if (barEl) barEl.style.width = `${Math.min(100, stats.community_score || 0)}%`;
+            if (scoreEl) scoreEl.textContent = position || 0;
+            if (totalEl) totalEl.textContent = total;
 
         } catch (err) {
             console.error('Error al calcular posición:', err);
+            if (scoreEl) scoreEl.textContent = 0;
+            if (totalEl) totalEl.textContent = 100;
         }
     },
 

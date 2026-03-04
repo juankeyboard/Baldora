@@ -56,7 +56,7 @@
         // Configuraci�n de Firebase (seg�n Main_doc_f8_AI.md)
         const firebaseConfig = {
             apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
-            authDomain: "baldora-89866.firebaseapp.com",
+            authDomain: "baldora.org",
             databaseURL: "https://baldora-89866-default-rtdb.firebaseio.com",
             projectId: "baldora-89866",
             storageBucket: "baldora-89866.firebasestorage.app",
@@ -663,16 +663,26 @@
                 <button class="btn-back-profile" type="button" onclick="App.showView('CONFIG')">
                     &#8592; Volver
                 </button>
-                <div class="profile-user-info">
-                    <img id="profile-avatar" class="profile-avatar" src="" alt="Avatar">
-                    <div class="profile-user-details">
-                        <h2 id="profile-name" class="profile-name">Usuario</h2>
-                        <p id="profile-email" class="profile-email"></p>
-                        <p class="profile-member">
-                            Miembro desde <span id="profile-member-since">-</span>
-                            &nbsp;·&nbsp;
-                            <span id="profile-total-games">0</span> partidas
-                        </p>
+                <div class="profile-header-row">
+                    <div class="profile-user-info">
+                        <img id="profile-avatar" class="profile-avatar" src="" alt="Avatar">
+                        <div class="profile-user-details">
+                            <h2 id="profile-name" class="profile-name">Usuario</h2>
+                            <p id="profile-email" class="profile-email"></p>
+                            <p class="profile-member">
+                                Miembro desde <span id="profile-member-since">-</span>
+                                &nbsp;·&nbsp;
+                                <span id="profile-total-games">0</span> partidas
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Posición en la comunidad (badge compacto) -->
+                    <div class="community-badge">
+                        <span class="community-badge-icon">&#127942;</span>
+                        <span class="community-badge-value" id="community-score-value">0</span>
+                        <span class="community-badge-separator">/</span>
+                        <span class="community-badge-total" id="community-total-players">100</span>
+                        <span class="community-badge-label">Comunidad</span>
                     </div>
                 </div>
             </div>
@@ -708,23 +718,7 @@
                     </div>
                 </div>
 
-                <!-- Puntaje en la comunidad -->
-                <div class="community-score-section">
-                    <h3 class="section-title">&#127942; Posición en la Comunidad</h3>
-                    <div class="community-score-card">
-                        <div class="community-score-left">
-                            <span class="community-score-big" id="community-score-value">0</span>
-                            <span class="community-score-label">Puntaje Comunidad</span>
-                        </div>
-                        <div class="community-score-right">
-                            <p id="community-position" class="community-position">#- de - jugadores</p>
-                            <p id="community-percentile" class="community-percentile">-</p>
-                            <div class="community-score-bar-track">
-                                <div id="community-score-bar" class="community-score-bar" style="width: 0%"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
 
                 <!-- Filtros -->
                 <div class="profile-filters">
@@ -780,6 +774,11 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Footer del perfil -->
+            <footer class="profile-footer">
+                <p>&copy;2026 Baldora · Cali-Colombia · MIT License</p>
+            </footer>
         </div>
     </section>
 

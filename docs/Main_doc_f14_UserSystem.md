@@ -61,11 +61,20 @@ Agregar al `index.html` junto a los SDKs existentes:
    - `baldora-89866.firebaseapp.com` (dominio por defecto de Firebase)
    - `baldora-89866.web.app` (dominio por defecto de Firebase Hosting)
    - **`baldora.org`** (dominio personalizado/oficial del sitio — **CRÍTICO para producción**)
-3. Verificar que el `authDomain` en `firebaseConfig` sea: `baldora-89866.firebaseapp.com`.
+3. Verificar que el `authDomain` en `firebaseConfig` sea: `baldora.org` (dominio personalizado para que el popup de Google muestre "Ir a baldora.org").
+4. **Registrar URI de redirección en Google Cloud Console:**
+   - Ir a [Google Cloud Console > APIs & Services > Credentials](https://console.cloud.google.com/apis/credentials?project=baldora-89866)
+   - Editar el OAuth 2.0 Client ("Web client (auto created by Google Service)")
+   - En "Authorized redirect URIs" agregar: `https://baldora.org/__/auth/handler`
+   - Guardar cambios (puede tardar 5 min a unas horas en propagarse)
 
 > **⚠️ LECCIÓN APRENDIDA (Deploy 4-Mar-2026):**
-> - El `authDomain` **DEBE** permanecer como `baldora-89866.firebaseapp.com`. Cambiarlo a `baldora-89866.web.app` o al dominio personalizado causa `Error 400: redirect_uri_mismatch` porque Google OAuth solo tiene configurado `firebaseapp.com/__/auth/handler` como URI de redirección válida.
-> - Si el sitio usa un **dominio personalizado** (ej: `baldora.org`), ese dominio DEBE agregarse a la lista de dominios autorizados. Sin esto, `signInWithPopup()` falla con `auth/unauthorized-domain`.
+> - El `authDomain` puede cambiarse a un **dominio personalizado** (ej: `baldora.org`) SIEMPRE QUE se registre `https://{dominio}/__/auth/handler` como redirect URI en Google Cloud Console > Credentials > OAuth Client.
+> - Si se cambia `authDomain` SIN registrar la redirect URI, se obtiene `Error 400: redirect_uri_mismatch`.
+> - Si el sitio usa un **dominio personalizado** (ej: `baldora.org`), ese dominio DEBE agregarse también a la lista de dominios autorizados en Firebase Console > Authentication > Settings. Sin esto, `signInWithPopup()` falla con `auth/unauthorized-domain`.
+> - URIs de redirección actualmente registradas:
+>   1. `https://baldora-89866.firebaseapp.com/__/auth/handler` (por defecto)
+>   2. `https://baldora.org/__/auth/handler` (dominio personalizado)
 
 ### 2.3.1. Configuración de Firebase Hosting para OAuth (firebase.json)
 
