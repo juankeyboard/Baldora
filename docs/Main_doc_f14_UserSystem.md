@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión** | 1.2 (Iteración 2) |
+| **Versión** | 1.3 (Iteración 3 - Post-Deploy) |
 | **Fecha** | 4 de Marzo, 2026 |
 | **Proyecto** | Baldora |
 | **Módulo** | Autenticación, Persistencia de Datos, Analíticas de Usuario |
@@ -56,8 +56,74 @@ Agregar al `index.html` junto a los SDKs existentes:
 ### 2.3. Configuración en Firebase Console
 
 1. En Firebase Console > Authentication > Sign-in method, habilitar **Google** como proveedor.
-2. Configurar el dominio autorizado (`baldora-89866.web.app` y dominio personalizado si existe).
-3. Verificar que el `authDomain` en `firebaseConfig` sea correcto: `baldora-89866.firebaseapp.com`.
+2. Configurar los dominios autorizados en Authentication > Settings > Authorized domains:
+   - `localhost` (desarrollo local)
+   - `baldora-89866.firebaseapp.com` (dominio por defecto de Firebase)
+   - `baldora-89866.web.app` (dominio por defecto de Firebase Hosting)
+   - **`baldora.org`** (dominio personalizado/oficial del sitio — **CRÍTICO para producción**)
+3. Verificar que el `authDomain` en `firebaseConfig` sea: `baldora-89866.firebaseapp.com`.
+
+> **⚠️ LECCIÓN APRENDIDA (Deploy 4-Mar-2026):**
+> - El `authDomain` **DEBE** permanecer como `baldora-89866.firebaseapp.com`. Cambiarlo a `baldora-89866.web.app` o al dominio personalizado causa `Error 400: redirect_uri_mismatch` porque Google OAuth solo tiene configurado `firebaseapp.com/__/auth/handler` como URI de redirección válida.
+> - Si el sitio usa un **dominio personalizado** (ej: `baldora.org`), ese dominio DEBE agregarse a la lista de dominios autorizados. Sin esto, `signInWithPopup()` falla con `auth/unauthorized-domain`.
+
+### 2.3.1. Configuración de Firebase Hosting para OAuth (firebase.json)
+
+Firebase Hosting aplica headers de seguridad `Cross-Origin-Opener-Policy: same-origin` por defecto, los cuales **bloquean la comunicación** entre el popup de Google OAuth y la ventana principal de la app. Para que `signInWithPopup()` funcione en producción, se debe agregar el siguiente header en `firebase.json`:
+
+```json
+{
+  "hosting": {
+    "headers": [
+      {
+        "source": "/**",
+        "headers": [
+          {
+            "key": "Cross-Origin-Opener-Policy",
+            "value": "same-origin-allow-popups"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+> **Nota:** Sin este header, el popup de Google se abre y se cierra inmediatamente sin completar la autenticación. El error en consola es: `Cross-Origin-Opener-Policy policy would block the window.closed call`.
+
+### 2.3.2. Reglas de Seguridad de Realtime Database
+
+Las reglas de Realtime Database deben incluir las rutas de `users` y `leaderboard` para que el sistema de usuario funcione. Sin estas reglas, Firebase rechaza la escritura con `permission_denied` al intentar crear el perfil del usuario post-autenticación.
+
+Reglas requeridas (en Firebase Console > Realtime Database > Rules):
+
+```json
+{
+  "rules": {
+    "visits": {
+      ".read": true,
+      ".write": true
+    },
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "leaderboard": {
+      ".read": true,
+      "community_benchmarks": {
+        ".write": "auth != null"
+      },
+      "players": {
+        "$uid": {
+          ".write": "$uid === auth.uid"
+        }
+      }
+    }
+  }
+}
+```
 
 ### 2.4. Datos del Usuario Disponibles
 
@@ -731,4 +797,68 @@ Todo el sistema es aditivo. El flujo sin login debe seguir funcionando **exactam
 
 ---
 
-*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.2*
+## 11. Registro de Incidencias de Deploy (Post-Implementación)
+
+> Esta sección documenta problemas encontrados durante el despliegue a producción y sus soluciones, para referencia en futuras implementaciones.
+
+### 11.1. Incidencia: `auth/unauthorized-domain` en producción
+
+| Campo | Detalle |
+|-------|--------|
+| **Fecha** | 4 de Marzo, 2026 |
+| **Entorno** | Producción (`baldora.org`) |
+| **Error** | `FirebaseError: This domain is not authorized for OAuth operations for your Firebase project (auth/unauthorized-domain)` |
+| **Causa** | El dominio personalizado `baldora.org` no estaba en la lista de dominios autorizados de Firebase Authentication |
+| **Síntoma** | El popup de Google se abre pero la autenticación falla. Funciona en `localhost` pero no en producción |
+| **Solución** | Agregar `baldora.org` en Firebase Console > Authentication > Settings > Authorized domains |
+| **Requiere deploy** | NO — cambio de configuración en consola, efecto inmediato |
+
+### 11.2. Incidencia: Popup de Google se cierra inmediatamente (COOP)
+
+| Campo | Detalle |
+|-------|--------|
+| **Fecha** | 4 de Marzo, 2026 |
+| **Entorno** | Producción |
+| **Error** | `Cross-Origin-Opener-Policy policy would block the window.closed call` |
+| **Causa** | Firebase Hosting envía headers COOP estrictos (`same-origin`) que bloquean la comunicación popup ↔ ventana principal |
+| **Síntoma** | El popup de Google se abre y se cierra casi inmediatamente sin permitir seleccionar cuenta |
+| **Solución** | Agregar header `Cross-Origin-Opener-Policy: same-origin-allow-popups` en `firebase.json` (ver sección 2.3.1) |
+| **Requiere deploy** | SÍ — cambio en `firebase.json` |
+
+### 11.3. Incidencia: `Error 400: redirect_uri_mismatch`
+
+| Campo | Detalle |
+|-------|--------|
+| **Fecha** | 4 de Marzo, 2026 |
+| **Entorno** | Producción |
+| **Error** | `Access blocked: This app's request is invalid. Error 400: redirect_uri_mismatch` |
+| **Causa** | Se cambió `authDomain` de `baldora-89866.firebaseapp.com` a `baldora-89866.web.app`, pero Google OAuth solo tiene registrado `firebaseapp.com/__/auth/handler` como redirect URI válida |
+| **Síntoma** | Google muestra página de error "Access blocked" al intentar autenticarse |
+| **Solución** | Revertir `authDomain` a `baldora-89866.firebaseapp.com` en `firebaseConfig` |
+| **Requiere deploy** | SÍ — cambio en `index.html` |
+| **Lección** | NUNCA cambiar `authDomain` de `.firebaseapp.com` a menos que se reconfigure manualmente el OAuth Client en Google Cloud Console |
+
+### 11.4. Incidencia: `permission_denied` al crear perfil
+
+| Campo | Detalle |
+|-------|--------|
+| **Fecha** | 4 de Marzo, 2026 |
+| **Entorno** | Producción |
+| **Error** | `FIREBASE WARNING: transaction at /users/{uid}/profile failed: permission_denied` |
+| **Causa** | Las reglas de Realtime Database solo tenían la ruta `visits`, no incluían las rutas `users` ni `leaderboard` |
+| **Síntoma** | El login con Google funciona pero falla al guardar el perfil del usuario |
+| **Solución** | Agregar reglas de seguridad para `users` y `leaderboard` (ver sección 2.3.2) |
+| **Requiere deploy** | NO — cambio de configuración en consola, efecto inmediato |
+
+### Checklist de Deploy para Google Auth
+
+- [x] Google habilitado como proveedor en Firebase Console > Authentication > Sign-in method
+- [x] Dominio `baldora.org` agregado en Authentication > Settings > Authorized domains
+- [x] `authDomain` en `firebaseConfig` = `baldora-89866.firebaseapp.com` (NO cambiar)
+- [x] Header COOP `same-origin-allow-popups` en `firebase.json`
+- [x] Reglas de Realtime Database incluyen rutas `users/$uid` y `leaderboard`
+- [x] Deploy ejecutado después de cambios en `firebase.json` e `index.html`
+
+---
+
+*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.3 (Post-Deploy)*
