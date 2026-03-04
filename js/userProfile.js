@@ -46,6 +46,9 @@ const UserProfile = {
             });
             this.filteredGames = [...this.games];
 
+            // Auto-rellenar fechas de filtro con el rango real de prácticas
+            this._setDefaultDateFilters();
+
             // Renderizar
             this._renderProfileHeader(profile, stats);
             this._renderStats(stats);
@@ -60,7 +63,7 @@ const UserProfile = {
     },
 
     /**
-     * Aplica filtros a la lista de partidas
+     * Aplica filtros a la lista de prácticas
      */
     applyFilters() {
         const modeFilter = document.getElementById('filter-mode')?.value || 'ALL';
@@ -153,7 +156,7 @@ const UserProfile = {
         if (!tbody) return;
 
         if (games.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="profile-empty-row">No hay partidas con los filtros seleccionados</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="profile-empty-row">No hay prácticas con los filtros seleccionados</td></tr>';
             return;
         }
 
@@ -184,7 +187,11 @@ const UserProfile = {
                     <td>${game.correct_operations || 0}</td>
                     <td>${game.accuracy || 0}%</td>
                     <td>${game.avg_response_time || 0}ms</td>
-                    <td>${aiCell}</td>
+                    <td class="game-actions-cell">
+                        ${aiCell}
+                        <button class="btn-delete-game" title="Eliminar registro"
+                            onclick="UserProfile.showDeleteConfirm('${game.id}')">&#128465;</button>
+                    </td>
                 </tr>
                 <tr id="row-ai-${index}" class="ai-analysis-row" style="display:none;">
                     <td colspan="7">
@@ -209,31 +216,55 @@ const UserProfile = {
     },
 
     async _renderCommunityScore(uid, stats) {
-        const scoreEl = document.getElementById('community-score-value');
-        const totalEl = document.getElementById('community-total-players');
+        const leagueNameEl = document.getElementById('community-league-name');
+        const tierEl = document.getElementById('community-tier-value');
+        const badgeEl = document.getElementById('community-badge-container');
 
-        // Calcular posición en el leaderboard
         try {
             const db = firebase.database();
-            const leaderSnap = await db.ref('leaderboard/players')
-                .orderByChild('community_score')
-                .once('value');
+            const leaderSnap = await db.ref('leaderboard/players').once('value');
 
             const players = [];
             leaderSnap.forEach(snap => players.push({ uid: snap.key, ...snap.val() }));
+
+            if (players.length === 0) return;
+
+            // Ordenar por community_score descendente
             players.sort((a, b) => (b.community_score || 0) - (a.community_score || 0));
 
-            const position = players.findIndex(p => p.uid === uid) + 1;
-            const total = players.length || 100;
+            const total = players.length;
+            const rank = players.findIndex(p => p.uid === uid) + 1;
 
-            if (scoreEl) scoreEl.textContent = position || 0;
-            if (totalEl) totalEl.textContent = total;
+            if (rank === 0) return; // usuario no está en el leaderboard aún
+
+            const tier = Math.floor((rank - 1) / total * 100) + 1;
+            const league = this._tierToLeague(tier);
+
+            if (leagueNameEl) leagueNameEl.textContent = league;
+            if (tierEl) tierEl.textContent = `Tier ${tier}`;
+
+            if (badgeEl) {
+                badgeEl.className = `community-badge league-${league.toLowerCase()}`;
+            }
+
+            // Persistir tier y liga para que cloudSync los tenga actualizados
+            db.ref(`leaderboard/players/${uid}/tier`).set(tier);
+            db.ref(`leaderboard/players/${uid}/league`).set(league);
 
         } catch (err) {
-            console.error('Error al calcular posición:', err);
-            if (scoreEl) scoreEl.textContent = 0;
-            if (totalEl) totalEl.textContent = 100;
+            console.error('Error al calcular posición en comunidad:', err);
+            if (leagueNameEl) leagueNameEl.textContent = '—';
+            if (tierEl) tierEl.textContent = '—';
         }
+    },
+
+    _tierToLeague(tier) {
+        if (tier <= 5)  return 'DIAMANTE';
+        if (tier <= 15) return 'PLATINO';
+        if (tier <= 30) return 'ORO';
+        if (tier <= 50) return 'PLATA';
+        if (tier <= 70) return 'BRONCE';
+        return 'MADERA';
     },
 
     // ============================================================
@@ -247,7 +278,7 @@ const UserProfile = {
     },
 
     /**
-     * Analiza una partida específica del historial usando GeminiService
+     * Analiza una práctica específica del historial usando GeminiService
      */
     async analyzeGame(gameId, rowIndex) {
         const game = this.games.find(g => g.id === gameId);
@@ -285,11 +316,72 @@ const UserProfile = {
                 this._renderGamesTable(this.filteredGames);
             }
         } catch (err) {
-            console.error('Error al analizar partida:', err);
+            console.error('Error al analizar práctica:', err);
             if (btn) {
                 btn.textContent = 'Error - Reintentar';
                 btn.disabled = false;
             }
+        }
+    },
+
+    // ── Eliminación de prácticas ──
+
+    _pendingDeleteId: null,
+
+    showDeleteConfirm(gameId) {
+        this._pendingDeleteId = gameId;
+        const check = document.getElementById('delete-confirm-check');
+        const btn = document.getElementById('btn-confirm-delete');
+        const modal = document.getElementById('delete-game-modal');
+        if (check) check.checked = false;
+        if (btn) btn.disabled = true;
+        if (modal) modal.style.display = 'flex';
+    },
+
+    cancelDelete() {
+        this._pendingDeleteId = null;
+        const modal = document.getElementById('delete-game-modal');
+        if (modal) modal.style.display = 'none';
+    },
+
+    _toggleDeleteBtn() {
+        const check = document.getElementById('delete-confirm-check');
+        const btn = document.getElementById('btn-confirm-delete');
+        if (check && btn) btn.disabled = !check.checked;
+    },
+
+    async confirmDelete() {
+        const gameId = this._pendingDeleteId;
+        if (!gameId) return;
+        this.cancelDelete();
+        await this._deleteGame(gameId);
+    },
+
+    async _deleteGame(gameId) {
+        const uid = AuthManager.getUid();
+        if (!uid) return;
+        try {
+            const db = firebase.database();
+            await db.ref(`users/${uid}/games/${gameId}`).remove();
+            // Recargar perfil para recalcular stats y comunidad
+            await this.load();
+        } catch (err) {
+            console.error('Error al eliminar práctica:', err);
+        }
+    },
+
+    _setDefaultDateFilters() {
+        if (this.games.length === 0) return;
+        // games está ordenado más-reciente primero; el último elemento es el más antiguo
+        const oldest = this.games[this.games.length - 1];
+        const newest = this.games[0];
+        const dateFrom = document.getElementById('filter-date-from');
+        const dateTo = document.getElementById('filter-date-to');
+        if (dateFrom && oldest.timestamp) {
+            dateFrom.value = new Date(oldest.timestamp).toISOString().split('T')[0];
+        }
+        if (dateTo && newest.timestamp) {
+            dateTo.value = new Date(newest.timestamp).toISOString().split('T')[0];
         }
     },
 
@@ -300,3 +392,4 @@ const UserProfile = {
         if (content) content.style.display = isLoading ? 'none' : 'block';
     }
 };
+

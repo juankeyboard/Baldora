@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión** | 1.3 (Iteración 3 - Post-Deploy) |
+| **Versión** | 1.5 (Iteración 5 - Sistema de Ligas Comunitarias) |
 | **Fecha** | 4 de Marzo, 2026 |
 | **Proyecto** | Baldora |
 | **Módulo** | Autenticación, Persistencia de Datos, Analíticas de Usuario |
@@ -149,28 +149,40 @@ Al autenticarse, Firebase provee el siguiente objeto `user`:
 
 ```
 1. Usuario abre Baldora
-2. La página se carga con el flujo normal (campo nickname visible, configuración, etc.)
-3. En la esquina superior derecha ve el botón "Iniciar sesión con Google"
-4. Si decide loguearse → Clic → signInWithPopup() → Autorización Google
-5. Retorno → onAuthStateChanged() detecta usuario
-6. El botón del header cambia: avatar + nombre + dropdown
-7. El campo nickname DESAPARECE de la vista de configuración
-8. Todos los registros de esa sesión y posteriores quedan con el nombre de Google
-9. Si NO se loguea → Todo funciona exactamente como antes (campo nickname visible y editable)
+2. La página se carga con el flujo normal
+3. En la vista de configuración ve el label "Tu nickname o Inicia sesión"
+   y debajo del campo nickname un botón "Iniciar sesión con Google"
+4. También hay un botón de Google en la esquina superior derecha (header)
+5. Si decide loguearse → Clic en cualquier botón → signInWithPopup() → Autorización Google
+6. Retorno → onAuthStateChanged() detecta usuario
+7. El botón del header cambia: avatar + nombre + dropdown
+8. El campo nickname DESAPARECE (incluido el botón de sign-in dentro del grupo)
+9. Todos los registros quedan asociados al nombre de Google
+10. Si NO se loguea → Todo funciona como antes (campo nickname + botón sign-in visibles)
 ```
 
-> **Importante:** El login con Google NO es un paso obligatorio ni un prerequisito para jugar. Es una acción independiente. Sin login: flujo idéntico al actual. Con login: el campo nickname se oculta y el nombre de Google se usa en todos los registros.
+> **Importante:** El login con Google NO es un paso obligatorio ni un prerequisito para jugar. El botón de sign-in en la vista config se oculta automáticamente al iniciar sesión (junto con el `#nickname-field-group`).
 
 #### Comportamiento del Campo Nickname según Estado de Auth
 
-| Estado | Campo Nickname | Nombre en Registros |
-|--------|---------------|---------------------|
-| **Sin login** | Visible y editable (comportamiento actual) | El que el usuario escriba |
-| **Logueado con Google** | Oculto (no renderizado) | `user.displayName` de Google |
+| Estado | Campo Nickname | Botón Sign-In Config | Nombre en Registros |
+|--------|---------------|----------------------|---------------------|
+| **Sin login** | Visible y editable | Visible bajo el input | El que el usuario escriba |
+| **Logueado con Google** | Oculto | Oculto (mismo grupo) | `user.displayName` de Google |
 
-### 2.6. Componente UI: Botón de Google (Header Global)
+### 2.6. Componente UI: Botones de Google
 
+El sistema tiene **dos puntos de acceso al login** para maximizar la visibilidad y accesibilidad:
+
+#### 2.6.1. Botón en Header Global (todas las vistas)
 El botón de autenticación con Google vive en la **esquina superior derecha de la página**, como un componente fijo global, visible en todas las vistas. Se ubica junto al botón de audio existente.
+
+#### 2.6.2. Botón en Vista de Configuración (solo primera vista)
+Debajo del campo de nickname (dentro de `#nickname-field-group`) se muestra un botón secundario "Iniciar sesión con Google". Este botón:
+- Solo es visible en la primera vista (config) cuando el usuario **no** está logueado
+- Se oculta automáticamente cuando el usuario inicia sesión (junto con el grupo de nickname)
+- Invoca el mismo flujo de autenticación que el botón del header (`signInWithPopup`)
+- El label del campo nickname dice "Tu nickname o Inicia sesión" para guiar al usuario
 
 #### Estado: No Logueado
 
@@ -571,10 +583,10 @@ Donde:
   Score_T = (max_response_time - avg_response_time) / (max_response_time - min_response_time) * 100
   Score_A = (player_accuracy - min_accuracy) / (max_accuracy - min_accuracy) * 100
 
-  W1 + W2 + W3 = 1.0  (pesos a definir en próxima iteración)
+  W1 = W2 = W3 = 1/3  ≈ 0.3333  (distribución equitativa entre las tres dimensiones)
 ```
 
-> **Pesos pendientes de iteración.** Los valores de W1, W2 y W3 serán definidos y justificados en la siguiente ronda de diseño.
+> **Decisión de pesos (Iteración 5):** Se eligieron pesos iguales W1=W2=W3=1/3 para que ninguna dimensión (volumen, velocidad, asertividad) tenga ventaja sobre las demás. El sistema premia a jugadores equilibrados sobre los que destacan solo en una variable.
 
 #### Ejemplo de Cálculo (con benchmarks hipotéticos)
 
@@ -602,38 +614,69 @@ La **posición en el leaderboard** se determina únicamente por el puntaje compu
 
 ---
 
-### 6.5. Posición en la Comunidad
+### 6.5. Sistema de Ligas Comunitarias (Iteración 5)
+
+El posicionamiento en la comunidad se expresa como una **liga** dentro de 100 grupos percentílicos dinámicos, no como un número de posición fijo.
+
+#### Fórmula de Tier (Grupo Percentílico)
+
+```
+Tier = floor((rank - 1) / total_jugadores × 100) + 1
+
+Donde:
+  rank    = posición del jugador ordenando todos los jugadores por Community_Score desc (1 = mejor)
+  total   = número total de jugadores con al menos 1 práctica guardada
+  Tier    = grupo del 1 al 100 (1 = élite, 100 = base)
+```
+
+**Por qué `floor((rank-1)/total×100)+1` y no `ceil(rank/total×100)`:**
+La segunda fórmula produce Tier=100 (MADERA) para el único jugador o el mejor de todos (`rank=1, total=1` → `ceil(100)=100`). La fórmula correcta garantiza que el jugador con rank=1 siempre obtiene Tier=1 independientemente del total.
+
+**Ejemplo:** 200 jugadores, el jugador ocupa la posición 31 por Community_Score:
+`Tier = floor(30/200 × 100) + 1 = floor(15) + 1 = 16` → Liga **Oro**
+
+**Caso especial (jugador único):**
+`Tier = floor(0/1 × 100) + 1 = 0 + 1 = 1` → Liga **Diamante** ✓
+
+#### Ligas y Rangos de Tier
+
+| Liga | Tier | % de la Comunidad | Color |
+|------|------|-------------------|-------|
+| **DIAMANTE** | 1 – 5 | Top 5% | Cyan (#00c8ff) |
+| **PLATINO** | 6 – 15 | Siguiente 10% | Plateado (#b8d0e0) |
+| **ORO** | 16 – 30 | Siguiente 15% | Dorado (#f5a623) |
+| **PLATA** | 31 – 50 | Siguiente 20% | Plata (#8ea7b8) |
+| **BRONCE** | 51 – 70 | Siguiente 20% | Bronce (#cd7f32) |
+| **MADERA** | 71 – 100 | 30% restante | Tierra (#8b6042) |
+
+#### Reglas del Sistema de Ligas
+
+- **Mínimo para entrar:** 1 práctica guardada.
+- **Recálculo:** Cada vez que cualquier jugador guarda una práctica, se recalculan los tiers de **todos** los jugadores activos.
+- **Dinamismo:** Si otros jugadores mejoran, tu tier puede cambiar aunque tú no hayas jugado.
+- **Empates:** Jugadores con el mismo Community_Score comparten rank. Si N jugadores empatan en rank R, todos obtienen `Tier = ceil(R / total × 100)`.
 
 #### Visualización en el Perfil del Jugador
 
+El badge de comunidad se muestra en el header del perfil, **a la derecha de los datos del usuario**, alineado visualmente sobre los contenedores de "Tiempo promedio" y "Mejor precisión".
+
 | Elemento | Descripción |
 |----------|-------------|
-| **Puntaje personal** | Número grande con el Community Score (0-100) |
-| **Posición** | "#5 de 347 jugadores" |
-| **Percentil** | "Estás en el top 2% de la comunidad" |
-| **Barra de progreso** | Barra visual mostrando posición relativa dentro del top 100 |
+| **Posición relativa** | Header del perfil, columna derecha (grid `1fr 1fr`) |
+| **Contenido principal** | Nombre de la liga en grande (ej. `ORO`) con color de liga |
+| **Subtítulo** | Número de tier (ej. `Tier 22`) |
+| **Label** | "TU POSICIÓN EN LA COMUNIDAD" en texto pequeño |
+| **Fondo** | `var(--clr-surface-high)` — consistente con el resto de la página |
+| **Color** | Cada liga tiene un color de acento distinto aplicado al nombre |
 
-#### Top Jugadores (Leaderboard)
+#### Datos en Firebase
 
-Tabla visible desde el perfil que muestra los mejores jugadores de la comunidad:
-
-| Columna | Dato |
-|---------|------|
-| Posición | # ranking (1 al 100) |
-| Avatar | Foto de Google |
-| Nombre | displayName |
-| Puntaje | Community Score |
-| Correctas | Total de operaciones correctas |
-| Velocidad | Tiempo promedio de respuesta |
-| Asertividad | % accuracy global |
-| Última actividad | Hace cuánto jugó |
-
-**Reglas del Leaderboard:**
-- Se muestran los **top 100 jugadores**.
-- El jugador actual siempre aparece en la tabla con su posición real, aunque esté fuera del top 100.
-- Mínimo 5 partidas jugadas para aparecer en el leaderboard.
-- Si el jugador está en el top 100, su fila se resalta visualmente.
-- Los datos son de solo lectura para otros usuarios (ver reglas de seguridad en sección 3.2).
+Tras cada recálculo, se escriben en `leaderboard/players/{uid}`:
+```
+leaderboard/players/{uid}/
+├── tier: 22              ← grupo percentílico (1-100)
+└── league: "ORO"         ← nombre de la liga
+```
 
 ---
 
@@ -870,4 +913,54 @@ Todo el sistema es aditivo. El flujo sin login debe seguir funcionando **exactam
 
 ---
 
-*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.3 (Post-Deploy)*
+---
+
+## 12. Registro de Cambios de Diseño UI (Iteración 4)
+
+### 12.1. Footer siempre al fondo en vista Mi Perfil
+
+| Cambio | Detalle |
+|--------|---------|
+| **Problema** | El footer podía quedar en medio de la vista si el contenido era corto |
+| **Solución** | `#profile-view.active { display: flex; flex-direction: column; }` + `.profile-container { flex: 1; }` — crea una cadena flex que garantiza que el footer con `margin-top: auto` siempre se ancle al fondo del viewport |
+
+### 12.2. Fondo consistente con el resto de la página
+
+| Cambio | Detalle |
+|--------|---------|
+| **Problema** | Las tarjetas de stats y el badge de comunidad usaban `rgba(255,255,255,0.85)` con `backdrop-filter: blur(10px)` (glassmorphism), visualmente diferente al resto de la app |
+| **Solución** | Cambiado a `background: var(--clr-surface-high)` en `.profile-stat-card`, `.community-badge` y `.profile-footer p` — consistente con el sistema de diseño global |
+
+### 12.3. Community badge reposicionado
+
+| Cambio | Detalle |
+|--------|---------|
+| **Cambio** | `.profile-header-row` cambiado de `display: flex; justify-content: space-between` a `display: grid; grid-template-columns: 1fr 1fr` |
+| **Resultado** | El badge ocupa exactamente el 50% derecho del header, alineándose visualmente con las cards de "Tiempo promedio" y "Mejor precisión" del grid de stats |
+| **Badge simplificado** | Eliminado el ícono de trofeo; solo muestra `0/100` + label "COMUNIDAD" |
+
+### 12.4. Botón de login en vista de configuración
+
+| Cambio | Detalle |
+|--------|---------|
+| **Nuevo elemento** | `#btn-config-google-signin` dentro de `#nickname-field-group` |
+| **Comportamiento** | Se oculta automáticamente al login (junto con el grupo de nickname vía clase `.nickname-hidden`) |
+| **Label actualizado** | `"Tu Nickname"` → `"Tu nickname o Inicia sesión"` |
+
+---
+
+### 12.5. Sistema de Ligas Comunitarias (Iteración 5)
+
+| Cambio | Detalle |
+|--------|---------|
+| **Pesos finalizados** | W1=W2=W3=1/3 — distribución equitativa entre volumen, velocidad y asertividad |
+| **Grupos percentílicos** | 100 grupos dinámicos: `Tier = ceil(rank / total × 100)` |
+| **Ligas** | 6 ligas con color propio: Diamante (1–5), Platino (6–15), Oro (16–30), Plata (31–50), Bronce (51–70), Madera (71–100) |
+| **Recálculo global** | Cada vez que alguien guarda una práctica, `_recalculateAllTiers()` recalcula y escribe tier+league para todos los jugadores |
+| **Mínimo de entrada** | 1 práctica (antes el leaderboard exigía 5 — reducido para inclusividad) |
+| **Badge rediseñado** | El badge del perfil ahora muestra el nombre de la liga (ej. "ORO") con color de acento + tier como subtítulo |
+| **Archivos modificados** | `cloudSync.js` (pesos, `_recalculateAllTiers()`), `userProfile.js` (`_renderCommunityScore()`), `index.html` (badge HTML), `css/styles.css` (estilos de liga) |
+
+---
+
+*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.5 (Sistema de Ligas Comunitarias)*

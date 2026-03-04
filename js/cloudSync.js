@@ -88,6 +88,9 @@ const CloudSync = {
             // Actualizar leaderboard
             await this._updateLeaderboard(uid, user);
 
+            // Recalcular tiers y ligas de todos los jugadores
+            await this._recalculateAllTiers();
+
             console.log('Partida guardada en la nube:', gameId);
         } catch (err) {
             console.error('Error al guardar partida en la nube:', err);
@@ -214,8 +217,8 @@ const CloudSync = {
         const bench = benchSnap.val();
         if (!stats || !bench) return;
 
-        // Pesos (por definir en próxima iteración, distribución equitativa por ahora)
-        const W1 = 0.34, W2 = 0.33, W3 = 0.33;
+        // Pesos iguales: volumen, velocidad y asertividad con igual importancia
+        const W1 = 1/3, W2 = 1/3, W3 = 1/3;
 
         // Score_C: Operaciones correctas vs máximo de la comunidad
         const scoreC = bench.max_total_correct > 0
@@ -242,6 +245,49 @@ const CloudSync = {
         await this.db.ref(`users/${uid}/stats/score_tiempo`).set(Math.round(scoreT * 10) / 10);
         await this.db.ref(`users/${uid}/stats/score_accuracy`).set(Math.round(scoreA * 10) / 10);
         await this.db.ref(`leaderboard/players/${uid}/community_score`).set(communityScore);
+    },
+
+    /**
+     * Recalcula el tier y la liga de todos los jugadores del leaderboard.
+     * Se llama cada vez que alguien guarda una práctica.
+     * Tier = ceil(rank / total * 100), donde rank es posición por community_score desc.
+     */
+    async _recalculateAllTiers() {
+        const playersSnap = await this.db.ref('leaderboard/players').once('value');
+        const players = [];
+        playersSnap.forEach(snap => {
+            players.push({ uid: snap.key, ...snap.val() });
+        });
+
+        if (players.length === 0) return;
+
+        // Ordenar por community_score descendente
+        players.sort((a, b) => (b.community_score || 0) - (a.community_score || 0));
+
+        const total = players.length;
+        const updates = {};
+
+        players.forEach((player, index) => {
+            const rank = index + 1;
+            const tier = Math.floor((rank - 1) / total * 100) + 1;
+            const league = this._tierToLeague(tier);
+            updates[`leaderboard/players/${player.uid}/tier`] = tier;
+            updates[`leaderboard/players/${player.uid}/league`] = league;
+        });
+
+        await this.db.ref().update(updates);
+    },
+
+    /**
+     * Convierte un tier (1-100) en nombre de liga
+     */
+    _tierToLeague(tier) {
+        if (tier <= 5)  return 'DIAMANTE';
+        if (tier <= 15) return 'PLATINO';
+        if (tier <= 30) return 'ORO';
+        if (tier <= 50) return 'PLATA';
+        if (tier <= 70) return 'BRONCE';
+        return 'MADERA';
     }
 };
 

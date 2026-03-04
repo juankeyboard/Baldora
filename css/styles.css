@@ -2954,6 +2954,32 @@ body::before {
     transform: translateY(-1px);
 }
 
+/* ── Botón Google en la vista de configuración (bajo el campo nickname) ── */
+.btn-config-google-signin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px 16px;
+    background: var(--clr-surface-high);
+    border: 2px solid var(--clr-sand-300);
+    border-radius: var(--radius-md);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-config-google-signin:hover {
+    border-color: var(--clr-rose-500);
+    box-shadow: 0 2px 10px rgba(209, 107, 165, 0.18);
+    transform: translateY(-1px);
+}
+
 .google-logo-svg {
     flex-shrink: 0;
 }
@@ -3097,10 +3123,17 @@ body::before {
 #profile-view {
     background: transparent;
     min-height: 100vh;
-    overflow-y: auto;
+}
+
+#profile-view.active {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .profile-container {
+    flex: 1;
+    width: 100%;
     max-width: 900px;
     margin: 0 auto;
     padding: 20px 20px 0;
@@ -3118,20 +3151,22 @@ body::before {
 
 .btn-back-profile {
     align-self: flex-start;
-    background: none;
-    border: var(--border-light);
+    background: var(--clr-green-500);
+    color: white;
+    border: none;
+    border-bottom: 3px solid #4A6B28;
     border-radius: var(--radius-sm);
     padding: 8px 16px;
     font-family: var(--font-main);
     font-size: 0.9rem;
-    color: var(--text-secondary);
+    font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
 .btn-back-profile:hover {
-    color: var(--clr-rose-500);
-    border-color: var(--clr-rose-500);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(110, 140, 56, 0.3);
 }
 
 .profile-user-info {
@@ -3141,10 +3176,10 @@ body::before {
 }
 
 .profile-header-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 16px;
 }
 
 /* Badge compacto de comunidad */
@@ -3152,24 +3187,18 @@ body::before {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
+    justify-content: center;
+    gap: 2px;
+    background: var(--clr-surface-high);
     border: 2px solid var(--clr-sand-300);
     border-radius: var(--radius-lg);
-    padding: 16px 24px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    min-width: 110px;
-}
-
-.community-badge-icon {
-    font-size: 1.5rem;
-    line-height: 1;
+    padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .community-badge-value {
     font-family: var(--font-display);
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     font-weight: 700;
     color: var(--clr-rose-500);
     line-height: 1;
@@ -3177,46 +3206,74 @@ body::before {
 
 .community-badge-separator {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     color: var(--text-muted);
-    margin-top: -8px;
+    line-height: 1;
 }
 
 .community-badge-total {
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: 600;
     color: var(--text-secondary);
-    margin-top: -8px;
+    line-height: 1;
 }
 
 .community-badge-label {
-    font-size: 0.72rem;
+    font-size: 0.62rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+    text-align: center;
 }
+
+/* Nombre de liga (grande, coloreado por liga) */
+.community-league-name {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.06em;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+}
+
+/* Subtítulo de tier */
+.community-league-tier {
+    font-family: var(--font-body);
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    line-height: 1;
+    margin-top: 2px;
+}
+
+/* Colores de liga */
+.league-diamante .community-league-name { color: #00c8ff; }
+.league-platino  .community-league-name { color: #b8d0e0; }
+.league-oro      .community-league-name { color: #f5a623; }
+.league-plata    .community-league-name { color: #8ea7b8; }
+.league-bronce   .community-league-name { color: #cd7f32; }
+.league-madera   .community-league-name { color: #8b6042; }
 
 @media (max-width: 600px) {
     .profile-header-row {
-        flex-direction: column;
-        align-items: flex-start;
+        grid-template-columns: 1fr;
     }
     .community-badge {
         flex-direction: row;
         gap: 8px;
         padding: 12px 20px;
-        align-self: stretch;
         justify-content: center;
+        align-items: center;
     }
-    .community-badge-value {
-        font-size: 1.6rem;
+    .community-league-name {
+        font-size: 1.4rem;
     }
-    .community-badge-separator,
-    .community-badge-total {
-        font-size: 1rem;
-        margin-top: 0;
+    .community-league-tier {
+        font-size: 0.75rem;
     }
 }
 
@@ -3272,8 +3329,7 @@ body::before {
 }
 
 .profile-stat-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
+    background: var(--clr-surface-high);
     border: var(--border-light);
     border-radius: var(--radius-md);
     padding: 18px 14px;
@@ -3313,8 +3369,7 @@ body::before {
 
 .profile-footer p {
     margin: 0;
-    background: rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(6px);
+    background: var(--clr-surface-high);
     display: inline-block;
     padding: 6px 16px;
     border-radius: var(--radius-full);
@@ -3384,19 +3439,19 @@ body::before {
 
 .btn-filter-reset {
     padding: 8px 14px;
-    background: transparent;
-    color: var(--text-secondary);
-    border: var(--border-light);
+    background: var(--clr-sand-100);
+    color: var(--clr-ink-900);
+    border: 2px solid var(--clr-sand-300);
     border-radius: var(--radius-sm);
     font-family: var(--font-main);
     font-size: 0.88rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all var(--transition-fast);
 }
 
 .btn-filter-reset:hover {
-    border-color: var(--clr-rose-500);
-    color: var(--clr-rose-500);
+    background: var(--clr-sand-300);
 }
 
 /* Tabla de historial */
@@ -3406,6 +3461,7 @@ body::before {
     border: var(--border-light);
     background: var(--bg-primary);
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 48px;
 }
 
 .profile-games-table {
@@ -3547,4 +3603,152 @@ body::before {
     color: var(--text-primary);
     line-height: 1.5;
     margin: 0;
+}
+
+/* ── Celda de acciones (IA + eliminar) ── */
+.game-actions-cell {
+    white-space: nowrap;
+}
+
+.game-actions-cell > * + * {
+    margin-left: 6px;
+}
+
+/* ── Botón eliminar práctica ── */
+.btn-delete-game {
+    padding: 5px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--clr-rock-500);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    line-height: 1;
+}
+
+.btn-delete-game:hover {
+    background: rgba(209, 107, 165, 0.08);
+    border-color: var(--clr-rose-500);
+    color: var(--clr-rose-500);
+}
+
+/* ── Modal de confirmación de eliminación ── */
+.delete-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    padding: 20px;
+}
+
+.delete-modal-box {
+    background: var(--clr-surface-high);
+    border: var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 32px 28px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.delete-modal-icon {
+    font-size: 2rem;
+    text-align: center;
+}
+
+.delete-modal-title {
+    font-family: var(--font-display);
+    font-size: 1.2rem;
+    color: var(--clr-rose-500);
+    margin: 0;
+    text-align: center;
+}
+
+.delete-modal-desc {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
+}
+
+.delete-modal-desc strong {
+    color: var(--clr-rose-500);
+}
+
+.delete-modal-confirm-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    background: rgba(209, 107, 165, 0.06);
+    border: 1px solid rgba(209, 107, 165, 0.2);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    line-height: 1.4;
+}
+
+.delete-modal-confirm-label input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-top: 2px;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--clr-rose-500);
+    cursor: pointer;
+}
+
+.delete-modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-delete-cancel {
+    padding: 9px 20px;
+    background: var(--clr-sand-100);
+    color: var(--clr-ink-900);
+    border: 2px solid var(--clr-sand-300);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-delete-cancel:hover {
+    background: var(--clr-sand-300);
+}
+
+.btn-delete-confirm {
+    padding: 9px 20px;
+    background: var(--clr-rose-500);
+    color: white;
+    border: none;
+    border-bottom: 3px solid var(--clr-rose-700);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.btn-delete-confirm:hover:not(:disabled) {
+    background: var(--clr-rose-700);
+}
+
+.btn-delete-confirm:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-bottom-color: transparent;
 }
