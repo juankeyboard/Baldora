@@ -2,7 +2,7 @@
 
 | Campo | Valor |
 |-------|-------|
-| **Versión** | 1.1 (Iteración 1) |
+| **Versión** | 1.2 (Iteración 2) |
 | **Fecha** | 4 de Marzo, 2026 |
 | **Proyecto** | Baldora |
 | **Módulo** | Autenticación, Persistencia de Datos, Analíticas de Usuario |
@@ -19,11 +19,11 @@
 
 Este módulo introduce un sistema de usuario **opcional** basado en **Firebase Authentication con Google Sign-In**. Permite a los jugadores registrarse/iniciar sesión con su cuenta de Google, persistir su historial de partidas en la nube, visualizar su rendimiento histórico con filtros avanzados, recibir análisis personalizado de IA y conocer su posición dentro de la comunidad Baldora.
 
-El sistema de nickname manual existente se mantiene intacto como la experiencia por defecto. El registro con Google es una funcionalidad adicional que coexiste con el flujo actual.
+El sistema de nickname manual existente se mantiene intacto para usuarios no autenticados. Cuando el usuario inicia sesión con Google, el campo de nickname desaparece y todos los registros quedan asociados al nombre de la cuenta de Google.
 
 ### Objetivos
 
-1. **Identidad persistente (opcional):** Agregar la opción de cuenta Google verificada. El nickname manual existente se mantiene disponible como experiencia por defecto.
+1. **Identidad persistente (opcional):** Agregar la opción de cuenta Google verificada. Sin login, el flujo de nickname manual no cambia. Con login, el nombre de Google reemplaza al nickname y el campo desaparece de la UI.
 2. **Historial en la nube:** Cada partida se guarda automáticamente en Firebase Realtime Database (solo para usuarios autenticados).
 3. **Analíticas personales:** Dashboard con filtros de fecha, operaciones, tiempo y asertividad.
 4. **Análisis IA:** Gemini analiza el progreso histórico del jugador (no solo la sesión actual).
@@ -74,16 +74,24 @@ Al autenticarse, Firebase provee el siguiente objeto `user`:
 
 ```
 1. Usuario abre Baldora
-2. La página se carga con el flujo normal (nickname manual, configuración, etc.)
+2. La página se carga con el flujo normal (campo nickname visible, configuración, etc.)
 3. En la esquina superior derecha ve el botón "Iniciar sesión con Google"
 4. Si decide loguearse → Clic → signInWithPopup() → Autorización Google
 5. Retorno → onAuthStateChanged() detecta usuario
-6. El botón cambia a mostrar avatar + nombre + opción "Cerrar sesión"
-7. El campo nickname se autocompleta con displayName (pero sigue siendo editable)
-8. Si NO se loguea → Todo funciona exactamente como antes (nickname manual)
+6. El botón del header cambia: avatar + nombre + dropdown
+7. El campo nickname DESAPARECE de la vista de configuración
+8. Todos los registros de esa sesión y posteriores quedan con el nombre de Google
+9. Si NO se loguea → Todo funciona exactamente como antes (campo nickname visible y editable)
 ```
 
-> **Importante:** El login con Google NO es un paso obligatorio ni un prerequisito para jugar. Es una acción independiente que el usuario puede realizar en cualquier momento desde cualquier vista.
+> **Importante:** El login con Google NO es un paso obligatorio ni un prerequisito para jugar. Es una acción independiente. Sin login: flujo idéntico al actual. Con login: el campo nickname se oculta y el nombre de Google se usa en todos los registros.
+
+#### Comportamiento del Campo Nickname según Estado de Auth
+
+| Estado | Campo Nickname | Nombre en Registros |
+|--------|---------------|---------------------|
+| **Sin login** | Visible y editable (comportamiento actual) | El que el usuario escriba |
+| **Logueado con Google** | Oculto (no renderizado) | `user.displayName` de Google |
 
 ### 2.6. Componente UI: Botón de Google (Header Global)
 
@@ -137,20 +145,21 @@ firebase.auth().onAuthStateChanged((user) => {
         // Usuario logueado
         // → Actualizar botón header (mostrar avatar + nombre)
         // → Cargar perfil desde DB
-        // → Sugerir displayName como nickname (sin forzar)
+        // → OCULTAR el campo de nickname en la vista de configuración
+        // → Usar user.displayName en todos los registros de partidas
         // → Habilitar guardado en nube
         // → Habilitar acceso a "Mi Perfil"
     } else {
         // Usuario no logueado
         // → Mostrar botón "Iniciar sesión con Google"
-        // → Todo funciona exactamente como antes
+        // → MOSTRAR el campo de nickname (comportamiento actual)
         // → No guardar en nube
         // → Ocultar opción "Mi Perfil"
     }
 });
 ```
 
-> **Nota:** El `onAuthStateChanged` NO interfiere con ningún flujo existente. Solo actualiza el componente del header y habilita/deshabilita las funcionalidades de nube.
+> **Nota:** El `onAuthStateChanged` solo agrega comportamiento. El campo nickname se oculta/muestra mediante una clase CSS (ej: `.nickname-wrapper.hidden { display: none; }`), sin modificar el input ni su lógica interna.
 
 ---
 
@@ -181,7 +190,14 @@ baldora-89866-default-rtdb/
 │       │       ├── correct_operations: 38
 │       │       ├── accuracy: 84.4
 │       │       ├── avg_response_time: 2340
+│       │       ├── game_score: 72.3         ← Puntaje individual vs. comunidad
 │       │       ├── tables_used: { rows: [1,2,3...], cols: [1,2,3...] }
+│       │       ├── ai_analysis/             ← null si no se ha analizado
+│       │       │   ├── generated_at: "2026-03-04T11:00:00Z"
+│       │       │   ├── resumen_general: "..."
+│       │       │   ├── patron_errores: "..."
+│       │       │   ├── plan_accion: "..."
+│       │       │   └── sugerencia_entrenamiento: "..."
 │       │       └── attempts/
 │       │           └── {index}/
 │       │               ├── factor_a: 7
@@ -200,13 +216,25 @@ baldora-89866-default-rtdb/
 │           ├── best_avg_time: 1450
 │           └── community_score: 0    ← Ver sección 6
 └── leaderboard/                ← NUEVO (datos públicos para ranking)
-    └── {uid}/
-        ├── displayName: "Juan García"
-        ├── photoURL: "https://..."
-        ├── community_score: 8450
-        ├── total_games: 15
-        ├── global_accuracy: 84.9
-        └── last_played: "2026-03-04T..."
+    ├── community_benchmarks/   ← Valores extremos de la comunidad
+    │   ├── max_total_correct: 3500
+    │   ├── min_response_time: 620
+    │   ├── max_response_time: 9800
+    │   ├── min_accuracy: 42.0
+    │   └── max_accuracy: 99.1
+    └── players/
+        └── {uid}/
+            ├── displayName: "Juan García"
+            ├── photoURL: "https://..."
+            ├── community_score: 78.4
+            ├── score_correctas: 34.3
+            ├── score_tiempo: 86.6
+            ├── score_accuracy: 87.6
+            ├── total_correct: 1200
+            ├── avg_response_time: 1800
+            ├── global_accuracy: 84.9
+            ├── total_games: 15
+            └── last_played: "2026-03-04T..."
 ```
 
 ### 3.2. Reglas de Seguridad
@@ -338,20 +366,37 @@ Tabla paginada con las partidas del usuario (ordenada por fecha descendente):
 
 ### 5.1. Análisis por Sesión (Existente)
 
-El análisis actual con Gemini (GeminiService) se mantiene sin cambios. Analiza la sesión que acaba de terminar.
+El análisis actual con Gemini (GeminiService) se mantiene sin cambios. Analiza la sesión que acaba de terminar. Este análisis se guarda en la base de datos asociado a esa partida si el usuario está autenticado.
 
-### 5.2. Análisis Histórico (Nuevo)
+### 5.2. Persistencia y Visualización de Análisis en la Tabla de Historial
 
-Desde el perfil del jugador, se agrega un botón "Analizar mi progreso" que envía el historial completo (o filtrado) a Gemini para un diagnóstico longitudinal.
+El resultado del análisis IA de cada partida se guarda en la base de datos bajo `users/{uid}/games/{gameId}/ai_analysis/`. En la tabla de historial de partidas:
+
+- Si una partida **tiene** análisis guardado: se muestra un icono indicador (ej: 🧠) y el usuario puede expandirlo para leerlo.
+- Si una partida **no tiene** análisis: se muestra un botón "Analizar" con el **mismo diseño del botón de análisis existente en el dashboard de sesión**. Al hacer clic, genera el análisis de esa partida específica y lo guarda en la DB.
+
+| Elemento | Especificación |
+|----------|----------------|
+| **Indicador con análisis** | Icono 🧠 + texto "Ver análisis" (expandible inline) |
+| **Botón sin análisis** | Mismo estilo que el botón actual de análisis en el dashboard de sesión |
+| **Texto del botón** | "Analizar partida" |
+| **Datos enviados** | Los intentos individuales de esa partida específica (mismo formato CSV actual) |
+| **Al completarse** | El análisis se guarda en DB y el botón se reemplaza por el indicador 🧠 |
+
+### 5.3. Análisis Histórico Global (Nuevo)
+
+Desde el perfil del jugador, se agrega un botón "Analizar mi progreso" separado de la tabla, que envía el historial completo (o filtrado) a Gemini para un diagnóstico longitudinal que considera múltiples sesiones.
 
 | Aspecto | Especificación |
 |---------|----------------|
-| **Trigger** | Botón en `#profile-view` |
-| **Datos enviados** | Resumen agregado de las partidas filtradas (no el CSV crudo completo) |
+| **Trigger** | Botón en la sección superior de `#profile-view`, fuera de la tabla |
+| **Estilo** | Mismo diseño que el botón de análisis del dashboard de sesión |
+| **Datos enviados** | Resumen agregado de las partidas filtradas (no el CSV crudo) |
 | **Modelo** | `gemini-2.5-flash-lite` (mismo que sesión) |
 | **Contexto adicional** | Incluye tendencias: mejorando / estancado / empeorando |
+| **Resultado** | Se muestra debajo del botón, en las mismas tarjetas de resultado del dashboard |
 
-### 5.3. Prompt para Análisis Histórico
+### 5.4. Prompt para Análisis Histórico Global
 
 ```
 Role: System
@@ -382,48 +427,116 @@ Genera un diagnóstico de evolución que incluya:
 
 ## 6. Sistema de Puntaje y Posición en la Comunidad
 
-### 6.1. Puntaje Compuesto (Community Score)
+### 6.1. Principio de Normalización por Comunidad
 
-El puntaje de cada jugador se calcula a partir de 3 variables principales, cada una con un peso específico y una transformación interna.
+Las tres variables del puntaje se normalizan **relativamente** a los valores extremos de la comunidad, no en escalas fijas. Esto garantiza que el sistema sea justo y dinámico: conforme la comunidad mejora, los puntajes se recalibran.
 
-#### Variables y Pesos
+Los valores de referencia de la comunidad se almacenan en:
+```
+leaderboard/community_benchmarks/
+├── max_total_correct: 3500      ← Total de correctas del jugador con más aciertos
+├── min_response_time: 620       ← Tiempo (ms) de la operación correcta más rápida
+├── max_response_time: 9800      ← Tiempo (ms) de la operación correcta más lenta
+├── min_accuracy: 42.0           ← Accuracy más baja de la comunidad
+└── max_accuracy: 99.1           ← Accuracy más alta de la comunidad
+```
 
-| Variable | Peso | Rango de Entrada | Transformación Interna | Descripción |
-|----------|------|-------------------|----------------------|-------------|
-| **Operaciones Correctas** | **W1** = 0.30 | 0 - N | `log10(total_correct + 1) * 100` | Escala logarítmica para premiar volumen sin que sea dominante. Un jugador con 1000 correctas no tiene 10x más puntaje que uno con 100. |
-| **Tiempo Promedio de Respuesta** | **W2** = 0.35 | ms (menor = mejor) | `max(0, 100 - (avg_time / 100))` | Inversión lineal: respuestas más rápidas = mayor puntaje. Capped a 100 puntos. Un promedio de 1000ms = 90pts, 3000ms = 70pts. |
-| **Asertividad (Accuracy)** | **W3** = 0.35 | 0% - 100% | `accuracy` (valor directo) | Porcentaje de aciertos global. Se usa directamente ya que está en escala 0-100. |
+Estos benchmarks se recalculan y actualizan cada vez que un jugador guarda una partida.
 
-#### Fórmula del Puntaje
+---
+
+### 6.2. Variables, Normalización y Pesos
+
+#### Variable 1: Operaciones Correctas (Volumen)
+
+| Aspecto | Descripción |
+|---------|-------------|
+| **Dato de entrada** | `total_correct` del jugador (suma de todas sus partidas) |
+| **Referencia** | `community_benchmarks.max_total_correct` = total del jugador con más aciertos en la comunidad |
+| **Normalización** | `Score_C = (total_correct / max_total_correct) * 100` |
+| **Rango de salida** | 0 a 100 |
+| **Lógica** | El jugador con más operaciones correctas obtiene 100. El resto se mide proporcionalmente respecto a ese máximo. |
+| **Peso** | **W1** (por definir en próxima iteración) |
+
+#### Variable 2: Tiempo Promedio de Respuesta (Velocidad)
+
+| Aspecto | Descripción |
+|---------|-------------|
+| **Dato de entrada** | `avg_response_time` del jugador (promedio de todas sus operaciones correctas) |
+| **Referencia min** | `community_benchmarks.min_response_time` = operación correcta más rápida de toda la comunidad |
+| **Referencia max** | `community_benchmarks.max_response_time` = operación correcta más lenta de toda la comunidad |
+| **Normalización** | `Score_T = (max_time - avg_time) / (max_time - min_time) * 100` |
+| **Rango de salida** | 0 a 100 |
+| **Lógica** | El jugador con el tiempo promedio igual al mínimo de la comunidad obtiene 100. El que tiene el tiempo promedio igual al máximo obtiene 0. La posición dentro del rango define el puntaje. |
+| **Peso** | **W2** (por definir en próxima iteración) |
+
+> **Nota:** Se usa el tiempo promedio del jugador (sobre todas sus operaciones correctas) comparado contra los extremos absolutos de la comunidad (operación individual más rápida y más lenta). Esto premia la consistencia en la velocidad.
+
+#### Variable 3: Asertividad (Accuracy)
+
+| Aspecto | Descripción |
+|---------|-------------|
+| **Dato de entrada** | `global_accuracy` del jugador (promedio de accuracy de todas sus partidas) |
+| **Referencia min** | `community_benchmarks.min_accuracy` = accuracy más baja de la comunidad |
+| **Referencia max** | `community_benchmarks.max_accuracy` = accuracy más alta de la comunidad |
+| **Normalización** | `Score_A = (player_accuracy - min_accuracy) / (max_accuracy - min_accuracy) * 100` |
+| **Rango de salida** | 0 a 100 |
+| **Lógica** | El jugador con la accuracy más alta de la comunidad obtiene 100. El de la más baja obtiene 0. La posición dentro del rango define el puntaje. |
+| **Peso** | **W3** (por definir en próxima iteración) |
+
+---
+
+### 6.3. Fórmula del Puntaje Compuesto
 
 ```
-Community_Score = (W1 * Score_Correctas) + (W2 * Score_Tiempo) + (W3 * Score_Accuracy)
+Community_Score = (W1 * Score_C) + (W2 * Score_T) + (W3 * Score_A)
 
 Donde:
-  Score_Correctas = log10(total_correct + 1) * 100
-  Score_Tiempo    = max(0, 100 - (avg_response_time / 100))
-  Score_Accuracy  = global_accuracy
+  Score_C = (total_correct / max_total_correct) * 100
+  Score_T = (max_response_time - avg_response_time) / (max_response_time - min_response_time) * 100
+  Score_A = (player_accuracy - min_accuracy) / (max_accuracy - min_accuracy) * 100
+
+  W1 + W2 + W3 = 1.0  (pesos a definir en próxima iteración)
 ```
 
-> **Nota:** Los pesos (W1, W2, W3) son configurables y serán iterados en versiones futuras del documento. Los valores actuales (0.30, 0.35, 0.35) priorizan la velocidad y precisión por igual, con una contribución menor pero significativa del volumen de práctica.
+> **Pesos pendientes de iteración.** Los valores de W1, W2 y W3 serán definidos y justificados en la siguiente ronda de diseño.
 
-#### Ejemplo de Cálculo
+#### Ejemplo de Cálculo (con benchmarks hipotéticos)
 
-| Jugador | Correctas | Tiempo Prom. | Accuracy | Score_C | Score_T | Score_A | **Total** |
-|---------|-----------|-------------|----------|---------|---------|---------|-----------|
-| Ana | 500 | 1800ms | 92% | 2.70*100=270 | 82 | 92 | 0.30(270)+0.35(82)+0.35(92) = 81+28.7+32.2 = **141.9** |
-| Pedro | 200 | 2500ms | 78% | 2.30*100=230 | 75 | 78 | 0.30(230)+0.35(75)+0.35(78) = 69+26.25+27.3 = **122.55** |
+Benchmarks de comunidad: `max_correct=3500`, `min_time=620ms`, `max_time=9800ms`, `min_accuracy=42%`, `max_accuracy=99.1%`
 
-### 6.2. Posición en la Comunidad
+| Jugador | Correctas | Tiempo Prom. | Accuracy | Score_C | Score_T | Score_A |
+|---------|-----------|-------------|----------|---------|---------|---------|
+| Ana | 1200 | 1800ms | 92% | (1200/3500)*100 = **34.3** | (9800-1800)/(9800-620)*100 = **86.6** | (92-42)/(99.1-42)*100 = **87.6** |
+| Pedro | 3500 | 2500ms | 78% | (3500/3500)*100 = **100** | (9800-2500)/(9800-620)*100 = **79.5** | (78-42)/(99.1-42)*100 = **63.0** |
+| Luis | 400 | 890ms | 99.1% | (400/3500)*100 = **11.4** | (9800-890)/(9800-620)*100 = **97.0** | (99.1-42)/(99.1-42)*100 = **100** |
+
+---
+
+### 6.4. Puntaje por Partida vs. Comunidad
+
+Cada partida individual también puede obtener su propio puntaje relativo, comparado contra el **promedio de la comunidad** en las mismas 3 variables. Esto permite mostrar en la tabla de historial si esa partida estuvo por encima o por debajo del nivel general.
+
+| Elemento | Descripción |
+|----------|-------------|
+| **Score de la partida** | Calculado con los datos de esa sesión individual vs. benchmarks de comunidad |
+| **Comparación** | Indicador visual: por encima / en la media / por debajo del promedio comunitario |
+| **Visible en** | Columna "Puntaje" en la tabla de historial de partidas |
+
+La **posición en el leaderboard** se determina únicamente por el puntaje compuesto global del jugador (acumulado de todas sus partidas), no por el puntaje de una partida individual.
+
+---
+
+### 6.5. Posición en la Comunidad
 
 #### Visualización en el Perfil del Jugador
 
 | Elemento | Descripción |
 |----------|-------------|
-| **Puntaje personal** | Número grande con el Community Score |
-| **Posición** | "#5 de 120 jugadores" |
-| **Percentil** | "Estás en el top 4% de la comunidad" |
-| **Barra de progreso** | Barra visual mostrando posición relativa |
+| **Puntaje personal** | Número grande con el Community Score (0-100) |
+| **Posición** | "#5 de 347 jugadores" |
+| **Percentil** | "Estás en el top 2% de la comunidad" |
+| **Barra de progreso** | Barra visual mostrando posición relativa dentro del top 100 |
 
 #### Top Jugadores (Leaderboard)
 
@@ -431,18 +544,20 @@ Tabla visible desde el perfil que muestra los mejores jugadores de la comunidad:
 
 | Columna | Dato |
 |---------|------|
-| Posición | # ranking |
+| Posición | # ranking (1 al 100) |
 | Avatar | Foto de Google |
 | Nombre | displayName |
 | Puntaje | Community Score |
-| Partidas | Total de partidas jugadas |
+| Correctas | Total de operaciones correctas |
+| Velocidad | Tiempo promedio de respuesta |
 | Asertividad | % accuracy global |
 | Última actividad | Hace cuánto jugó |
 
 **Reglas del Leaderboard:**
-- Se muestran los top 20 jugadores.
-- El jugador actual siempre aparece en la tabla (aunque no esté en top 20), con su posición real.
+- Se muestran los **top 100 jugadores**.
+- El jugador actual siempre aparece en la tabla con su posición real, aunque esté fuera del top 100.
 - Mínimo 5 partidas jugadas para aparecer en el leaderboard.
+- Si el jugador está en el top 100, su fila se resalta visualmente.
 - Los datos son de solo lectura para otros usuarios (ver reglas de seguridad en sección 3.2).
 
 ---
@@ -457,7 +572,7 @@ Tabla visible desde el perfil que muestra los mejores jugadores de la comunidad:
 │         (Idéntica a la actual, sin cambios)         │
 ├─────────────────────────────────────────────────────┤
 │ 1. Abre Baldora                                     │
-│ 2. Escribe su nickname manualmente                  │
+│ 2. Campo nickname visible y editable (como siempre) │
 │ 3. Configura modo, tablas, tiempo                   │
 │ 4. Juega la partida                                 │
 │ 5. Ve dashboard de sesión + análisis IA             │
@@ -478,12 +593,14 @@ Tabla visible desde el perfil que muestra los mejores jugadores de la comunidad:
 │ 2. Clic en botón Google del header (esquina sup.)   │
 │ 3. Popup Google → Autoriza                          │
 │ 4. onAuthStateChanged → Crea profile en DB          │
-│ 5. Header cambia: avatar + nombre                   │
-│ 6. Nickname se sugiere con displayName (editable)   │
-│ 7. Juega partida (flujo normal sin cambios)         │
-│ 8. endGame() → Guarda en nube automáticamente       │
-│ 9. Ve dashboard de sesión (igual que siempre)       │
-│ 10. Puede acceder a "Mi Perfil" desde el header     │
+│ 5. Header cambia: avatar + nombre del header        │
+│ 6. Campo nickname DESAPARECE de la configuración    │
+│ 7. Todos los registros usan el nombre de Google     │
+│ 8. Juega partida (flujo de juego sin cambios)       │
+│ 9. endGame() → Guarda en nube automáticamente       │
+│ 10. Ve dashboard de sesión (igual que siempre)      │
+│ 11. Análisis IA de esa sesión se guarda en la DB    │
+│ 12. Puede acceder a "Mi Perfil" desde el header     │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -578,19 +695,27 @@ Todo el sistema es aditivo. El flujo sin login debe seguir funcionando **exactam
 - [ ] Implementar sistema de filtros
 - [ ] Crear gráficas de progreso histórico (Chart.js)
 - [ ] Implementar tabla de historial con paginación
+- [ ] Agregar columna de análisis IA en tabla (indicador 🧠 o botón "Analizar partida")
+- [ ] Implementar guardado de análisis IA por partida en DB
 - [ ] Crear tarjetas de resumen con métricas agregadas
 
 ### Fase 4: Análisis IA Histórico
-- [ ] Crear prompt para análisis longitudinal
+- [ ] Guardar automáticamente análisis de sesión en DB al generarse (si usuario logueado)
+- [ ] Mostrar análisis guardados en tabla de historial (expandible)
+- [ ] Crear botón "Analizar partida" con mismo diseño del botón existente
+- [ ] Crear prompt para análisis longitudinal global
 - [ ] Implementar cálculo de tendencias (mejorando/estancado/empeorando)
 - [ ] Conectar botón "Analizar mi progreso" con GeminiService
-- [ ] Renderizar resultado en el perfil
+- [ ] Renderizar resultado global en el perfil
 
 ### Fase 5: Comunidad y Ranking
-- [ ] Implementar fórmula de Community Score
-- [ ] Crear vista de leaderboard
+- [ ] Implementar cálculo y guardado de benchmarks de comunidad en DB
+- [ ] Actualizar benchmarks al guardar cada partida
+- [ ] Implementar fórmula de Community Score normalizada por comunidad
+- [ ] Calcular puntaje individual por partida (vs. comunidad)
+- [ ] Crear vista de leaderboard (top 100)
 - [ ] Mostrar posición personal y percentil
-- [ ] Crear componente de top 20 jugadores
+- [ ] Resaltar al jugador actual si está en top 100
 
 ---
 
@@ -606,4 +731,4 @@ Todo el sistema es aditivo. El flujo sin login debe seguir funcionando **exactam
 
 ---
 
-*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.1*
+*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.2*
