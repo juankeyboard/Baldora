@@ -238,6 +238,9 @@ const App = {
         this.elements.configView.classList.remove('active');
         this.elements.gameView.classList.remove('active');
         this.elements.dashboardView.classList.remove('active');
+        // Feature 14: ocultar perfil al cambiar de vista
+        const profileView = document.getElementById('profile-view');
+        if (profileView) profileView.classList.remove('active');
 
         // Actualizar el botón de ayuda según la vista
         const helpBtn = document.getElementById('btn-help-tour');
@@ -263,6 +266,11 @@ const App = {
                 if (helpBtn) {
                     helpBtn.style.display = 'none';
                 }
+                break;
+            // Feature 14: Vista de Perfil de Usuario
+            case 'PROFILE':
+                if (profileView) profileView.classList.add('active');
+                if (helpBtn) helpBtn.style.display = 'none';
                 break;
         }
     },
@@ -692,6 +700,11 @@ const App = {
         setTimeout(() => {
             ChartsManager.renderAll();
         }, 100);
+
+        // Feature 14: Guardar partida en la nube si el usuario está autenticado
+        if (typeof CloudSync !== 'undefined' && typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn()) {
+            CloudSync.saveGame();
+        }
     },
 
     /**
