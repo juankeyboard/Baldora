@@ -165,9 +165,16 @@ const ExportManager = {
                 { x: margin + chartWidth + 10, y: y + chartHeight + 15 }
             ];
 
+            const canvases = [
+                document.getElementById(chartCanvasIds[0]),
+                document.getElementById(chartCanvasIds[1]),
+                document.getElementById(chartCanvasIds[2]),
+                document.getElementById(chartCanvasIds[3])
+            ];
+
             for (let i = 0; i < 4; i++) {
                 const pos = positions[i];
-                const canvas = document.getElementById(chartCanvasIds[i]);
+                const canvas = canvases[i];
 
                 // Marco del gráfico
                 doc.setDrawColor(200, 200, 200);
