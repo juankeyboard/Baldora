@@ -332,16 +332,29 @@ const App = {
      * Alterna la selección de una fila
      */
     toggleRow(rowNum) {
-        const index = this.selectedRows.indexOf(rowNum);
         const btn = document.querySelector(`#rows-grid .table-btn[data-table="${rowNum}"]`);
 
-        if (index === -1) {
-            this.selectedRows.push(rowNum);
-            this.selectedRows.sort((a, b) => a - b);
-            btn.classList.add('active');
-        } else {
+        let index = 0;
+        let found = false;
+        const len = this.selectedRows.length;
+
+        while (index < len) {
+            if (this.selectedRows[index] === rowNum) {
+                found = true;
+                break;
+            }
+            if (this.selectedRows[index] > rowNum) {
+                break;
+            }
+            index++;
+        }
+
+        if (found) {
             this.selectedRows.splice(index, 1);
             btn.classList.remove('active');
+        } else {
+            this.selectedRows.splice(index, 0, rowNum);
+            btn.classList.add('active');
         }
     },
 
@@ -349,16 +362,29 @@ const App = {
      * Alterna la selección de una columna
      */
     toggleCol(colNum) {
-        const index = this.selectedCols.indexOf(colNum);
         const btn = document.querySelector(`#cols-grid .table-btn[data-table="${colNum}"]`);
 
-        if (index === -1) {
-            this.selectedCols.push(colNum);
-            this.selectedCols.sort((a, b) => a - b);
-            btn.classList.add('active');
-        } else {
+        let index = 0;
+        let found = false;
+        const len = this.selectedCols.length;
+
+        while (index < len) {
+            if (this.selectedCols[index] === colNum) {
+                found = true;
+                break;
+            }
+            if (this.selectedCols[index] > colNum) {
+                break;
+            }
+            index++;
+        }
+
+        if (found) {
             this.selectedCols.splice(index, 1);
             btn.classList.remove('active');
+        } else {
+            this.selectedCols.splice(index, 0, colNum);
+            btn.classList.add('active');
         }
     },
 
