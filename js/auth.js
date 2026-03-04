@@ -109,6 +109,10 @@ const AuthManager = {
         const nicknameGroup = document.getElementById('nickname-field-group');
         if (nicknameGroup) nicknameGroup.classList.add('nickname-hidden');
 
+        // Quitar 'required' para que el form no bloquee el submit cuando el campo está oculto
+        const nicknameInput = document.getElementById('nickname');
+        if (nicknameInput) nicknameInput.removeAttribute('required');
+
         // Actualizar nickname en DataManager para esta sesión
         if (typeof DataManager !== 'undefined') {
             DataManager.nickname = user.displayName || user.email || 'Usuario';
@@ -131,6 +135,10 @@ const AuthManager = {
         // Mostrar campo nickname
         const nicknameGroup = document.getElementById('nickname-field-group');
         if (nicknameGroup) nicknameGroup.classList.remove('nickname-hidden');
+
+        // Restaurar 'required' al volver al modo sin sesión
+        const nicknameInput = document.getElementById('nickname');
+        if (nicknameInput) nicknameInput.setAttribute('required', '');
 
         // Si estaba en perfil, volver a config
         const profileView = document.getElementById('profile-view');

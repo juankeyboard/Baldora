@@ -3188,39 +3188,62 @@ body::before {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
     background: var(--clr-surface-high);
     border: 2px solid var(--clr-sand-300);
     border-radius: var(--radius-lg);
-    padding: 16px 20px;
+    padding: 18px 24px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    min-width: 160px;
+    transition: border-color 0.3s ease;
 }
 
-.community-badge-value {
-    font-family: var(--font-display);
+/* Icono de liga */
+.community-league-icon {
     font-size: 2.4rem;
-    font-weight: 700;
-    color: var(--clr-rose-500);
     line-height: 1;
+    margin-bottom: 2px;
 }
 
-.community-badge-separator {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
-    color: var(--text-muted);
-    line-height: 1;
+/* Wrap del número de posición */
+.community-position-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
 }
 
-.community-badge-total {
-    font-family: var(--font-display);
-    font-size: 1.4rem;
+.community-position-label {
+    font-size: 0.65rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     line-height: 1;
+}
+
+.community-position-number {
+    font-family: var(--font-display);
+    font-size: 3.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+
+/* Nombre de liga */
+.community-league-name {
+    font-family: var(--font-display);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-secondary);
+    transition: color 0.3s ease;
+    text-transform: uppercase;
 }
 
 .community-badge-label {
-    font-size: 0.62rem;
+    font-size: 0.58rem;
     font-weight: 600;
     color: var(--text-muted);
     text-transform: uppercase;
@@ -3229,34 +3252,30 @@ body::before {
     text-align: center;
 }
 
-/* Nombre de liga (grande, coloreado por liga) */
-.community-league-name {
-    font-family: var(--font-display);
-    font-size: 2rem;
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.06em;
-    color: var(--text-secondary);
-    transition: color 0.3s ease;
-}
+/* Colores por liga — número y nombre */
+.league-diamante .community-position-number { color: #00c8ff; }
+.league-diamante .community-league-name     { color: #00c8ff; }
+.league-diamante { border-color: rgba(0, 200, 255, 0.35); }
 
-/* Subtítulo de tier */
-.community-league-tier {
-    font-family: var(--font-body);
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    line-height: 1;
-    margin-top: 2px;
-}
+.league-platino  .community-position-number { color: #b8d0e0; }
+.league-platino  .community-league-name     { color: #b8d0e0; }
+.league-platino  { border-color: rgba(184, 208, 224, 0.4); }
 
-/* Colores de liga */
-.league-diamante .community-league-name { color: #00c8ff; }
-.league-platino  .community-league-name { color: #b8d0e0; }
-.league-oro      .community-league-name { color: #f5a623; }
-.league-plata    .community-league-name { color: #8ea7b8; }
-.league-bronce   .community-league-name { color: #cd7f32; }
-.league-madera   .community-league-name { color: #8b6042; }
+.league-oro      .community-position-number { color: #f5a623; }
+.league-oro      .community-league-name     { color: #f5a623; }
+.league-oro      { border-color: rgba(245, 166, 35, 0.4); }
+
+.league-plata    .community-position-number { color: #8ea7b8; }
+.league-plata    .community-league-name     { color: #8ea7b8; }
+.league-plata    { border-color: rgba(142, 167, 184, 0.4); }
+
+.league-bronce   .community-position-number { color: #cd7f32; }
+.league-bronce   .community-league-name     { color: #cd7f32; }
+.league-bronce   { border-color: rgba(205, 127, 50, 0.4); }
+
+.league-madera   .community-position-number { color: #8b6042; }
+.league-madera   .community-league-name     { color: #8b6042; }
+.league-madera   { border-color: rgba(139, 96, 66, 0.4); }
 
 @media (max-width: 600px) {
     .profile-header-row {
@@ -3264,15 +3283,19 @@ body::before {
     }
     .community-badge {
         flex-direction: row;
-        gap: 8px;
+        gap: 12px;
         padding: 12px 20px;
         justify-content: center;
         align-items: center;
+        min-width: unset;
+    }
+    .community-league-icon {
+        font-size: 2rem;
+    }
+    .community-position-number {
+        font-size: 2.6rem;
     }
     .community-league-name {
-        font-size: 1.4rem;
-    }
-    .community-league-tier {
         font-size: 0.75rem;
     }
 }

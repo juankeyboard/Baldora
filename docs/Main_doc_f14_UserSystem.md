@@ -944,7 +944,7 @@ Todo el sistema es aditivo. El flujo sin login debe seguir funcionando **exactam
 | Cambio | Detalle |
 |--------|---------|
 | **Nuevo elemento** | `#btn-config-google-signin` dentro de `#nickname-field-group` |
-| **Comportamiento** | Se oculta automáticamente al login (junto con el grupo de nickname vía clase `.nickname-hidden`) |
+| **Comportamiento** | Se oculta automáticamente al login (junto con el grupo de nickname vía clase `.nickname-hidden`). Al ocultar, se elimina el atributo `required` del input para no bloquear el submit del formulario; se restaura al cerrar sesión. |
 | **Label actualizado** | `"Tu Nickname"` → `"Tu nickname o Inicia sesión"` |
 
 ---
@@ -954,13 +954,26 @@ Todo el sistema es aditivo. El flujo sin login debe seguir funcionando **exactam
 | Cambio | Detalle |
 |--------|---------|
 | **Pesos finalizados** | W1=W2=W3=1/3 — distribución equitativa entre volumen, velocidad y asertividad |
-| **Grupos percentílicos** | 100 grupos dinámicos: `Tier = ceil(rank / total × 100)` |
-| **Ligas** | 6 ligas con color propio: Diamante (1–5), Platino (6–15), Oro (16–30), Plata (31–50), Bronce (51–70), Madera (71–100) |
+| **Grupos percentílicos** | 100 grupos dinámicos: `Posición = ceil(rank / total × 100)` |
+| **Ligas** | 6 ligas con icono y color propio: 💎 Diamante (1–5), 🏅 Platino (6–15), 🥇 Oro (16–30), 🥈 Plata (31–50), 🥉 Bronce (51–70), 🪵 Madera (71–100) |
 | **Recálculo global** | Cada vez que alguien guarda una práctica, `_recalculateAllTiers()` recalcula y escribe tier+league para todos los jugadores |
 | **Mínimo de entrada** | 1 práctica (antes el leaderboard exigía 5 — reducido para inclusividad) |
-| **Badge rediseñado** | El badge del perfil ahora muestra el nombre de la liga (ej. "ORO") con color de acento + tier como subtítulo |
 | **Archivos modificados** | `cloudSync.js` (pesos, `_recalculateAllTiers()`), `userProfile.js` (`_renderCommunityScore()`), `index.html` (badge HTML), `css/styles.css` (estilos de liga) |
 
 ---
 
-*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.5 (Sistema de Ligas Comunitarias)*
+### 12.6. Mejoras de diseño y datos en Vista de Perfil (Iteración 6)
+
+| Cambio | Detalle |
+|--------|---------|
+| **"Tier" → "Posición"** | La palabra "Tier" se reemplazó por "Posición" en el badge de la comunidad |
+| **Iconografía de ligas** | Cada liga ahora se muestra con un emoji representativo: 💎 Diamante, 🏅 Platino, 🥇 Oro, 🥈 Plata, 🥉 Bronce, 🪵 Madera. Gestionado por `_leagueToIcon()` en `userProfile.js` |
+| **Número grande** | El número de posición se muestra en 3.6rem (antes era texto de 0.82rem), siendo ahora el elemento visual principal del badge |
+| **Badge rediseñado** | Nueva estructura: icono (emoji) → número grande "Posición N" → nombre de liga → label. Inyectado via `innerHTML` en `_renderCommunityScore()` |
+| **Borde coloreado por liga** | El borde del badge cambia de color según la liga activa |
+| **Contador real de prácticas** | `profile-total-games` usa `gamesSnap.numChildren()` (conteo real desde la DB), no `stats.total_games`. La query a `/games` ya no usa `limitToLast(50)` para garantizar conteo exacto y historial completo en filtros |
+| **Decremento al eliminar** | `_deleteGame()` ahora decrementa `stats.total_games` en Firebase con una transaction, manteniendo el stat sincronizado con la realidad |
+
+---
+
+*Documento en iteración. Última actualización: 4 de Marzo, 2026 - v1.6 (Diseño badge + contador real de prácticas)*

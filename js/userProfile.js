@@ -33,7 +33,7 @@ const UserProfile = {
             const [profileSnap, statsSnap, gamesSnap] = await Promise.all([
                 db.ref(`users/${uid}/profile`).once('value'),
                 db.ref(`users/${uid}/stats`).once('value'),
-                db.ref(`users/${uid}/games`).orderByChild('timestamp').limitToLast(50).once('value')
+                db.ref(`users/${uid}/games`).orderByChild('timestamp').once('value')
             ]);
 
             const profile = profileSnap.val() || {};
@@ -46,11 +46,14 @@ const UserProfile = {
             });
             this.filteredGames = [...this.games];
 
+            // Contar todas las prácticas reales (no desde stats, que puede estar desactualizado por eliminaciones)
+            const actualGameCount = gamesSnap.numChildren();
+
             // Auto-rellenar fechas de filtro con el rango real de prácticas
             this._setDefaultDateFilters();
 
             // Renderizar
-            this._renderProfileHeader(profile, stats);
+            this._renderProfileHeader(profile, stats, actualGameCount);
             this._renderStats(stats);
             this._renderGamesTable(this.filteredGames);
             await this._renderCommunityScore(uid, stats);
@@ -113,7 +116,7 @@ const UserProfile = {
     // RENDERIZADO
     // ============================================================
 
-    _renderProfileHeader(profile, stats) {
+    _renderProfileHeader(profile, stats, actualCount) {
         const user = AuthManager.getUser();
         if (!user) return;
 
@@ -126,8 +129,9 @@ const UserProfile = {
         const emailEl = document.getElementById('profile-email');
         if (emailEl) emailEl.textContent = user.email || '';
 
+        // Usar el conteo real desde la DB (no desde stats, que no descuenta eliminadas)
         const gamesEl = document.getElementById('profile-total-games');
-        if (gamesEl) gamesEl.textContent = stats.total_games || 0;
+        if (gamesEl) gamesEl.textContent = actualCount !== undefined ? actualCount : (stats.total_games || 0);
 
         const memberEl = document.getElementById('profile-member-since');
         if (memberEl && profile.createdAt) {
@@ -216,8 +220,6 @@ const UserProfile = {
     },
 
     async _renderCommunityScore(uid, stats) {
-        const leagueNameEl = document.getElementById('community-league-name');
-        const tierEl = document.getElementById('community-tier-value');
         const badgeEl = document.getElementById('community-badge-container');
 
         try {
@@ -239,12 +241,19 @@ const UserProfile = {
 
             const tier = Math.floor((rank - 1) / total * 100) + 1;
             const league = this._tierToLeague(tier);
-
-            if (leagueNameEl) leagueNameEl.textContent = league;
-            if (tierEl) tierEl.textContent = `Tier ${tier}`;
+            const icon = this._leagueToIcon(league);
 
             if (badgeEl) {
                 badgeEl.className = `community-badge league-${league.toLowerCase()}`;
+                badgeEl.innerHTML = `
+                    <span class="community-league-icon">${icon}</span>
+                    <div class="community-position-wrap">
+                        <span class="community-position-label">Posición</span>
+                        <span class="community-position-number">${tier}</span>
+                    </div>
+                    <span class="community-league-name">${league}</span>
+                    <span class="community-badge-label">Tu posición en la comunidad</span>
+                `;
             }
 
             // Persistir tier y liga para que cloudSync los tenga actualizados
@@ -253,9 +262,22 @@ const UserProfile = {
 
         } catch (err) {
             console.error('Error al calcular posición en comunidad:', err);
-            if (leagueNameEl) leagueNameEl.textContent = '—';
-            if (tierEl) tierEl.textContent = '—';
+            if (badgeEl) {
+                badgeEl.innerHTML = `<span class="community-badge-label">Sin datos de comunidad</span>`;
+            }
         }
+    },
+
+    _leagueToIcon(league) {
+        const icons = {
+            'DIAMANTE': '💎',
+            'PLATINO':  '🏅',
+            'ORO':      '🥇',
+            'PLATA':    '🥈',
+            'BRONCE':   '🥉',
+            'MADERA':   '🪵'
+        };
+        return icons[league] || '🎮';
     },
 
     _tierToLeague(tier) {
@@ -363,6 +385,8 @@ const UserProfile = {
         try {
             const db = firebase.database();
             await db.ref(`users/${uid}/games/${gameId}`).remove();
+            // Mantener stats.total_games sincronizado con las prácticas reales
+            await db.ref(`users/${uid}/stats/total_games`).transaction(count => Math.max(0, (count || 1) - 1));
             // Recargar perfil para recalcular stats y comunidad
             await this.load();
         } catch (err) {
