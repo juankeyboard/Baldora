@@ -368,7 +368,14 @@ const App = {
      * Inicia el juego
      */
     startGame() {
-        const nickname = this.elements.nicknameInput.value.trim();
+        let nickname = this.elements.nicknameInput.value.trim();
+
+        // Si el usuario está autenticado con Google, usar su nombre de cuenta
+        if (!nickname && typeof AuthManager !== 'undefined' && AuthManager.isLoggedIn()) {
+            const user = AuthManager.getUser();
+            nickname = user.displayName || user.email || 'Usuario';
+        }
+
         if (!nickname) {
             alert('Por favor ingresa tu nickname');
             return;
