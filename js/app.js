@@ -305,12 +305,13 @@ const App = {
      */
     selectAllRows() {
         const allSelected = this.selectedRows.length === 15;
+        const btns = document.querySelectorAll('#rows-grid .table-btn');
         if (allSelected) {
             this.selectedRows = [];
-            document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.remove('active'));
+            btns.forEach(btn => btn.classList.remove('active'));
         } else {
             this.selectedRows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-            document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.add('active'));
+            btns.forEach(btn => btn.classList.add('active'));
         }
     },
 
@@ -319,12 +320,13 @@ const App = {
      */
     selectAllCols() {
         const allSelected = this.selectedCols.length === 15;
+        const btns = document.querySelectorAll('#cols-grid .table-btn');
         if (allSelected) {
             this.selectedCols = [];
-            document.querySelectorAll('#cols-grid .table-btn').forEach(btn => btn.classList.remove('active'));
+            btns.forEach(btn => btn.classList.remove('active'));
         } else {
             this.selectedCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-            document.querySelectorAll('#cols-grid .table-btn').forEach(btn => btn.classList.add('active'));
+            btns.forEach(btn => btn.classList.add('active'));
         }
     },
 
