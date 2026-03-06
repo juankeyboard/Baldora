@@ -14,6 +14,10 @@ const UserProfile = {
         if (!AuthManager.isLoggedIn()) return;
         if (typeof App !== 'undefined') App.showView('PROFILE');
         this.load();
+        // Onboarding de perfil: se dispara solo en la primera visita
+        if (typeof Onboarding !== 'undefined') {
+            Onboarding.checkAndStartProfileTour();
+        }
     },
 
     /**

@@ -11,7 +11,8 @@ const Onboarding = {
 
     // Claves de localStorage para persistencia
     STORAGE_KEYS: {
-        CONFIG: 'baldora_tour_config_seen'
+        CONFIG:   'baldora_tour_config_seen',
+        PROFILE:  'baldora_tour_profile_seen'
     },
 
     /**
@@ -95,20 +96,83 @@ const Onboarding = {
     },
 
     /**
-     * Reinicia el tour de configuración (para testing o por petición del usuario)
+     * Verifica si debe mostrar el tour de perfil y lo lanza (primera visita).
      */
-    resetAllTours() {
-        localStorage.removeItem(this.STORAGE_KEYS.CONFIG);
-        console.log('✅ Tour de configuración reiniciado.');
+    checkAndStartProfileTour() {
+        const seen = localStorage.getItem(this.STORAGE_KEYS.PROFILE);
+        if (!seen) {
+            setTimeout(() => this.startProfileTour(), 600);
+        }
     },
 
     /**
-     * Permite al usuario volver a ver el tour de configuración
+     * Tour de la Vista de Perfil de Usuario
+     */
+    startProfileTour() {
+        if (!this.driver) return;
+
+        this.driver.setSteps([
+            {
+                element: '.profile-user-info',
+                popover: {
+                    title: '\uD83D\uDC64 Tu Perfil',
+                    description: 'Aquí aparece tu información de usuario: nombre, correo y tiempo en la comunidad.',
+                    side: 'bottom',
+                    align: 'start'
+                }
+            },
+            {
+                element: '.profile-stats-grid',
+                popover: {
+                    title: '\uD83D\uDCC8 Tus Métricas',
+                    description: 'Resumen de tu desempeño global: aciertos totales, precisión, tiempo promedio y tu mejor marca.',
+                    side: 'bottom',
+                    align: 'center'
+                }
+            },
+            {
+                element: '.profile-filters',
+                popover: {
+                    title: '\uD83D\uDD0D Filtros de Historial',
+                    description: 'Filtra tu historial de prácticas por modo de juego y rango de fechas para analizar tu progreso.',
+                    side: 'top',
+                    align: 'center'
+                }
+            },
+            {
+                element: '.profile-table-wrapper',
+                popover: {
+                    title: '\uD83D\uDCCB Historial Detallado',
+                    description: 'Aquí ves cada sesión de práctica con sus resultados. Puedes eliminar registros individualmente.',
+                    side: 'top',
+                    align: 'center'
+                }
+            }
+        ]);
+
+        this.driver.drive();
+        localStorage.setItem(this.STORAGE_KEYS.PROFILE, 'true');
+    },
+
+    /**
+     * Reinicia los tours (para testing o por petición del usuario)
+     */
+    resetAllTours() {
+        localStorage.removeItem(this.STORAGE_KEYS.CONFIG);
+        localStorage.removeItem(this.STORAGE_KEYS.PROFILE);
+        console.log('✅ Todos los tours reiniciados.');
+    },
+
+    /**
+     * Permite al usuario volver a ver un tour específico
      */
     replayTour(tourName) {
         if (tourName === 'config') {
             localStorage.removeItem(this.STORAGE_KEYS.CONFIG);
             this.startConfigTour();
+        } else if (tourName === 'profile') {
+            localStorage.removeItem(this.STORAGE_KEYS.PROFILE);
+            this.startProfileTour();
         } else {
             console.warn('Tour no disponible:', tourName);
         }

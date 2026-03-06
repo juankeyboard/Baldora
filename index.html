@@ -80,6 +80,14 @@
     <button type="button" id="btn-audio-toggle" class="audio-toggle-btn" onclick="AudioManager.toggleMute()"
         title="Silenciar">&#128266;</button>
 
+    <!-- Selector de Idioma (i18n) -->
+    <div id="lang-selector-wrapper" class="lang-selector-wrapper">
+        <select id="lang-selector" class="lang-selector" onchange="I18n.setLanguage(this.value)" title="Language / Idioma">
+            <option value="es">ES</option>
+            <option value="en">EN</option>
+        </select>
+    </div>
+
     <!-- Boton de Ayuda - Repetir Tour (Global) -->
     <button type="button" id="btn-help-tour" class="btn-help-tour" title="Ver tutorial">?</button>
 
@@ -99,7 +107,7 @@
                     <path fill="#34A853"
                         d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
                 </svg>
-                <span class="google-btn-text">Iniciar sesión</span>
+                <span class="google-btn-text" data-i18n="auth.signin">Iniciar sesión</span>
             </button>
         </div>
         <!-- Estado: Logueado -->
@@ -112,11 +120,11 @@
                 </button>
                 <!-- Dropdown -->
                 <div id="auth-dropdown" class="auth-dropdown">
-                    <button id="btn-view-profile" class="dropdown-item" type="button">
+                    <button id="btn-view-profile" class="dropdown-item" type="button" data-i18n="auth.my_profile">
                         &#128100; Mi Perfil
                     </button>
                     <div class="dropdown-divider"></div>
-                    <button id="btn-google-signout" class="dropdown-item dropdown-item-danger" type="button">
+                    <button id="btn-google-signout" class="dropdown-item dropdown-item-danger" type="button" data-i18n="auth.signout">
                         &#128682; Cerrar sesión
                     </button>
                 </div>
@@ -134,8 +142,8 @@
 
             <form id="config-form" class="config-form">
                 <div class="form-group" id="nickname-field-group">
-                    <label for="nickname">Tu nickname o Inicia sesión</label>
-                    <input type="text" id="nickname" name="nickname" placeholder="Ingresa tu nombre" required
+                    <label for="nickname" data-i18n="config.nickname_label">Tu nickname o Inicia sesión</label>
+                    <input type="text" id="nickname" name="nickname" placeholder="Ingresa tu nombre" data-i18n-placeholder="config.nickname_ph" required
                         maxlength="20">
                     <button id="btn-config-google-signin" class="btn-config-google-signin" type="button"
                         onclick="document.getElementById('btn-google-signin').click()">
@@ -145,38 +153,38 @@
                             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         </svg>
-                        Iniciar sesión con Google
+                        <span data-i18n="auth.signin_google">Iniciar sesión con Google</span>
                     </button>
                 </div>
 
                 <div class="form-group">
-                    <label>Modo de Juego</label>
+                    <label data-i18n="config.game_mode">Modo de Juego</label>
                     <div class="mode-selector mode-selector-3">
                         <input type="radio" id="mode-timer" name="game-mode" value="TIMER" checked>
                         <label for="mode-timer" class="mode-option">
                             <span class="mode-icon">&#9201;</span>
-                            <span class="mode-name">Contrarreloj</span>
-                            <span class="mode-desc">Tiempo límite</span>
+                            <span class="mode-name" data-i18n="config.mode_timer">Contrarreloj</span>
+                            <span class="mode-desc" data-i18n="config.mode_timer_desc">Tiempo límite</span>
                         </label>
 
                         <input type="radio" id="mode-free" name="game-mode" value="FREE">
                         <label for="mode-free" class="mode-option">
                             <span class="mode-icon">&#127919;</span>
-                            <span class="mode-name">Práctica Libre</span>
-                            <span class="mode-desc">Sin límite</span>
+                            <span class="mode-name" data-i18n="config.mode_free">Práctica Libre</span>
+                            <span class="mode-desc" data-i18n="config.mode_free_desc">Sin límite</span>
                         </label>
 
                         <input type="radio" id="mode-adaptive" name="game-mode" value="ADAPTIVE">
                         <label for="mode-adaptive" class="mode-option">
                             <span class="mode-icon">&#129504;</span>
-                            <span class="mode-name">Adaptativo</span>
-                            <span class="mode-desc">Entrena debilidades</span>
+                            <span class="mode-name" data-i18n="config.mode_adaptive">Adaptativo</span>
+                            <span class="mode-desc" data-i18n="config.mode_adaptive_desc">Entrena debilidades</span>
                         </label>
                     </div>
                 </div>
 
                 <div class="form-group timer-config" id="timer-config">
-                    <label for="time-limit">Tiempo Límite (minutos)</label>
+                    <label for="time-limit" data-i18n="config.time_limit">Tiempo Límite (minutos)</label>
                     <div class="time-slider-container">
                         <input type="range" id="time-limit" name="time-limit" min="1" max="15" value="1">
                         <span class="time-display" id="time-display">1 min</span>
@@ -188,8 +196,8 @@
                         <!-- Factor A (Filas) -->
                         <div class="factor-selector">
                             <div class="factor-header">
-                                <label>TABLA Factor A (Filas)</label>
-                                <button type="button" class="btn-select-all" id="btn-select-all-rows">Todas</button>
+                                <label data-i18n="config.factor_a">TABLA Factor A (Filas)</label>
+                                <button type="button" class="btn-select-all" id="btn-select-all-rows" data-i18n="config.btn_all">Todas</button>
                             </div>
                             <div class="tables-selector" id="rows-selector">
                                 <div class="tables-grid" id="rows-grid">
@@ -216,8 +224,8 @@
                         <!-- Factor B (Columnas) -->
                         <div class="factor-selector">
                             <div class="factor-header">
-                                <label>TABLA Factor B (Columnas)</label>
-                                <button type="button" class="btn-select-all" id="btn-select-all-cols">Todas</button>
+                                <label data-i18n="config.factor_b">TABLA Factor B (Columnas)</label>
+                                <button type="button" class="btn-select-all" id="btn-select-all-cols" data-i18n="config.btn_all">Todas</button>
                             </div>
                             <div class="tables-selector" id="cols-selector">
                                 <div class="tables-grid" id="cols-grid">
@@ -257,7 +265,7 @@
                 </div>
 
                 <button type="submit" class="btn-start">
-                    <span>COMENZAR</span>
+                    <span data-i18n="config.btn_start">COMENZAR</span>
                     <span class="btn-arrow">&#8594;</span>
                 </button>
             </form>
@@ -271,7 +279,7 @@
             <!-- Panel Izquierdo: Matriz -->
             <div class="matrix-panel">
                 <div class="matrix-header">
-                    <span class="matrix-title" id="matrix-title">Tabla de Multiplicar</span>
+                    <span class="matrix-title" id="matrix-title" data-i18n="game.matrix_title">Tabla de Multiplicar</span>
                     <span class="matrix-progress" id="matrix-progress">0 / 225</span>
                 </div>
                 <!-- Indicador de fase para modo adaptativo -->
@@ -286,7 +294,7 @@
             <!-- Panel Derecho: Controles -->
             <div class="controls-panel">
                 <div class="timer-display" id="timer-display">
-                    <span class="timer-label" id="timer-label">Tiempo</span>
+                    <span class="timer-label" id="timer-label" data-i18n="game.time">Tiempo</span>
                     <span class="timer-value" id="timer-value">05:00</span>
                 </div>
 
@@ -299,7 +307,7 @@
                     </div>
                     <input type="number" id="answer-input" class="answer-input" placeholder="?" min="1" max="225"
                         autofocus>
-                    <button type="button" class="btn-end" id="btn-end-session">
+                    <button type="button" class="btn-end" id="btn-end-session" data-i18n="game.end_session">
                         Terminar Sesion
                     </button>
                 </div>
@@ -308,12 +316,12 @@
                     <div class="stat-card stat-correct">
                         <span class="stat-icon">&#10003;</span>
                         <span class="stat-value" id="stat-correct">0</span>
-                        <span class="stat-label">Aciertos</span>
+                        <span class="stat-label" data-i18n="game.correct">Aciertos</span>
                     </div>
                     <div class="stat-card stat-wrong">
                         <span class="stat-icon">&#10007;</span>
                         <span class="stat-value" id="stat-wrong">0</span>
-                        <span class="stat-label">Errores</span>
+                        <span class="stat-label" data-i18n="game.wrong">Errores</span>
                     </div>
                 </div>
 
@@ -321,7 +329,7 @@
                 <div class="weaknesses-counter" id="weaknesses-counter" hidden>
                     <span class="weaknesses-icon">&#127919;</span>
                     <span class="weaknesses-value" id="weaknesses-value">0</span>
-                    <span class="weaknesses-label">Debilidades restantes</span>
+                    <span class="weaknesses-label" data-i18n="game.weaknesses">Debilidades restantes</span>
                 </div>
             </div>
         </div>
@@ -331,13 +339,13 @@
     <section id="dashboard-view" class="view">
         <div class="dashboard-container">
             <div class="dashboard-header">
-                <h2 class="dashboard-title">&#128202; Analiticas de Sesion</h2>
+                <h2 class="dashboard-title" data-i18n="dash.title">&#128202; Analiticas de Sesion</h2>
                 <div class="dashboard-actions">
                     <button type="button" class="btn-download" id="btn-download-results"
-                        onclick="ExportManager.openModal()">
+                        onclick="ExportManager.openModal()" data-i18n="dash.download">
                         &#128229; Descargar Resultados
                     </button>
-                    <button type="button" class="btn-secondary" id="btn-new-game">
+                    <button type="button" class="btn-secondary" id="btn-new-game" data-i18n="dash.new_game">
                         Nueva Partida
                     </button>
                 </div>
@@ -347,22 +355,22 @@
                 <div class="summary-card">
                     <span class="summary-icon">&#127919;</span>
                     <span class="summary-value" id="summary-total">0</span>
-                    <span class="summary-label">Operaciones</span>
+                    <span class="summary-label" data-i18n="dash.operations">Operaciones</span>
                 </div>
                 <div class="summary-card">
                     <span class="summary-icon">&#9989;</span>
                     <span class="summary-value" id="summary-correct">0</span>
-                    <span class="summary-label">Correctas</span>
+                    <span class="summary-label" data-i18n="dash.correct">Correctas</span>
                 </div>
                 <div class="summary-card">
                     <span class="summary-icon">&#9889;</span>
                     <span class="summary-value" id="summary-avg-time">0ms</span>
-                    <span class="summary-label">Tiempo Promedio</span>
+                    <span class="summary-label" data-i18n="dash.avg_time">Tiempo Promedio</span>
                 </div>
                 <div class="summary-card">
                     <span class="summary-icon">&#128200;</span>
                     <span class="summary-value" id="summary-accuracy">0%</span>
-                    <span class="summary-label">Precision</span>
+                    <span class="summary-label" data-i18n="dash.precision">Precision</span>
                 </div>
             </div>
 
@@ -370,7 +378,7 @@
             <div id="ai-analysis-container" class="ai-panel">
                 <div class="ai-header">
                     <span class="ai-icon">&#128161;</span>
-                    <h3 class="ai-title">Entrenador Virtual</h3>
+                    <h3 class="ai-title" data-i18n="dash.ai_coach">Entrenador Virtual</h3>
 
                 </div>
                 <div class="ai-content-layout">
@@ -604,7 +612,7 @@
         <div class="profile-container">
             <!-- Header del perfil -->
             <div class="profile-header">
-                <button class="btn-back-profile" type="button" onclick="App.showView('CONFIG')">
+                <button class="btn-back-profile" type="button" onclick="App.showView('CONFIG')" data-i18n="profile.back">
                     &#8592; Volver
                 </button>
                 <div class="profile-header-row">
@@ -641,22 +649,22 @@
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#10003;</span>
                         <span class="pstat-value" id="pstat-total-correct">0</span>
-                        <span class="pstat-label">Correctas totales</span>
+                        <span class="pstat-label" data-i18n="profile.stat_correct">Correctas totales</span>
                     </div>
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#128200;</span>
                         <span class="pstat-value" id="pstat-accuracy">0%</span>
-                        <span class="pstat-label">Precisión global</span>
+                        <span class="pstat-label" data-i18n="profile.stat_accuracy">Precisión global</span>
                     </div>
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#9889;</span>
                         <span class="pstat-value" id="pstat-avg-time">0ms</span>
-                        <span class="pstat-label">Tiempo promedio</span>
+                        <span class="pstat-label" data-i18n="profile.stat_avg_time">Tiempo promedio</span>
                     </div>
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#11088;</span>
                         <span class="pstat-value" id="pstat-best-accuracy">0%</span>
-                        <span class="pstat-label">Mejor precisión</span>
+                        <span class="pstat-label" data-i18n="profile.stat_best">Mejor precisión</span>
                     </div>
                 </div>
 
@@ -664,10 +672,10 @@
 
                 <!-- Filtros -->
                 <div class="profile-filters">
-                    <h3 class="section-title">&#128202; Historial de Prácticas</h3>
+                    <h3 class="section-title" data-i18n="profile.history_title">&#128202; Historial de Prácticas</h3>
                     <div class="filters-row">
                         <div class="filter-group">
-                            <label>Modo</label>
+                            <label data-i18n="profile.filter_mode">Modo</label>
                             <select id="filter-mode" class="filter-select">
                                 <option value="ALL">Todos</option>
                                 <option value="TIMER">Contrarreloj</option>
@@ -676,18 +684,18 @@
                             </select>
                         </div>
                         <div class="filter-group">
-                            <label>Desde</label>
+                            <label data-i18n="profile.filter_from">Desde</label>
                             <input type="date" id="filter-date-from" class="filter-date">
                         </div>
                         <div class="filter-group">
-                            <label>Hasta</label>
+                            <label data-i18n="profile.filter_to">Hasta</label>
                             <input type="date" id="filter-date-to" class="filter-date">
                         </div>
                         <div class="filter-actions">
-                            <button class="btn-filter-apply" type="button" onclick="UserProfile.applyFilters()">
+                            <button class="btn-filter-apply" type="button" onclick="UserProfile.applyFilters()" data-i18n="profile.apply">
                                 Aplicar
                             </button>
-                            <button class="btn-filter-reset" type="button" onclick="UserProfile.resetFilters()">
+                            <button class="btn-filter-reset" type="button" onclick="UserProfile.resetFilters()" data-i18n="profile.clear">
                                 Limpiar
                             </button>
                         </div>
@@ -815,6 +823,7 @@
     <script src="js/grid.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/onboarding.js"></script>
+    <script src="js/i18n.js"></script>
     <script src="js/visitor-counter.js"></script>
     <script src="js/exportManager.js"></script>
 
