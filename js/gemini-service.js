@@ -57,7 +57,7 @@ const GeminiService = {
         // Confirmación visual inmediata en el botón
         const btn = document.querySelector('.ai-action-btn');
         if (btn) {
-            btn.innerText = 'Procesando...';
+            btn.innerText = (typeof I18n !== 'undefined') ? I18n.t('dash.ai_analyzing') : 'Procesando...';
             btn.disabled = true;
             btn.style.opacity = '0.7';
             btn.style.cursor = 'wait';
@@ -115,9 +115,17 @@ const GeminiService = {
     },
 
     buildPrompt(csvContent) {
+        const lang = (typeof I18n !== 'undefined')
+            ? I18n.currentLang
+            : (localStorage.getItem('baldora_lang') || 'es');
+        const langInstruction = lang === 'en'
+            ? 'IMPORTANT: Write the entire response content in English.'
+            : 'IMPORTANTE: Escribe todo el contenido de la respuesta en español.';
+
         return `
 **Role: System**
 Actúa como un experto en aprendizaje acelerado y análisis de datos educativos. Tu objetivo es analizar resultados de ejercicios de multiplicaciones y generar un reporte pedagógico positivo y motivador, formateado EXCLUSIVAMENTE como un objeto JSON válido.
+${langInstruction}
 
 Reglas:
 1. TONO: SIEMPRE positivo, pedagógico y motivador.
@@ -188,7 +196,7 @@ Genera el reporte JSON cumpliendo estrictamente con las reglas de formato (solo 
         // Restaurar botón
         const btn = document.querySelector('.ai-action-btn');
         if (btn) {
-            btn.innerText = 'Analizar mis Resultados';
+            btn.innerText = (typeof I18n !== 'undefined') ? I18n.t('dash.ai_analyze') : 'Analizar mis Resultados';
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';
@@ -230,7 +238,7 @@ Genera el reporte JSON cumpliendo estrictamente con las reglas de formato (solo 
         // Restaurar botón
         const btn = document.querySelector('.ai-action-btn');
         if (btn) {
-            btn.innerText = 'Analizar mis Resultados';
+            btn.innerText = (typeof I18n !== 'undefined') ? I18n.t('dash.ai_analyze') : 'Analizar mis Resultados';
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';

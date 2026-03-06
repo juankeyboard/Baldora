@@ -56,6 +56,37 @@ const I18n = {
             'dash.precision':     'Precision',
             'dash.ai_coach':      'Entrenador Virtual',
 
+            // Dashboard AI
+            'dash.ai_analyze':        'Analizar mis Resultados',
+            'dash.ai_analyzing':      'Procesando...',
+            'dash.ai_summary':        '\uD83D\uDCC8 Resumen General',
+            'dash.ai_errors':         '\u26A0\uFE0F Patr\u00F3n de Errores',
+            'dash.ai_plan':           '\uD83D\uDE80 Plan de Acci\u00F3n',
+            'dash.ai_suggestion':     '\u2699\uFE0F Sugerencia de Entrenamiento',
+
+            // Dashboard Gráficas
+            'dash.chart_performance': 'Distribucion de Rendimiento',
+            'dash.chart_errors':      'Errores por Tabla',
+            'dash.chart_top5':        'Top 5 Operaciones Dificiles',
+            'dash.chart_speed':       'Velocidad de Respuesta',
+
+            // Modales adaptativos
+            'modal.inactivity_title': 'Sesion Pausada',
+            'modal.inactivity_msg':   'El juego se reinicio por inactividad (30 segundos sin respuesta)',
+            'modal.inactivity_btn':   'Volver al Inicio',
+            'modal.diagnosis_title':  'Analisis Completado',
+            'modal.diagnosis_sub':    'Iniciando protocolo de correccion...',
+            'modal.diagnosis_btn':    'Comenzar Entrenamiento',
+            'modal.victory_title':    'Entrenamiento Completado!',
+            'modal.victory_msg':      'Has dominado todas las operaciones problematicas.',
+            'modal.victory_initial':  'Debilidades iniciales',
+            'modal.victory_rounds':   'Rondas completadas',
+            'modal.victory_help':     'Ayudas visuales',
+            'modal.victory_btn':      'Ver Resultados',
+
+            // Juego adaptativo
+            'game.phase_diagnosis':   '\uD83D\uDCCB Fase Diagnostico',
+
             // Profile
             'profile.back':           '\u2190 Volver',
             'profile.member_since':   'Miembro desde',
@@ -70,6 +101,21 @@ const I18n = {
             'profile.filter_to':      'Hasta',
             'profile.apply':          'Aplicar',
             'profile.clear':          'Limpiar',
+            'profile.community_badge':'TU POSICIÓN EN LA COMUNIDAD',
+            'profile.th_date':        'Fecha',
+            'profile.th_mode':        'Modo',
+            'profile.th_total':       'Total',
+            'profile.th_correct':     'Correctas',
+            'profile.th_accuracy':    'Precisión',
+            'profile.th_avg_time':    'T. Promedio',
+            'profile.th_actions':     'Acciones',
+            'profile.delete_title':   'Eliminar registro de práctica',
+            'profile.delete_cancel':  'Cancelar',
+            'profile.delete_btn':     'Eliminar',
+
+            // Export
+            'export.title':           'Descargar Resultados',
+            'export.choose':          'Elige el formato de tu reporte:',
         },
         en: {
             // Auth
@@ -112,6 +158,37 @@ const I18n = {
             'dash.precision':     'Accuracy',
             'dash.ai_coach':      'Virtual Coach',
 
+            // Dashboard AI
+            'dash.ai_analyze':        'Analyze My Results',
+            'dash.ai_analyzing':      'Processing...',
+            'dash.ai_summary':        '\uD83D\uDCC8 General Summary',
+            'dash.ai_errors':         '\u26A0\uFE0F Error Patterns',
+            'dash.ai_plan':           '\uD83D\uDE80 Action Plan',
+            'dash.ai_suggestion':     '\u2699\uFE0F Training Suggestion',
+
+            // Dashboard Gráficas
+            'dash.chart_performance': 'Performance Distribution',
+            'dash.chart_errors':      'Errors by Table',
+            'dash.chart_top5':        'Top 5 Difficult Operations',
+            'dash.chart_speed':       'Response Speed',
+
+            // Modales adaptativos
+            'modal.inactivity_title': 'Session Paused',
+            'modal.inactivity_msg':   'The game was reset due to inactivity (30 seconds without answer)',
+            'modal.inactivity_btn':   'Back to Start',
+            'modal.diagnosis_title':  'Analysis Complete',
+            'modal.diagnosis_sub':    'Starting correction protocol...',
+            'modal.diagnosis_btn':    'Start Training',
+            'modal.victory_title':    'Training Complete!',
+            'modal.victory_msg':      'You have mastered all the problem operations.',
+            'modal.victory_initial':  'Initial Weaknesses',
+            'modal.victory_rounds':   'Rounds Completed',
+            'modal.victory_help':     'Visual Aids',
+            'modal.victory_btn':      'View Results',
+
+            // Juego adaptativo
+            'game.phase_diagnosis':   '\uD83D\uDCCB Diagnosis Phase',
+
             // Profile
             'profile.back':           '\u2190 Back',
             'profile.member_since':   'Member since',
@@ -126,6 +203,21 @@ const I18n = {
             'profile.filter_to':      'To',
             'profile.apply':          'Apply',
             'profile.clear':          'Clear',
+            'profile.community_badge':'YOUR COMMUNITY RANK',
+            'profile.th_date':        'Date',
+            'profile.th_mode':        'Mode',
+            'profile.th_total':       'Total',
+            'profile.th_correct':     'Correct',
+            'profile.th_accuracy':    'Accuracy',
+            'profile.th_avg_time':    'Avg. Time',
+            'profile.th_actions':     'Actions',
+            'profile.delete_title':   'Delete practice record',
+            'profile.delete_cancel':  'Cancel',
+            'profile.delete_btn':     'Delete',
+
+            // Export
+            'export.title':           'Download Results',
+            'export.choose':          'Choose your report format:',
         }
     },
 
