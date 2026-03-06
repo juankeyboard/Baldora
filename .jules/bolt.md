@@ -1,0 +1,3 @@
+## 2025-01-28 - Firebase Realtime Database Batching & Concurrency
+**Learning:** In the `CloudSync` module (`js/cloudSync.js`), independent Firebase Realtime Database write operations should be batched into a single `.update(updates)` call for multi-path writes or use `Promise.all` for concurrency to minimize network roundtrips, while functional dependencies remain sequential. Sequential `.set()` calls on independent paths create unnecessary network latency.
+**Action:** When updating multiple paths in Firebase RTDB, use a single `update()` with a map of paths to values. When independent operations like updating a user and updating benchmarks must occur, wrap them in `Promise.all()`.
