@@ -25,23 +25,32 @@ const Onboarding = {
             return;
         }
 
-        // Inicializar instancia de Driver.js con configuración global
-        this.driver = window.driver.js.driver({
-            animate: true,
-            overlayColor: 'rgba(255, 255, 255, 0.15)', // Overlay blanco semitransparente
-            allowClose: true,
-            showProgress: true,
-            showButtons: ['next', 'previous', 'close'],
-            doneBtnText: '¡Entendido!',
-            nextBtnText: 'Siguiente →',
-            prevBtnText: '← Atrás',
-            closeBtnText: '✕',
-            progressText: '{{current}} de {{total}}',
-            popoverClass: 'baldora-popover'
-        });
+        // Inicializar instancia de Driver.js (textos i18n se aplican al iniciar cada tour)
+        this.driver = this._createDriver();
 
         // Verificar y lanzar tour de configuración si es primera visita
         this.checkAndStartConfigTour();
+    },
+
+    /**
+     * Crea una instancia de Driver.js con los textos del idioma actual.
+     * Se llama al inicio de cada tour para reflejar el idioma seleccionado.
+     */
+    _createDriver() {
+        const t = (key) => (typeof I18n !== 'undefined') ? I18n.t(key) : key;
+        return window.driver.js.driver({
+            animate: true,
+            overlayColor: 'rgba(255, 255, 255, 0.15)',
+            allowClose: true,
+            showProgress: true,
+            showButtons: ['next', 'previous', 'close'],
+            doneBtnText: t('onboarding.done'),
+            nextBtnText: t('onboarding.next'),
+            prevBtnText: t('onboarding.prev'),
+            closeBtnText: '✕',
+            progressText: t('onboarding.progress'),
+            popoverClass: 'baldora-popover'
+        });
     },
 
     /**
@@ -59,14 +68,15 @@ const Onboarding = {
      * Tour de Bienvenida y Configuración (único tour activo)
      */
     startConfigTour() {
-        if (!this.driver) return;
+        this.driver = this._createDriver();
+        const t = (key) => (typeof I18n !== 'undefined') ? I18n.t(key) : key;
 
         this.driver.setSteps([
             {
                 element: '.logo-section',
                 popover: {
-                    title: '🎉 ¡Bienvenido a Baldora!',
-                    description: 'Entrena tu mente y domina las tablas de multiplicar con nuestro sistema visual interactivo. ¡Aprenderás jugando! (Usa el PC para una mejor experiencia',
+                    title: t('onboarding.config.t1'),
+                    description: t('onboarding.config.d1'),
                     side: 'bottom',
                     align: 'center'
                 }
@@ -74,8 +84,8 @@ const Onboarding = {
             {
                 element: '.config-form-content',
                 popover: {
-                    title: '⚙️ Configura tu sesión',
-                    description: 'Ingresa tu nickname y elige un modo de juego.',
+                    title: t('onboarding.config.t2'),
+                    description: t('onboarding.config.d2'),
                     side: 'right',
                     align: 'start'
                 }
@@ -83,8 +93,8 @@ const Onboarding = {
             {
                 element: '.factors-selection-container',
                 popover: {
-                    title: '🔢 Diseña tu ejercicio!',
-                    description: 'Selecciona los factores de las operaciones que quieres practicar. Presiona comenzar y empieza a fortalecer tu pensamiento matemático.',
+                    title: t('onboarding.config.t3'),
+                    description: t('onboarding.config.d3'),
                     side: 'top',
                     align: 'center'
                 }
@@ -109,14 +119,15 @@ const Onboarding = {
      * Tour de la Vista de Perfil de Usuario
      */
     startProfileTour() {
-        if (!this.driver) return;
+        this.driver = this._createDriver();
+        const t = (key) => (typeof I18n !== 'undefined') ? I18n.t(key) : key;
 
         this.driver.setSteps([
             {
                 element: '.profile-user-info',
                 popover: {
-                    title: '\uD83D\uDC64 Tu Perfil',
-                    description: 'Aquí aparece tu información de usuario: nombre, correo y tiempo en la comunidad.',
+                    title: t('onboarding.profile.t1'),
+                    description: t('onboarding.profile.d1'),
                     side: 'bottom',
                     align: 'start'
                 }
@@ -124,8 +135,8 @@ const Onboarding = {
             {
                 element: '.profile-stats-grid',
                 popover: {
-                    title: '\uD83D\uDCC8 Tus Métricas',
-                    description: 'Resumen de tu desempeño global: aciertos totales, precisión, tiempo promedio y tu mejor marca.',
+                    title: t('onboarding.profile.t2'),
+                    description: t('onboarding.profile.d2'),
                     side: 'bottom',
                     align: 'center'
                 }
@@ -133,8 +144,8 @@ const Onboarding = {
             {
                 element: '.profile-filters',
                 popover: {
-                    title: '\uD83D\uDD0D Filtros de Historial',
-                    description: 'Filtra tu historial de prácticas por modo de juego y rango de fechas para analizar tu progreso.',
+                    title: t('onboarding.profile.t3'),
+                    description: t('onboarding.profile.d3'),
                     side: 'top',
                     align: 'center'
                 }
@@ -142,8 +153,8 @@ const Onboarding = {
             {
                 element: '.profile-table-wrapper',
                 popover: {
-                    title: '\uD83D\uDCCB Historial Detallado',
-                    description: 'Aquí ves cada sesión de práctica con sus resultados. Puedes eliminar registros individualmente.',
+                    title: t('onboarding.profile.t4'),
+                    description: t('onboarding.profile.d4'),
                     side: 'top',
                     align: 'center'
                 }

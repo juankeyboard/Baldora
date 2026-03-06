@@ -116,6 +116,46 @@ const I18n = {
             // Export
             'export.title':           'Descargar Resultados',
             'export.choose':          'Elige el formato de tu reporte:',
+
+            // Onboarding - botones Driver.js
+            'onboarding.done':     '¡Entendido!',
+            'onboarding.next':     'Siguiente →',
+            'onboarding.prev':     '← Atrás',
+            'onboarding.progress': '{{current}} de {{total}}',
+
+            // Onboarding - tour de configuración
+            'onboarding.config.t1': '🎉 ¡Bienvenido a Baldora!',
+            'onboarding.config.d1': 'Entrena tu mente y domina las tablas de multiplicar con nuestro sistema visual interactivo. ¡Aprenderás jugando! (Usa el PC para una mejor experiencia)',
+            'onboarding.config.t2': '⚙️ Configura tu sesión',
+            'onboarding.config.d2': 'Ingresa tu nickname y elige un modo de juego.',
+            'onboarding.config.t3': '🔢 ¡Diseña tu ejercicio!',
+            'onboarding.config.d3': 'Selecciona los factores de las operaciones que quieres practicar. Presiona comenzar y empieza a fortalecer tu pensamiento matemático.',
+
+            // Onboarding - tour de perfil
+            'onboarding.profile.t1': '👤 Tu Perfil',
+            'onboarding.profile.d1': 'Aquí aparece tu información de usuario: nombre, correo y tiempo en la comunidad.',
+            'onboarding.profile.t2': '📈 Tus Métricas',
+            'onboarding.profile.d2': 'Resumen de tu desempeño global: aciertos totales, precisión, tiempo promedio y tu mejor marca.',
+            'onboarding.profile.t3': '🔍 Filtros de Historial',
+            'onboarding.profile.d3': 'Filtra tu historial de prácticas por modo de juego y rango de fechas para analizar tu progreso.',
+            'onboarding.profile.t4': '📋 Historial Detallado',
+            'onboarding.profile.d4': 'Aquí ves cada sesión de práctica con sus resultados. Puedes eliminar registros individualmente.',
+
+            // Liga comunidad
+            'league.DIAMANTE': 'DIAMANTE',
+            'league.PLATINO':  'PLATINO',
+            'league.ORO':      'ORO',
+            'league.PLATA':    'PLATA',
+            'league.BRONCE':   'BRONCE',
+            'league.MADERA':   'MADERA',
+            'league.position': 'Posición',
+            'league.badge':    'Tu posición en la comunidad',
+
+            // Modos de juego (filtro perfil)
+            'mode.all':        'Todos',
+            'mode.timer':      'Contrarreloj',
+            'mode.free':       'Práctica Libre',
+            'mode.adaptive':   'Adaptativo',
         },
         en: {
             // Auth
@@ -218,6 +258,46 @@ const I18n = {
             // Export
             'export.title':           'Download Results',
             'export.choose':          'Choose your report format:',
+
+            // Onboarding - botones Driver.js
+            'onboarding.done':     'Got it!',
+            'onboarding.next':     'Next →',
+            'onboarding.prev':     '← Back',
+            'onboarding.progress': '{{current}} of {{total}}',
+
+            // Onboarding - tour de configuración
+            'onboarding.config.t1': '🎉 Welcome to Baldora!',
+            'onboarding.config.d1': 'Train your mind and master multiplication tables with our interactive visual system. You will learn while playing! (Best experienced on PC)',
+            'onboarding.config.t2': '⚙️ Set up your session',
+            'onboarding.config.d2': 'Enter your nickname and choose a game mode.',
+            'onboarding.config.t3': '🔢 Design your exercise!',
+            'onboarding.config.d3': 'Select the factors for the operations you want to practice. Press start and begin strengthening your mathematical thinking.',
+
+            // Onboarding - tour de perfil
+            'onboarding.profile.t1': '👤 Your Profile',
+            'onboarding.profile.d1': 'Here you can see your user info: name, email and time in the community.',
+            'onboarding.profile.t2': '📈 Your Metrics',
+            'onboarding.profile.d2': 'Summary of your global performance: total correct, accuracy, average time and your best score.',
+            'onboarding.profile.t3': '🔍 History Filters',
+            'onboarding.profile.d3': 'Filter your practice history by game mode and date range to analyze your progress.',
+            'onboarding.profile.t4': '📋 Detailed History',
+            'onboarding.profile.d4': 'Here you see each practice session with its results. You can delete individual records.',
+
+            // Liga comunidad
+            'league.DIAMANTE': 'DIAMOND',
+            'league.PLATINO':  'PLATINUM',
+            'league.ORO':      'GOLD',
+            'league.PLATA':    'SILVER',
+            'league.BRONCE':   'BRONZE',
+            'league.MADERA':   'WOOD',
+            'league.position': 'Position',
+            'league.badge':    'Your community rank',
+
+            // Modos de juego (filtro perfil)
+            'mode.all':        'All',
+            'mode.timer':      'Time Attack',
+            'mode.free':       'Free Practice',
+            'mode.adaptive':   'Adaptive',
         }
     },
 

@@ -248,15 +248,16 @@ const UserProfile = {
             const icon = this._leagueToIcon(league);
 
             if (badgeEl) {
+                const t = (key) => (typeof I18n !== 'undefined') ? I18n.t(key) : key;
                 badgeEl.className = `community-badge league-${league.toLowerCase()}`;
                 badgeEl.innerHTML = `
                     <span class="community-league-icon">${icon}</span>
                     <div class="community-position-wrap">
-                        <span class="community-position-label">Posición</span>
+                        <span class="community-position-label">${t('league.position')}</span>
                         <span class="community-position-number">${tier}</span>
                     </div>
-                    <span class="community-league-name">${league}</span>
-                    <span class="community-badge-label">Tu posición en la comunidad</span>
+                    <span class="community-league-name">${t('league.' + league)}</span>
+                    <span class="community-badge-label">${t('league.badge')}</span>
                 `;
             }
 
