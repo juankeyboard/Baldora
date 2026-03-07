@@ -1,0 +1,3 @@
+## 2025-03-07 - Batch Firebase Writes
+**Learning:** In the `CloudSync` module (`js/cloudSync.js`), multiple independent `.set()` operations were being used to update user statistics in Firebase, leading to unnecessary network roundtrips and increased latency.
+**Action:** When working with Firebase Realtime Database in this architecture, always combine independent writes into a single multi-path `.update(updates)` call to minimize network latency and improve game save times.
