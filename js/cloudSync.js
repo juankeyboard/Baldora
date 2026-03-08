@@ -164,20 +164,23 @@ const CloudSync = {
         const stats = statsSnap.val();
         if (!stats) return;
 
-        // Actualizar entrada del jugador en leaderboard
-        await this.db.ref(`leaderboard/players/${uid}`).set({
-            displayName: user.displayName || '',
-            photoURL: user.photoURL || '',
-            community_score: stats.community_score || 0,
-            total_correct: stats.total_correct || 0,
-            avg_response_time: stats.avg_response_time || 0,
-            global_accuracy: stats.global_accuracy || 0,
-            total_games: stats.total_games || 0,
-            last_played: new Date().toISOString()
-        });
-
-        // Actualizar benchmarks de la comunidad
-        await this._updateCommunityBenchmarks(stats);
+        // ⚡ Bolt: Execute independent Firebase operations concurrently.
+        // Expected impact: Reduces total execution time by running leaderboard and benchmark updates in parallel.
+        await Promise.all([
+            // Actualizar entrada del jugador en leaderboard
+            this.db.ref(`leaderboard/players/${uid}`).set({
+                displayName: user.displayName || '',
+                photoURL: user.photoURL || '',
+                community_score: stats.community_score || 0,
+                total_correct: stats.total_correct || 0,
+                avg_response_time: stats.avg_response_time || 0,
+                global_accuracy: stats.global_accuracy || 0,
+                total_games: stats.total_games || 0,
+                last_played: new Date().toISOString()
+            }),
+            // Actualizar benchmarks de la comunidad
+            this._updateCommunityBenchmarks(stats)
+        ]);
     },
 
     /**
@@ -239,12 +242,16 @@ const CloudSync = {
 
         const communityScore = Math.round((W1 * scoreC + W2 * scoreT + W3 * scoreA) * 10) / 10;
 
-        // Actualizar score en stats y leaderboard
-        await this.db.ref(`users/${uid}/stats/community_score`).set(communityScore);
-        await this.db.ref(`users/${uid}/stats/score_correctas`).set(Math.round(scoreC * 10) / 10);
-        await this.db.ref(`users/${uid}/stats/score_tiempo`).set(Math.round(scoreT * 10) / 10);
-        await this.db.ref(`users/${uid}/stats/score_accuracy`).set(Math.round(scoreA * 10) / 10);
-        await this.db.ref(`leaderboard/players/${uid}/community_score`).set(communityScore);
+        // ⚡ Bolt: Multi-path update to batch independent Firebase writes.
+        // Expected impact: Reduces 5 network roundtrips to 1, significantly improving save game latency.
+        const updates = {
+            [`users/${uid}/stats/community_score`]: communityScore,
+            [`users/${uid}/stats/score_correctas`]: Math.round(scoreC * 10) / 10,
+            [`users/${uid}/stats/score_tiempo`]: Math.round(scoreT * 10) / 10,
+            [`users/${uid}/stats/score_accuracy`]: Math.round(scoreA * 10) / 10,
+            [`leaderboard/players/${uid}/community_score`]: communityScore
+        };
+        await this.db.ref().update(updates);
     },
 
     /**
