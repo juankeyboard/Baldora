@@ -120,6 +120,13 @@ const AuthManager = {
 
         // Crear/actualizar perfil en la base de datos
         this._ensureUserProfile(user);
+
+        // Feature 15: Activar sistema de presencia multijugador
+        if (typeof NicknameGenerator !== 'undefined' && typeof BattleManager !== 'undefined') {
+            NicknameGenerator.assignIfNeeded(user.uid).then(nickname => {
+                BattleManager.setOnline(user.uid, nickname);
+            });
+        }
     },
 
     /**
@@ -144,6 +151,11 @@ const AuthManager = {
         const profileView = document.getElementById('profile-view');
         if (profileView && profileView.classList.contains('active')) {
             if (typeof App !== 'undefined') App.showView('CONFIG');
+        }
+
+        // Feature 15: desactivar presencia
+        if (typeof BattleManager !== 'undefined' && this.currentUser) {
+            BattleManager.setOffline(this.currentUser.uid);
         }
     },
 

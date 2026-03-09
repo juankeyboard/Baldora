@@ -1,0 +1,804 @@
+/* =========================================================
+   BATTLE.CSS - Modo Multijugador "La Cinchada" (Feature 15)
+   Design System: Baldor Watercolor – Módulo aditivo
+   ========================================================= */
+
+/* ─── Variables locales de batalla ────────────────────────── */
+:root {
+    --clr-blue-400: #3b82f6;
+    --clr-blue-600: #1d4ed8;
+    --clr-yellow-400: #facc15;
+    --clr-yellow-600: #ca8a04;
+    --clr-battle-bg: #1a1a2e;
+    --clr-battle-surface: rgba(255, 255, 255, 0.06);
+    --dial-size: 56px;
+    --dial-gap: 10px;
+}
+
+/* ─── Vista de Batalla ────────────────────────────────────── */
+#battle-view {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+#battle-view.view.active {
+    display: flex;
+}
+
+/* Fondo animado */
+#battle-view::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 70% 50%, rgba(250, 204, 21, 0.15) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+/* ─── Header de batalla ────────────────────────────────────── */
+.battle-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.battle-player-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 100px;
+}
+
+.battle-player-color {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.battle-player-color.blue {
+    background: var(--clr-blue-400);
+    box-shadow: 0 0 8px var(--clr-blue-400);
+}
+
+.battle-player-color.yellow {
+    background: var(--clr-yellow-400);
+    box-shadow: 0 0 8px var(--clr-yellow-400);
+}
+
+.battle-player-name {
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.battle-score {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.battle-score.blue {
+    color: var(--clr-blue-400);
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+}
+
+.battle-score.yellow {
+    color: var(--clr-yellow-400);
+    text-shadow: 0 0 20px rgba(250, 204, 21, 0.6);
+}
+
+.battle-center-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.battle-ops-counter {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.battle-ops-counter strong {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+}
+
+/* ─── Arena: Cuerda y Personajes ─────────────────────────── */
+.battle-arena {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+    position: relative;
+    flex-shrink: 0;
+    z-index: 2;
+}
+
+.battle-rope-track {
+    width: 90%;
+    max-width: 600px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    position: relative;
+    margin: 8px 0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.battle-rope-fill-blue {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, var(--clr-blue-400));
+    border-radius: 6px 0 0 6px;
+    width: 50%;
+    transition: width 0.25s ease;
+    /* CA-02: ≤250ms */
+}
+
+.battle-rope-fill-yellow {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(270deg, transparent, var(--clr-yellow-400));
+    border-radius: 0 6px 6px 0;
+    width: 50%;
+    transition: width 0.25s ease;
+}
+
+.battle-rope-indicator {
+    position: absolute;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.3), 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: left 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    /* CA-02: ≤250ms */
+    z-index: 5;
+    left: 50%;
+}
+
+/* Zonas de victoria */
+.battle-rope-track::before {
+    content: '🔵';
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
+
+.battle-rope-track::after {
+    content: '🟡';
+    position: absolute;
+    right: -30px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+}
+
+/* Área de cavernícolas */
+.battle-characters {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 60px;
+    position: relative;
+    height: 80px;
+}
+
+.battle-cave {
+    font-size: 2.5rem;
+    transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+    user-select: none;
+}
+
+#battle-cave-blue {
+    transform: scaleX(-1);
+    /* Mira hacia la derecha */
+}
+
+/* ─── Operación central ──────────────────────────────────── */
+.battle-operation-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    z-index: 2;
+    padding: 0 120px;
+    /* Espacio para diales laterales en desktop */
+    gap: 12px;
+}
+
+.battle-operation-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.battle-factor {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: white;
+    font-weight: 700;
+    line-height: 1;
+    min-width: 2ch;
+    text-align: center;
+}
+
+.battle-operator {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.battle-equals {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.battle-answer-display {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--clr-rose-500);
+    min-width: 3ch;
+    text-align: center;
+    transition: color 0.15s;
+}
+
+.battle-answer-display.wrong-flash {
+    animation: wrongFlash 0.4s ease;
+}
+
+@keyframes wrongFlash {
+
+    0%,
+    100% {
+        color: var(--clr-rose-500);
+    }
+
+    50% {
+        color: #ff4444;
+        transform: scale(1.1);
+    }
+}
+
+/* ─── Diales de Control ──────────────────────────────────── */
+.battle-dials-wrapper {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 3;
+    padding: 0 10px;
+}
+
+.battle-dial {
+    pointer-events: all;
+    display: flex;
+    flex-direction: column;
+    gap: var(--dial-gap);
+    padding: 16px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    user-select: none;
+    transition: opacity 0.3s;
+}
+
+/* Diales inactivos (del oponente) */
+.battle-dial:not(.my-dial) {
+    opacity: 0.25;
+    pointer-events: none;
+}
+
+.dial-row {
+    display: flex;
+    gap: var(--dial-gap);
+    justify-content: center;
+}
+
+.dial-btn {
+    width: var(--dial-size);
+    height: var(--dial-size);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: white;
+    font-family: var(--font-display);
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Táctil: mínimo 44px para CA-04 */
+    min-width: 44px;
+    min-height: 44px;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.dial-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: scale(1.05);
+}
+
+.dial-btn:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Color azul para el dial derecho */
+#dial-right .dial-btn {
+    border-color: rgba(59, 130, 246, 0.4);
+    box-shadow: inset 0 1px 0 rgba(59, 130, 246, 0.2);
+}
+
+#dial-right .dial-btn:hover {
+    background: rgba(59, 130, 246, 0.25);
+    border-color: rgba(59, 130, 246, 0.6);
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
+}
+
+/* Color amarillo para el dial izquierdo */
+#dial-left .dial-btn {
+    border-color: rgba(250, 204, 21, 0.4);
+    box-shadow: inset 0 1px 0 rgba(250, 204, 21, 0.2);
+}
+
+#dial-left .dial-btn:hover {
+    background: rgba(250, 204, 21, 0.25);
+    border-color: rgba(250, 204, 21, 0.6);
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.3);
+}
+
+/* Botón Clear */
+.dial-btn-clear {
+    background: rgba(255, 68, 68, 0.2) !important;
+    border-color: rgba(255, 68, 68, 0.4) !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0;
+}
+
+.dial-btn-clear:hover {
+    background: rgba(255, 68, 68, 0.4) !important;
+}
+
+/* Label del dial */
+.dial-label {
+    text-align: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: -4px;
+}
+
+/* ─── Overlay de Invitación de Duelo ─────────────────────── */
+#duel-invite-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+#duel-invite-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.duel-invite-card {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid rgba(250, 204, 21, 0.5);
+    border-radius: 24px;
+    padding: 36px;
+    text-align: center;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 0 60px rgba(250, 204, 21, 0.2), 0 20px 60px rgba(0, 0, 0, 0.5);
+    animation: cardPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes cardPop {
+    from {
+        transform: scale(0.7);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.duel-invite-icon {
+    font-size: 4rem;
+    margin-bottom: 12px;
+    animation: shake 0.6s 0.3s ease both;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-10deg);
+    }
+
+    75% {
+        transform: rotate(10deg);
+    }
+}
+
+.duel-invite-title {
+    font-family: var(--font-display);
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.duel-invite-challenger {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--clr-yellow-400);
+    margin-bottom: 24px;
+    text-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+}
+
+.duel-invite-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.btn-duel-accept {
+    background: linear-gradient(135deg, var(--clr-blue-400), var(--clr-blue-600));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.btn-duel-accept:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.btn-duel-decline {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 14px 20px;
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-transform: uppercase;
+}
+
+.btn-duel-decline:hover {
+    background: rgba(255, 0, 0, 0.2);
+    border-color: rgba(255, 0, 0, 0.3);
+    color: white;
+}
+
+/* ─── Overlay de Resultado de Batalla ─────────────────────── */
+#battle-result-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 8000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s;
+}
+
+#battle-result-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.battle-result-card {
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+    border-radius: 28px;
+    padding: 48px 40px;
+    text-align: center;
+    max-width: 440px;
+    width: 90%;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+    animation: resultSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes resultSlide {
+    from {
+        transform: translateY(60px) scale(0.85);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.battle-result-title {
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    color: white;
+    margin-bottom: 8px;
+}
+
+.battle-result-msg {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 28px;
+}
+
+.battle-result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+}
+
+.btn-add-friend {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: var(--font-display);
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-add-friend:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+}
+
+.btn-battle-home {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: var(--font-main);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-battle-home:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+/* ─── Botón Buscar Duelo (en Config View) ────────────────── */
+.btn-find-duel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: calc(100% - 2px);
+    padding: 14px;
+    background: linear-gradient(135deg, #1a1a2e, #0f3460);
+    border: 2px solid rgba(59, 130, 246, 0.4);
+    border-radius: var(--radius-md);
+    color: white;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.btn-find-duel:hover {
+    border-color: var(--clr-blue-400);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-find-duel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+/* ─── Toast de batalla ───────────────────────────────────── */
+.battle-toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    z-index: 9999;
+    opacity: 0;
+    transition: all 0.3s;
+    backdrop-filter: blur(10px);
+    text-align: center;
+    max-width: 340px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.battle-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* ─── Ops config slider en battle search ────────────────── */
+.battle-config-section {
+    background: rgba(15, 52, 96, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-top: 8px;
+}
+
+.battle-config-section label {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    display: block;
+    margin-bottom: 6px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+/* Mobile vertical: diales apilados */
+@media (max-width: 600px) {
+    .battle-dials-wrapper {
+        position: static;
+        flex-direction: row;
+        padding: 8px;
+        gap: 12px;
+    }
+
+    .battle-operation-area {
+        padding: 0 12px;
+    }
+
+    .battle-dial {
+        flex: 1;
+    }
+
+    #battle-view {
+        min-height: 100dvh;
+    }
+
+    :root {
+        --dial-size: 44px;
+        --dial-gap: 6px;
+    }
+
+    .battle-factor {
+        font-size: 2rem;
+    }
+
+    .battle-answer-display {
+        font-size: 2rem;
+    }
+
+    .battle-operation-card {
+        padding: 14px 20px;
+        gap: 10px;
+    }
+}
+
+/* Mobile horizontal: modo gamepad */
+@media (orientation: landscape) and (max-height: 500px) {
+    .battle-dials-wrapper {
+        position: absolute;
+        padding: 8px;
+    }
+
+    :root {
+        --dial-size: 48px;
+        --dial-gap: 6px;
+    }
+
+    .battle-arena {
+        padding: 4px 0;
+    }
+
+    .battle-header {
+        padding: 6px 16px;
+    }
+}
