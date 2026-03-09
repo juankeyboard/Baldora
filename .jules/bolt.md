@@ -1,0 +1,3 @@
+## 2024-05-24 - Firebase Realtime Database Write Batching
+**Learning:** In the `CloudSync` module (`js/cloudSync.js`), independent Firebase Realtime Database write operations (such as those in `_recalculateCommunityScore`) were being executed sequentially using `await this.db.ref(...).set(...)`. This architecture causes unnecessary network roundtrips for each individual update.
+**Action:** Independent write operations should be batched into a single `.update(updates)` call for multi-path writes, or use `Promise.all` for concurrency when dealing with separate transactions or sets, to minimize network roundtrips while keeping functional dependencies intact.
