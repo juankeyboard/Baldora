@@ -2902,7 +2902,7 @@ body::before {
 }
 
 .floating-btn-google:hover {
-    border-color: #4285F4;
+    border-color: var(--clr-rose-500);
 }
 
 .floating-btn-google .google-logo-svg {
@@ -3716,6 +3716,7 @@ body::before {
 .floating-btn:hover {
     transform: scale(1.1);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    border-color: var(--clr-rose-500);
 }
 
 .floating-btn:active {
@@ -3742,8 +3743,9 @@ body::before {
 }
 
 .patreon-float-btn:hover {
-    border-color: #FFD700;
+    border-color: var(--clr-rose-500);
     color: #9CA3AF;
+    animation-play-state: paused;
 }
 
 /* Animacion de destello cada 12 segundos (~3s visibles) */

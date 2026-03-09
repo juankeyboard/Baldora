@@ -24,9 +24,10 @@
 }
 
 .store-float-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.3);
-    border-color: #FFD700;
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    border-color: var(--clr-rose-500);
+    animation-play-state: paused;
 }
 
 .store-float-btn:active {
