@@ -1,8 +1,8 @@
-# REQ-002: Tienda y Paginas Legales
+﻿# REQ-002: Tienda y Paginas Legales
 
 **Tipo:** Reporte de Requerimientos
 **Fecha:** 2026-03-09
-**Origen:** `docs/store.md` (Iteracion 1) + `docs/legal.md`
+**Origen:** `docs/f16_store.md` (Iteracion 1) + `docs/f17_legal.md`
 **Autor:** web_requirements_agent
 **Estado:** Listo para implementacion
 
@@ -19,7 +19,7 @@ Ambos bloques son **estrictamente aditivos** y no deben alterar ninguna funcion,
 
 ---
 
-## 2. User Stories — Tienda
+## 2. User Stories â€” Tienda
 
 ### US-STORE-01: Boton flotante de tienda
 
@@ -85,7 +85,7 @@ Ambos bloques son **estrictamente aditivos** y no deben alterar ninguna funcion,
 
 ---
 
-## 3. User Stories — Paginas Legales
+## 3. User Stories â€” Paginas Legales
 
 ### US-LEGAL-01: Pagina de Politica de Privacidad
 
@@ -95,7 +95,7 @@ Ambos bloques son **estrictamente aditivos** y no deben alterar ninguna funcion,
 
 **Criterios de Aceptacion:**
 
-- [ ] Existe una nueva vista `<section id="privacy-view" class="view">` con el contenido de la seccion 1 de `docs/legal.md`
+- [ ] Existe una nueva vista `<section id="privacy-view" class="view">` con el contenido de la seccion 1 de `docs/f17_legal.md`
 - [ ] El contenido se presenta en formato legible con el estilo visual de Baldora (tipografia Nunito, colores del design system)
 - [ ] Incluye boton "Volver" que regresa a la vista anterior
 - [ ] La fecha de ultima actualizacion es visible al inicio del documento
@@ -109,7 +109,7 @@ Ambos bloques son **estrictamente aditivos** y no deben alterar ninguna funcion,
 
 **Criterios de Aceptacion:**
 
-- [ ] Existe una nueva vista `<section id="terms-view" class="view">` con el contenido de la seccion 2 de `docs/legal.md`
+- [ ] Existe una nueva vista `<section id="terms-view" class="view">` con el contenido de la seccion 2 de `docs/f17_legal.md`
 - [ ] Mismo estilo visual que la politica de privacidad
 - [ ] Incluye boton "Volver"
 - [ ] Fecha de ultima actualizacion visible
@@ -234,7 +234,7 @@ const BaldoraStore = {
 
 Nota: La animacion tiene un ciclo de 12s donde el destello ocupa el rango del 80% al 100% (equivalente a ~2.4s de efecto visual, ajustable para alcanzar los 3s requeridos). El valor exacto del timing se ajustara en implementacion.
 
-### 4.7 Boton flotante — posicionamiento
+### 4.7 Boton flotante â€” posicionamiento
 
 El boton se integra al grupo `#floating-buttons-group` existente (linea 80 del index.html), que ya contiene:
 1. Google Sign-In / Avatar
@@ -245,7 +245,7 @@ El boton se integra al grupo `#floating-buttons-group` existente (linea 80 del i
 
 El boton de tienda se agrega como un elemento mas del grupo, visible solo cuando `auth.currentUser` existe. Debe respetar la clase `.floating-btn` existente.
 
-### 4.8 Patron SPA — navegacion
+### 4.8 Patron SPA â€” navegacion
 
 Las vistas nuevas siguen el patron existente:
 
@@ -358,7 +358,7 @@ CONFIG --> PLAYING --> DASHBOARD
 
 ---
 
-## 7. Preguntas Abiertas (documentadas en store.md)
+## 7. Preguntas Abiertas (documentadas en f16_store.md)
 
 Estas preguntas quedan registradas para decision futura. La implementacion actual debe preparar la estructura para que cualquier respuesta sea integrable sin reescribir:
 
@@ -396,3 +396,4 @@ El requerimiento se considera implementado cuando:
 - [ ] La navegacion SPA funciona sin romper el flujo CONFIG/PLAYING/DASHBOARD
 - [ ] El responsive funciona en los 3 breakpoints (mobile, tablet, desktop)
 - [ ] Ningun archivo JS/CSS existente fue modificado (solo index.html recibe adiciones)
+

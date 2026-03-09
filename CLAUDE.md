@@ -1,14 +1,14 @@
-# CLAUDE.md
+﻿# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-**Baldora** is a 15×15 multiplication practice game (educational web app). Players practice multiplication tables through three game modes, with real-time feedback, analytics, cloud persistence, and Gemini AI coaching.
+**Baldora** is a 15Ã—15 multiplication practice game (educational web app). Players practice multiplication tables through three game modes, with real-time feedback, analytics, cloud persistence, and Gemini AI coaching.
 
 ## Running the Project
 
-No build step — pure vanilla JS with CDN dependencies.
+No build step â€” pure vanilla JS with CDN dependencies.
 
 ```bash
 # Local development
@@ -23,16 +23,16 @@ firebase deploy
 ## Architecture
 
 ### Single Page Application
-Three-state machine: `CONFIG → PLAYING → DASHBOARD`
+Three-state machine: `CONFIG â†’ PLAYING â†’ DASHBOARD`
 
 - **CONFIG**: Player selects game mode, nickname, and multiplication tables
 - **PLAYING**: Random multiplication problems, real-time feedback (green=correct, yellow=wrong)
 - **DASHBOARD**: Analytics charts, CSV export, optional Gemini AI analysis
 
 ### Game Modes
-- `TIMER` — Fixed time limit
-- `FREE` — No time limit
-- `ADAPTIVE` — Diagnosis phase → targeted training on weak tables
+- `TIMER` â€” Fixed time limit
+- `FREE` â€” No time limit
+- `ADAPTIVE` â€” Diagnosis phase â†’ targeted training on weak tables
 
 ### Module Structure (js/)
 All modules follow a namespaced object pattern:
@@ -40,14 +40,14 @@ All modules follow a namespaced object pattern:
 | Module | Responsibility |
 |--------|---------------|
 | `app.js` | Core game loop and state machine |
-| `grid.js` | 15×15 matrix rendering and cell state |
+| `grid.js` | 15Ã—15 matrix rendering and cell state |
 | `data.js` | CSV parsing (PapaParse), session recording |
 | `auth.js` | Firebase Google Sign-In/Out |
 | `cloudSync.js` | Firebase Realtime Database sync, leaderboards |
 | `charts.js` | Chart.js analytics visualization |
-| `audio.js` | AudioManager — BGM/SFX, mute, localStorage persistence |
+| `audio.js` | AudioManager â€” BGM/SFX, mute, localStorage persistence |
 | `exportManager.js` | CSV/PDF export (jsPDF, html2pdf) |
-| `gemini-service.js` | Firebase AI Logic → Gemini 2.5 Flash Lite analysis |
+| `gemini-service.js` | Firebase AI Logic â†’ Gemini 2.5 Flash Lite analysis |
 | `userProfile.js` | User dashboard, profile modal, historical analytics |
 | `share-instagram.js` | Social sharing, canvas image generation |
 | `onboarding.js` | Driver.js first-time user tour |
@@ -55,8 +55,8 @@ All modules follow a namespaced object pattern:
 
 ### Backend Services (Firebase)
 - **Auth**: Google OAuth via Firebase Authentication (`authDomain: "baldora.org"`)
-- **Database**: Firebase Realtime Database — game sessions, stats, leaderboards
-- **AI**: Firebase AI Logic with Gemini 2.5 Flash Lite — performance analysis
+- **Database**: Firebase Realtime Database â€” game sessions, stats, leaderboards
+- **AI**: Firebase AI Logic with Gemini 2.5 Flash Lite â€” performance analysis
 - **App Check**: reCAPTCHA v3 for security
 - **Hosting**: `baldora-89866.firebasestorage.app`, custom domain `baldora.org`
 
@@ -70,8 +70,8 @@ timestamp, nickname, game_mode, factor_a, factor_b, user_input, correct_result, 
 **All new code must be strictly additive and modular.** Never alter, replace, or interfere with existing functions, design, flows, or behaviors. This is the primary rule for this project (from the docs).
 
 ### Firebase OAuth Notes
-- `Cross-Origin-Opener-Policy: same-origin-allow-popups` header is set in `firebase.json` — required for Google Sign-In popup flow
-- Auth domain is `baldora.org`, not the default Firebase domain — OAuth redirect URIs must be registered there
+- `Cross-Origin-Opener-Policy: same-origin-allow-popups` header is set in `firebase.json` â€” required for Google Sign-In popup flow
+- Auth domain is `baldora.org`, not the default Firebase domain â€” OAuth redirect URIs must be registered there
 
 ### Audio
 - AudioManager in `audio.js` handles BGM and SFX preloading
@@ -84,9 +84,9 @@ timestamp, nickname, game_mode, factor_a, factor_b, user_input, correct_result, 
 ## Documentation
 
 14 feature-specific docs in `/docs/` (in Spanish):
-- `Main_doc_f2_adaptativo.md` — Adaptive training system details
-- `Main_doc_f8_AI.md` — Gemini AI integration specs
-- `Main_doc_f14_UserSystem.md` — User auth and persistence (actively being iterated)
+- `f2_adaptativo.md` â€” Adaptive training system details
+- `f8_AI.md` â€” Gemini AI integration specs
+- `f14_UserSystem.md` â€” User auth and persistence (actively being iterated)
 
 ## Deployment
 
@@ -96,3 +96,4 @@ Firebase project ID: `baldora-89866`
 firebase deploy          # Deploy everything
 firebase deploy --only hosting   # Hosting only
 ```
+
