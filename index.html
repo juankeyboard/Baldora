@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 
 <head>
@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="Baldora - Videojuego educativo para aprender y practicar las tablas de multiplicar hasta 15x15">
-    <title>Baldora - Aritmética en línea</title>
+    <title>Baldora - AritmÃ©tica en lÃ­nea</title>
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="images/baldora_favicon.svg">
 
@@ -53,7 +53,7 @@
     </script>
 
     <script>
-        // Configuracin de Firebase (segn Main_doc_f8_AI.md)
+        // Configuracin de Firebase (segn f8_AI.md)
         const firebaseConfig = {
             apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
             authDomain: "baldora.org",
@@ -86,7 +86,7 @@
         <div id="auth-header-btn" class="auth-floating-wrapper">
             <!-- Estado: No Logueado -->
             <div id="auth-logged-out" class="auth-state">
-                <button id="btn-google-signin" class="floating-btn floating-btn-google" type="button" title="Iniciar sesión con Google">
+                <button id="btn-google-signin" class="floating-btn floating-btn-google" type="button" title="Iniciar sesiÃ³n con Google">
                     <svg class="google-logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="22"
                         height="22">
                         <path fill="#EA4335"
@@ -114,7 +114,7 @@
                         </button>
                         <div class="dropdown-divider"></div>
                         <button id="btn-google-signout" class="dropdown-item dropdown-item-danger" type="button" data-i18n="auth.signout">
-                            &#128682; Cerrar sesión
+                            &#128682; Cerrar sesiÃ³n
                         </button>
                     </div>
                 </div>
@@ -140,17 +140,17 @@
             </svg>
         </a>
 
-        <!-- 5. Ayuda Tour -->
-        <button type="button" id="btn-help-tour" class="floating-btn btn-help-tour"
-            title="Ver tutorial">?</button>
-
-        <!-- 6. Tienda (REQ-002) — Solo visible con auth -->
+        <!-- 5. Tienda (REQ-002) â€” Solo visible con auth -->
         <button type="button" id="btn-store-float" class="floating-btn store-float-btn"
             title="Tienda">
             <svg class="store-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/>
             </svg>
         </button>
+
+        <!-- 6. Ayuda Tour -->
+        <button type="button" id="btn-help-tour" class="floating-btn btn-help-tour"
+            title="Ver tutorial">?</button>
 
     </div>
 
@@ -164,7 +164,7 @@
 
             <form id="config-form" class="config-form">
                 <div class="form-group" id="nickname-field-group">
-                    <label for="nickname" data-i18n="config.nickname_label">Tu nickname o Inicia sesión</label>
+                    <label for="nickname" data-i18n="config.nickname_label">Tu nickname o Inicia sesiÃ³n</label>
                     <input type="text" id="nickname" name="nickname" placeholder="Ingresa tu nombre" data-i18n-placeholder="config.nickname_ph" required
                         maxlength="20">
                     <button id="btn-config-google-signin" class="btn-config-google-signin" type="button"
@@ -175,7 +175,7 @@
                             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         </svg>
-                        <span data-i18n="auth.signin_google">Iniciar sesión con Google</span>
+                        <span data-i18n="auth.signin_google">Iniciar sesiÃ³n con Google</span>
                     </button>
                 </div>
 
@@ -186,14 +186,14 @@
                         <label for="mode-timer" class="mode-option">
                             <span class="mode-icon">&#9201;</span>
                             <span class="mode-name" data-i18n="config.mode_timer">Contrarreloj</span>
-                            <span class="mode-desc" data-i18n="config.mode_timer_desc">Tiempo límite</span>
+                            <span class="mode-desc" data-i18n="config.mode_timer_desc">Tiempo lÃ­mite</span>
                         </label>
 
                         <input type="radio" id="mode-free" name="game-mode" value="FREE">
                         <label for="mode-free" class="mode-option">
                             <span class="mode-icon">&#127919;</span>
-                            <span class="mode-name" data-i18n="config.mode_free">Práctica Libre</span>
-                            <span class="mode-desc" data-i18n="config.mode_free_desc">Sin límite</span>
+                            <span class="mode-name" data-i18n="config.mode_free">PrÃ¡ctica Libre</span>
+                            <span class="mode-desc" data-i18n="config.mode_free_desc">Sin lÃ­mite</span>
                         </label>
 
                         <input type="radio" id="mode-adaptive" name="game-mode" value="ADAPTIVE">
@@ -206,7 +206,7 @@
                 </div>
 
                 <div class="form-group timer-config" id="timer-config">
-                    <label for="time-limit" data-i18n="config.time_limit">Tiempo Límite (minutos)</label>
+                    <label for="time-limit" data-i18n="config.time_limit">Tiempo LÃ­mite (minutos)</label>
                     <div class="time-slider-container">
                         <input type="range" id="time-limit" name="time-limit" min="1" max="15" value="1">
                         <span class="time-display" id="time-display">1 min</span>
@@ -396,7 +396,7 @@
                 </div>
             </div>
 
-            <!-- ===== PANEL DE ANÁLISIS AI ===== -->
+            <!-- ===== PANEL DE ANÃLISIS AI ===== -->
             <div id="ai-analysis-container" class="ai-panel">
                 <div class="ai-header">
                     <span class="ai-icon">&#128161;</span>
@@ -432,7 +432,7 @@
                                     <p id="res-general-text" class="result-text">Analizando...</p>
                                 </div>
 
-                                <!-- Bloque 2: Patrón de Errores -->
+                                <!-- Bloque 2: PatrÃ³n de Errores -->
                                 <div class="result-card blue-theme">
                                     <h3 data-i18n="dash.ai_errors">&#9888;&#65039; Patr&oacute;n de Errores</h3>
                                     <p id="res-patterns" class="result-text">
@@ -440,7 +440,7 @@
                                     </p>
                                 </div>
 
-                                <!-- Bloque 3: Plan de Acción -->
+                                <!-- Bloque 3: Plan de AcciÃ³n -->
                                 <div class="result-card blue-theme">
                                     <h3 data-i18n="dash.ai_plan">&#128640; Plan de Acci&oacute;n</h3>
                                     <p id="res-plan" class="result-text">
@@ -553,17 +553,17 @@
                 <button onclick="ExportManager.downloadPDF()" class="btn-export-option">
                     <span class="export-icon">&#128202;</span>
                     <span class="export-title">Reporte PDF</span>
-                    <span class="export-desc">Con gráficas y análisis</span>
+                    <span class="export-desc">Con grÃ¡ficas y anÃ¡lisis</span>
                 </button>
                 <button onclick="ExportManager.downloadCSV()" class="btn-export-option">
                     <span class="export-icon">&#128196;</span>
                     <span class="export-title">Datos CSV</span>
                     <span class="export-desc">Para Excel / Datos crudos</span>
                 </button>
-                <!-- BOTÓN INSTAGRAM (Nuevo Feature 13) -->
+                <!-- BOTÃ“N INSTAGRAM (Nuevo Feature 13) -->
                 <button id="exportInstagram" class="btn-export-option export-button-instagram"
                     style="grid-column: 1 / -1;">
-                    <span class="export-icon">&#128247;</span> <!-- Cámara -->
+                    <span class="export-icon">&#128247;</span> <!-- CÃ¡mara -->
                     <span class="export-title">Instagram</span>
                     <span class="export-desc">Compartir Stories</span>
                 </button>
@@ -644,16 +644,16 @@
                             <p id="profile-email" class="profile-email"></p>
                             <p class="profile-member">
                                 <span data-i18n="profile.member_since">Miembro desde</span> <span id="profile-member-since">-</span>
-                                &nbsp;·&nbsp;
-                                <span id="profile-total-games">0</span> <span data-i18n="profile.practices">prácticas</span>
+                                &nbsp;Â·&nbsp;
+                                <span id="profile-total-games">0</span> <span data-i18n="profile.practices">prÃ¡cticas</span>
                             </p>
                         </div>
                     </div>
-                    <!-- Posición en la comunidad (badge de liga) -->
+                    <!-- PosiciÃ³n en la comunidad (badge de liga) -->
                     <div class="community-badge" id="community-badge-container">
-                        <span class="community-league-name" id="community-league-name">—</span>
-                        <span class="community-league-tier" id="community-tier-value">—</span>
-                        <span class="community-badge-label" data-i18n="profile.community_badge">TU POSICIÓN EN LA COMUNIDAD</span>
+                        <span class="community-league-name" id="community-league-name">â€”</span>
+                        <span class="community-league-tier" id="community-tier-value">â€”</span>
+                        <span class="community-badge-label" data-i18n="profile.community_badge">TU POSICIÃ“N EN LA COMUNIDAD</span>
                     </div>
                 </div>
             </div>
@@ -675,7 +675,7 @@
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#128200;</span>
                         <span class="pstat-value" id="pstat-accuracy">0%</span>
-                        <span class="pstat-label" data-i18n="profile.stat_accuracy">Precisión global</span>
+                        <span class="pstat-label" data-i18n="profile.stat_accuracy">PrecisiÃ³n global</span>
                     </div>
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#9889;</span>
@@ -685,7 +685,7 @@
                     <div class="profile-stat-card">
                         <span class="pstat-icon">&#11088;</span>
                         <span class="pstat-value" id="pstat-best-accuracy">0%</span>
-                        <span class="pstat-label" data-i18n="profile.stat_best">Mejor precisión</span>
+                        <span class="pstat-label" data-i18n="profile.stat_best">Mejor precisiÃ³n</span>
                     </div>
                 </div>
 
@@ -693,14 +693,14 @@
 
                 <!-- Filtros -->
                 <div class="profile-filters">
-                    <h3 class="section-title" data-i18n="profile.history_title">&#128202; Historial de Prácticas</h3>
+                    <h3 class="section-title" data-i18n="profile.history_title">&#128202; Historial de PrÃ¡cticas</h3>
                     <div class="filters-row">
                         <div class="filter-group">
                             <label data-i18n="profile.filter_mode">Modo</label>
                             <select id="filter-mode" class="filter-select">
                                 <option value="ALL" data-i18n="mode.all">Todos</option>
                                 <option value="TIMER" data-i18n="mode.timer">Contrarreloj</option>
-                                <option value="FREE" data-i18n="mode.free">Práctica Libre</option>
+                                <option value="FREE" data-i18n="mode.free">PrÃ¡ctica Libre</option>
                                 <option value="ADAPTIVE" data-i18n="mode.adaptive">Adaptativo</option>
                             </select>
                         </div>
@@ -723,7 +723,7 @@
                     </div>
                 </div>
 
-                <!-- Tabla de prácticas -->
+                <!-- Tabla de prÃ¡cticas -->
                 <div class="profile-table-wrapper">
                     <table class="profile-games-table">
                         <thead>
@@ -732,14 +732,14 @@
                                 <th data-i18n="profile.th_mode">Modo</th>
                                 <th data-i18n="profile.th_total">Total</th>
                                 <th data-i18n="profile.th_correct">Correctas</th>
-                                <th data-i18n="profile.th_accuracy">Precisión</th>
+                                <th data-i18n="profile.th_accuracy">PrecisiÃ³n</th>
                                 <th data-i18n="profile.th_avg_time">T. Promedio</th>
                                 <th data-i18n="profile.th_actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="profile-games-tbody">
                             <tr>
-                                <td colspan="7" class="profile-empty-row">Cargando prácticas...</td>
+                                <td colspan="7" class="profile-empty-row">Cargando prÃ¡cticas...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -753,16 +753,16 @@
     <div id="delete-game-modal" class="delete-modal-overlay" style="display:none;">
         <div class="delete-modal-box">
             <div class="delete-modal-icon">&#9888;&#65039;</div>
-            <h3 class="delete-modal-title" data-i18n="profile.delete_title">Eliminar registro de práctica</h3>
+            <h3 class="delete-modal-title" data-i18n="profile.delete_title">Eliminar registro de prÃ¡ctica</h3>
             <p class="delete-modal-desc">
-                Esta acción es <strong>irreversible</strong>. Eliminar este registro borrará
-                permanentemente los datos de esa práctica y
-                <strong>afectará tu puntaje y posicionamiento dentro de la comunidad</strong>.
+                Esta acciÃ³n es <strong>irreversible</strong>. Eliminar este registro borrarÃ¡
+                permanentemente los datos de esa prÃ¡ctica y
+                <strong>afectarÃ¡ tu puntaje y posicionamiento dentro de la comunidad</strong>.
             </p>
             <label class="delete-modal-confirm-label">
                 <input type="checkbox" id="delete-confirm-check"
                     onchange="UserProfile._toggleDeleteBtn()">
-                Entiendo que esta acción es irreversible y afectará mis estadísticas y posición en la comunidad
+                Entiendo que esta acciÃ³n es irreversible y afectarÃ¡ mis estadÃ­sticas y posiciÃ³n en la comunidad
             </label>
             <div class="delete-modal-actions">
                 <button class="btn-delete-cancel" type="button"
@@ -998,11 +998,11 @@
 
             <!-- Legal -->
             <div class="footer-legal">
-                <span>©2026 Baldora.org</span>
+                <span>Â©2026 Baldora.org</span>
                 <span class="separator"></span>
                 <a href="politica-de-privacidad.html" class="footer-legal-link">Privacidad</a>
                 <span class="separator"></span>
-                <a href="terminos-y-condiciones.html" class="footer-legal-link">Términos</a>
+                <a href="terminos-y-condiciones.html" class="footer-legal-link">TÃ©rminos</a>
                 <span class="separator"></span>
                 <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">Licencia MIT</a>
                 <span class="separator"></span>
@@ -1018,7 +1018,7 @@
             <!-- Social -->
             <div class="footer-social">
                 <a href="https://github.com/juankeyboard/Baldora.git" target="_blank" rel="noopener noreferrer"
-                    aria-label="Ver código en GitHub">
+                    aria-label="Ver cÃ³digo en GitHub">
                     <svg class="icon-github" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor"
                         fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path
@@ -1027,7 +1027,7 @@
                     </svg>
                 </a>
                 <a href="https://www.instagram.com/baldoragame" target="_blank" rel="noopener noreferrer"
-                    aria-label="Síguenos en Instagram">
+                    aria-label="SÃ­guenos en Instagram">
                     <svg class="icon-instagram" viewBox="0 0 24 24" width="24" height="24" stroke="currentColor"
                         fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -1043,7 +1043,7 @@
                     </svg>
                 </a>
                 <a href="https://www.linkedin.com/pulse/presentando-baldora-mi-primer-proyecto-open-source-al-calder%C3%B3n-g%C3%B3mez-jgy7e/?trackingId=zJeho8VLuez%2FxjXGseATSg%3D%3D"
-                    target="_blank" rel="noopener noreferrer" aria-label="Síguenos en LinkedIn">
+                    target="_blank" rel="noopener noreferrer" aria-label="SÃ­guenos en LinkedIn">
                     <svg class="icon-linkedin" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
                         <path
                             d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
@@ -1077,3 +1077,4 @@
 </body>
 
 </html>
+
