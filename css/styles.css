@@ -3737,24 +3737,32 @@ body::before {
 
 /* Boton flotante Patreon */
 .patreon-float-btn {
-    color: #FF424D;
+    color: #9CA3AF;
     animation: patreon-glow 12s ease-in-out infinite;
 }
 
 .patreon-float-btn:hover {
-    border-color: #FF424D;
-    color: #FF424D;
+    border-color: #FFD700;
+    color: #9CA3AF;
 }
 
-/* Animacion de destello cada 12 segundos */
+/* Animacion de destello cada 12 segundos (~3s visibles) */
 @keyframes patreon-glow {
-    0%, 90% {
+    0% {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-color: var(--clr-sand-300);
     }
-    95% {
-        box-shadow: 0 0 20px rgba(255, 66, 77, 0.6), 0 0 40px rgba(255, 66, 77, 0.3);
-        border-color: #FF424D;
+    15% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(250, 204, 21, 0.35);
+        border-color: #FFD700;
+    }
+    40% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(250, 204, 21, 0.35);
+        border-color: #FFD700;
+    }
+    55% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-color: var(--clr-sand-300);
     }
     100% {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
