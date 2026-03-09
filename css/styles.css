@@ -2885,14 +2885,9 @@ body::before {
 
 /* ===== FEATURE 14: SISTEMA DE USUARIO CON GOOGLE ===== */
 
-/* ── Botón de Auth (Header Global, Fixed) ── */
-.auth-header-btn {
-    position: fixed;
-    top: 20px;
-    right: 80px;
-    z-index: 1500;
-    display: flex;
-    align-items: center;
+/* ── Wrapper de Auth dentro del grupo flotante ── */
+.auth-floating-wrapper {
+    position: relative;
 }
 
 .auth-state {
@@ -2900,28 +2895,33 @@ body::before {
     align-items: center;
 }
 
-/* Botón "Iniciar sesión" */
-.btn-google-signin {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: var(--bg-primary);
-    border: var(--border-light);
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    font-family: var(--font-main);
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    transition: all var(--transition-fast);
-    white-space: nowrap;
+/* Botón Google circular (dentro del grupo flotante) */
+.floating-btn-google {
+    background: #ffffff;
+    border-color: var(--clr-sand-300);
 }
 
-.btn-google-signin:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-    transform: translateY(-1px);
+.floating-btn-google:hover {
+    border-color: #4285F4;
+}
+
+.floating-btn-google .google-logo-svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Avatar circular (dentro del grupo flotante) */
+.floating-btn-avatar {
+    padding: 0;
+    overflow: hidden;
+}
+
+.floating-btn-avatar .user-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: none;
 }
 
 /* ── Botón Google en la vista de configuración (bajo el campo nickname) ── */
@@ -2954,80 +2954,19 @@ body::before {
     flex-shrink: 0;
 }
 
-/* Responsive: ocultar texto en móvil */
-@media (max-width: 600px) {
-    .google-btn-text {
-        display: none;
-    }
-    .btn-google-signin {
-        padding: 8px;
-        width: 44px;
-        height: 44px;
-        justify-content: center;
-    }
-    .auth-header-btn {
-        right: 76px;
-    }
-}
+/* (Estilos responsive del botón Google antiguo eliminados - ahora es flotante circular) */
 
 /* Wrapper del botón de usuario logueado */
 .auth-user-btn-wrapper {
     position: relative;
 }
 
-.btn-user-avatar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-    background: var(--bg-primary);
-    border: var(--border-light);
-    border-radius: var(--radius-full);
-    cursor: pointer;
-    font-family: var(--font-main);
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    transition: all var(--transition-fast);
-}
-
-.btn-user-avatar:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-}
-
-.user-avatar-img {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--clr-sand-300);
-}
-
+/* user-display-name se oculta en el grupo flotante (visible solo para JS/accesibilidad) */
 .user-display-name {
-    max-width: 80px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    display: none;
 }
 
-.dropdown-arrow {
-    font-size: 0.7rem;
-    color: var(--text-secondary);
-}
-
-@media (max-width: 600px) {
-    .user-display-name,
-    .dropdown-arrow {
-        display: none;
-    }
-    .btn-user-avatar {
-        padding: 6px;
-        width: 44px;
-        height: 44px;
-        justify-content: center;
-    }
-}
+/* (Estilos responsive del avatar antiguo eliminados - ahora es flotante circular) */
 
 /* Dropdown */
 .auth-dropdown {
@@ -3852,5 +3791,10 @@ body::before {
 
     .audio-toggle-btn {
         font-size: 1.2rem;
+    }
+
+    .floating-btn-google .google-logo-svg {
+        width: 18px;
+        height: 18px;
     }
 }
