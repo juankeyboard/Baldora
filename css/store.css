@@ -25,7 +25,8 @@
 
 .store-float-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(161, 75, 130, 0.3);
+    box-shadow: 0 6px 16px rgba(255, 215, 0, 0.3);
+    border-color: #FFD700;
 }
 
 .store-float-btn:active {
@@ -39,26 +40,37 @@
 .store-float-btn .store-icon {
     width: 22px;
     height: 22px;
-    fill: var(--clr-ink-900);
+    fill: #9CA3AF;
 }
 
-/* Destello purpura cada 12 segundos, duracion ~3s */
+/* Destello amarillo cada 12 segundos, igual que Patreon */
 @keyframes store-sparkle {
-    0%, 74% {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    0% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-color: var(--clr-sand-300);
     }
-    75% {
-        box-shadow: 0 0 0 0 rgba(161, 75, 130, 0);
+    15% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(250, 204, 21, 0.35);
+        border-color: #FFD700;
     }
-    82% {
-        box-shadow: 0 0 14px 5px rgba(161, 75, 130, 0.55);
+    40% {
+        box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(250, 204, 21, 0.35);
+        border-color: #FFD700;
     }
-    90% {
-        box-shadow: 0 0 14px 5px rgba(161, 75, 130, 0.55);
+    55% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-color: var(--clr-sand-300);
     }
     100% {
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        border-color: var(--clr-sand-300);
     }
+}
+
+/* --- Layout: footer siempre al fondo --- */
+body {
+    display: flex;
+    flex-direction: column;
 }
 
 /* --- Vista de Tienda --- */
@@ -275,6 +287,9 @@
 /* --- Historial de Compras --- */
 .store-history-section {
     display: none;
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
 }
 
 .store-history-section.active {
@@ -283,10 +298,35 @@
 
 .store-catalog-section {
     display: none;
+    background: #FFFFFF;
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
 }
 
 .store-catalog-section.active {
     display: block;
+}
+
+/* Cabecera fija del historial */
+.store-history-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--clr-sand-100);
+    border: 2px solid var(--clr-sand-300);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-md);
+    gap: var(--space-sm);
+}
+
+.store-history-header span {
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--clr-rock-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .store-history-list {
@@ -391,6 +431,10 @@
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .store-history-header {
+        display: none;
+    }
 }
 
 /* --- Modo Oscuro --- */
@@ -400,12 +444,17 @@
 }
 
 [data-theme="dark"] .store-float-btn .store-icon {
-    fill: var(--clr-ink-900);
+    fill: #9CA3AF;
 }
 
 [data-theme="dark"] .store-product-image-placeholder {
     background: var(--clr-sand-100);
     color: var(--clr-rock-500);
+}
+
+[data-theme="dark"] .store-catalog-section,
+[data-theme="dark"] .store-history-section {
+    background: var(--clr-surface-high);
 }
 
 [data-theme="dark"] .btn-store-buy {

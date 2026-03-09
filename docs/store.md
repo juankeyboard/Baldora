@@ -110,6 +110,31 @@ Definir el acceso, la presentacion visual y la integracion base de la tienda con
 
 ---
 
+## Iteracion 2 - Ajustes visuales y de layout
+
+**Fecha:** 2026-03-09
+**Estado:** Cerrada
+
+### Objetivo de la iteracion
+
+Corregir detalles visuales, mejorar legibilidad de los paneles de contenido y unificar el lenguaje visual del boton flotante con el del boton de Patreon.
+
+### Cambios implementados
+
+- **Footer siempre al fondo:** Se agrego `display: flex` y `flex-direction: column` al body en `store.css` (aditivo) para que el footer con `margin-top: auto` funcione correctamente y se mantenga al fondo de la pagina independientemente del contenido.
+- **Fondo blanco en paneles de catalogo e historial:** Las secciones `.store-catalog-section` y `.store-history-section` ahora tienen fondo blanco (`#FFFFFF`), border-radius y padding para mejorar la legibilidad. Incluye soporte para modo oscuro.
+- **Cabeceras de columna del historial siempre visibles:** Se agrego un header fijo (`.store-history-header`) con las columnas Producto, Fecha, Estado y Detalle que se renderiza siempre, incluso cuando el historial esta vacio. Se oculta en movil (<600px) donde las filas se apilan verticalmente.
+- **Icono de tienda en color gris:** El SVG del boton flotante cambio de `var(--clr-ink-900)` a `#9CA3AF` (gris), consistente con el color del icono de Patreon.
+- **Destello amarillo igual que Patreon:** La animacion `store-sparkle` se reemplazo con los mismos keyframes y colores de `patreon-glow`: dorado `rgba(255, 215, 0, 0.6)` y `border-color: #FFD700`.
+
+### Decisiones
+
+- El layout del footer es aditivo: no se modifico `styles.css`, se agrego la regla en `store.css`.
+- El gris del icono (`#9CA3AF`) es el mismo que usa el boton de Patreon.
+- En movil, el header del historial se oculta porque las filas se apilan como cards individuales.
+
+---
+
 ## Plantilla de nueva iteracion
 
 ```md
