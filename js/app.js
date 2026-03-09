@@ -129,6 +129,8 @@ const App = {
 
             // Modo Adaptativo
             modeAdaptive: document.getElementById('mode-adaptive'),
+            // Feature 15: Modo VS
+            modeVs: document.getElementById('mode-vs'),
             tablesConfig: document.getElementById('tables-config'),
             adaptiveInfo: document.getElementById('adaptive-info'),
             adaptivePhaseIndicator: document.getElementById('adaptive-phase'),
@@ -158,6 +160,10 @@ const App = {
         this.elements.modeTimer.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
         this.elements.modeFree.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
         this.elements.modeAdaptive.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
+        // Feature 15: Modo VS
+        if (this.elements.modeVs) {
+            this.elements.modeVs.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
+        }
 
         // Time slider
         this.elements.timeLimit.addEventListener('input', (e) => {
@@ -286,14 +292,16 @@ const App = {
     updateModeUI() {
         const isTimer = this.elements.modeTimer.checked;
         const isAdaptive = this.elements.modeAdaptive.checked;
+        // Feature 15: Modo VS también usa el slider de tiempo (f15 §2)
+        const isVs = this.elements.modeVs && this.elements.modeVs.checked;
 
-        // Mostrar/ocultar config de tiempo
-        this.elements.timerConfig.classList.toggle('hidden', !isTimer);
+        // Mostrar slider de tiempo en modo Contrarreloj Y en modo VS
+        this.elements.timerConfig.classList.toggle('hidden', !isTimer && !isVs);
 
-        // El selector de tablas está disponible en TODOS los modos (incluyendo adaptativo)
+        // El selector de tablas está disponible en TODOS los modos
         this.elements.tablesConfig.hidden = false;
 
-        // Mostrar/ocultar info del modo adaptativo
+        // Mostrar/ocultar info del modo adaptativo (ocultar en VS)
         this.elements.adaptiveInfo.hidden = !isAdaptive;
 
         // Si es modo adaptativo, seleccionar todas las tablas por defecto
@@ -393,6 +401,21 @@ const App = {
             this.gameMode = 'TIMER';
         } else {
             this.gameMode = 'FREE';
+        }
+
+        // Si el usuario seleccionó Modo VS, delegar a BattleManager
+        if (this.elements.modeVs && this.elements.modeVs.checked) {
+            if (this.selectedRows.length === 0 || this.selectedCols.length === 0) {
+                alert('Por favor selecciona al menos una fila y una columna para el duelo');
+                return;
+            }
+            const timeLimitMs = parseInt(this.elements.timeLimit.value) * 60 * 1000;
+            if (typeof BattleManager !== 'undefined') {
+                BattleManager.searchOpponent(this.selectedRows, this.selectedCols, timeLimitMs);
+            } else {
+                alert('BattleManager no está disponible.');
+            }
+            return;
         }
 
         // Validar que hay al menos una tabla seleccionada (aplica para todos los modos)

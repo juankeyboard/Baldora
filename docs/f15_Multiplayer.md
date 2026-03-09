@@ -19,20 +19,30 @@ Al ejecutar el `signUp` en **Firebase Auth**, el sistema debe disparar un trigge
 
 ---
 
-## 2. Mecánica de Juego: "La Cinchada" (Tug-of-War)
+## 2. Integración de UI y Configuración Inicial
+
+- **Selector de Modo:** La opción de Multijugador se debe integrar directamente en la cuadrícula de "Modos de Juego" (junto a Contrarreloj, Práctica Libre y Adaptativo), compartiendo el mismo diseño de botón (estilo visual, colores, hover, iconografía).
+- **Ajustes de la Partida:** Si se selecciona la modalidad Multijugador, la partida se rige por las mismas configuraciones globales:
+    - **Selección de Tablas:** El jugador decide las tablas a jugar (Factor A y Factor B).
+    - **Límite de Tiempo:** El jugador define el tiempo límite del duelo a través del slider.
+- **Transición Visual:** Al iniciar el duelo, se debe pasar a una pantalla diseñada específicamente para el multijugador ("La Cinchada"). Todas las implementaciones de esta nueva vista deben conservar de manera estricta el mismo estilo, tipografías y colores que la vista principal de cuadrícula para mantener la coherencia del *Design System*.
+
+---
+
+## 3. Mecánica de Juego: "La Cinchada" (Tug-of-War)
 
 Duelo síncrono de agilidad mental basado en el procesamiento de una operación única compartida.
 
-### 2.1. El Campo de Batalla Visual
+### 3.1. El Campo de Batalla Visual
 - **Personajes:** Cavernícola Azul (Jugador 1) vs. Cavernícola Amarillo (Jugador 2).
 - **Lógica de Desplazamiento:** 
     - El eje central representa el punto 0. Los extremos de victoria están en +50 y -50 unidades.
-    - **Acierto Síncrono:** El primer jugador en enviar el `isCorrect: true` a la RTDB desplaza el marcador 5 unidades hacia su territorio.
+    - **Acierto Síncrono:** El primer jugador en enviar la respuesta correcta a la RTDB desplaza el marcador 5 unidades hacia su territorio.
 - **Condiciones de Victoria:** 
-    - **Por Puntos:** Al agotar las X operaciones (seleccionadas mediante slider de 10-30), gana quien tenga el marcador en su territorio.
-    - **KO Técnico:** Si un jugador alcanza el límite de unidades (+50/-50), la partida termina instantáneamente.
+    - **Tiempo Límite:** Al finalizar el tiempo límite seleccionado por los jugadores, gana quien tenga el marcador en su territorio (o el que haya empujado más).
+    - **KO Técnico:** Si un jugador alcanza el límite de unidades (+50/-50) antes del tiempo, la partida termina instantáneamente ganando por aplastamiento.
 
-### 2.2. Interfaz de Control (Dial Numérico)
+### 3.2. Interfaz de Control (Dial Numérico)
 - **Diseño:** Dos contenedores laterales (Azul y Magenta) con botones del 0 al 9 dispuestos en un arco ergonómico para pulgares.
 - **Layout Adaptativo:** 
     - **Desktop:** Diales fijos en los extremos `viewport` izquierdo/derecho.
@@ -41,29 +51,29 @@ Duelo síncrono de agilidad mental basado en el procesamiento de una operación 
 
 ---
 
-## 3. Matchmaking y Notificaciones Live
+## 4. Matchmaking y Notificaciones Live
 
-### 3.1. Algoritmo de Emparejamiento Aleatorio
+### 4.1. Algoritmo de Emparejamiento Aleatorio
 1.  **Query:** Filtrar `users` con `online: true` y `current_status: idle`.
-2.  **Sort:** Orden descendente por `last_login_at` (prioridad a los más recientes).
+2.  **Match:** La configuración del host (Tablas seleccionadas y Tiempo Limit) se impone en la base de datos para la Room (`battles/{roomId}/config`).
 3.  **Dispatch:** Envío de un nodo `incoming_duel` al UID seleccionado.
 
-### 3.2. Notificación Preemptiva (Interruptiva)
+### 4.2. Notificación Preemptiva (Interruptiva)
 - **Comportamiento:** Un modal `DuelOverlay` de alta prioridad se monta sobre la UI global.
 - **Interrupción de Sesión Activa:** Si el usuario acepta el reto mientras tiene una partida en curso (`game_state: active`), se ejecuta un `forceReset()` del motor de juego local. **IMPORTANTE:** Los datos de la sesión interrumpida NO se guardan para evitar corrupción de estadísticas históricas.
 
 ---
 
-## 4. Hub Social y Gestión de Contactos
+## 5. Hub Social y Gestión de Contactos
 
-### 4.1. Panel de Usuario
+### 5.1. Panel de Usuario
 - **Búsqueda:** Búsqueda indexada por Nickname (case-insensitive) o Email exacto.
 - **Lista de Amigos:** Tabla con indicadores de estado (`online` / `busy` / `offline`).
 - **Historial de Duelos:** Lista de resultados `Winner_UID | Loser_UID | Ops_Total | Timestamp`.
 
 ---
 
-## 5. Especificaciones Técnicas (Firebase RTDB)
+## 6. Especificaciones Técnicas (Firebase RTDB)
 
 ```json
 {
@@ -76,8 +86,8 @@ Duelo síncrono de agilidad mental basado en el procesamiento de una operación 
   },
   "battles": {
     "room_id_xyz": {
-      "config": { "ops_total": 20, "tables": "all" },
-      "state": { "marker_position": 0, "current_op_index": 5 },
+      "config": { "time_limit_ms": 60000, "tables": "1,2,3...10" },
+      "state": { "marker_position": 0, "current_op_index": 5, "start_time": 1741530005000 },
       "players": {
         "uid_1": { "score": 3, "last_response_ms": 850 },
         "uid_2": { "score": 2, "last_response_ms": 1100 }
@@ -89,7 +99,7 @@ Duelo síncrono de agilidad mental basado en el procesamiento de una operación 
 
 ---
 
-## 6. Criterios de Aceptación (QA)
+## 7. Criterios de Aceptación (QA)
 
 1.  **CA-01:** La generación de nickname aleatorio no debe producir duplicados en una muestra de 1000 iteraciones.
 2.  **CA-02:** El retardo entre el envío de la respuesta y el movimiento visual de la cuerda en el oponente debe ser < 250ms en condiciones normales de red.
@@ -99,10 +109,11 @@ Duelo síncrono de agilidad mental basado en el procesamiento de una operación 
 
 ---
 
-## 7. Checklist de Implementación
+## 8. Checklist de Implementación
 
+- [ ] Integración de botón en UI (Selector de 4 modos: Contrarreloj, Libre, Adaptativo, Multijugador).
 - [ ] Script de generación de Nicknames (`utils/nicknames.js`).
-- [ ] Componente `DialControl.vue/js` con soporte táctil.
-- [ ] Lógica de sincronización `BattleManager.js` para Firebase RTDB.
+- [ ] Componente `DialControl.vue/js` con soporte táctil (coherente con UI principal).
+- [ ] Lógica de sincronización `BattleManager.js` para Firebase RTDB respetando el tiempo límite seleccionado.
 - [ ] Animación CSS/Canvas para el desplazamiento de cavernícolas y cuerda.
-- [ ] Actualización del Onboarding con los 4 pasos del modo VS.
+- [ ] Pantalla de Multijugador que conserve exactamente los mismos estilos, botones y tipografías que el modo individual.

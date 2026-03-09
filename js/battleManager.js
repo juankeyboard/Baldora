@@ -18,7 +18,12 @@ const BattleManager = (() => {
     let debounceActive = false;   // CA-04: anti doble-tap 100ms
     let roomListener = null;
     let duelInviteListener = null;
-    let opsTotal = 20;
+    let battleRows = [];          // Tablas (filas) seleccionadas en el formulario
+    let battleCols = [];          // Tablas (cols) seleccionadas en el formulario
+    let battleTimeLimitMs = 60000; // Tiempo límite en ms
+    let battleTimer = null;       // Timer interno de límite de tiempo
+    let battleCountdownInterval = null; // Interval para el display del countdown
+    let battleStartEpoch = 0;     // Epoch cuando arrancó la batalla
     let currentOpIndex = 0;
     let myScore = 0;
     let markerPosition = 0;       // -50..+50 (+ = azul gana, - = amarillo gana)
@@ -90,20 +95,24 @@ const BattleManager = (() => {
         db.ref(`presence/${uid}`).update({ current_status: status });
     }
 
-    // ── Matchmaking ────────────────────────────────────────────────────────────
     /**
      * Busca un oponente online (idle) y le envía una invitación de duelo.
-     * @param {number} ops - Número de operaciones (10-30)
+     * @param {number[]} rows   - Filas seleccionadas por el jugador en el formulario
+     * @param {number[]} cols   - Columnas seleccionadas por el jugador
+     * @param {number} timeLimitMs - Tiempo límite del duelo en milisegundos
      */
-    async function searchOpponent(ops = 20) {
+    async function searchOpponent(rows = [], cols = [], timeLimitMs = 60000) {
         if (!db || !myUid) { _showToast('Debes iniciar sesión para el modo VS'); return; }
 
-        opsTotal = ops;
+        battleRows = rows.length ? rows : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        battleCols = cols.length ? cols : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        battleTimeLimitMs = timeLimitMs || 60000;
+
         setStatus(myUid, 'searching');
-        _updateDuelBtn('Buscando oponente...', true);
+        _updateDuelBtn('Buscando...', true);
 
         try {
-            // Query: usuarios online e idle, ordenados por last_login_at desc
+            // Query: usuarios online e idle
             const snap = await db.ref('presence')
                 .orderByChild('last_login_at')
                 .limitToLast(10)
@@ -123,8 +132,8 @@ const BattleManager = (() => {
 
             if (candidates.length === 0) {
                 setStatus(myUid, 'idle');
-                _updateDuelBtn('⚔️ Buscar Duelo', false);
-                _showToast('No hay oponentes disponibles en este momento. ¡Inténtalo de nuevo!');
+                _updateDuelBtn('Duelo VS', false);
+                _showToast('No hay oponentes disponibles. ¡Inténtalo de nuevo!');
                 return;
             }
 
@@ -132,15 +141,19 @@ const BattleManager = (() => {
             candidates.sort((a, b) => b.last_login_at - a.last_login_at);
             const target = candidates[0];
 
-            // Crear room en RTDB
+            // Crear room en RTDB con la config del formulario principal
             const roomRef = db.ref('battles').push();
             currentRoomId = roomRef.key;
 
             const roomData = {
-                config: { ops_total: opsTotal, tables: 'all' },
+                config: {
+                    time_limit_ms: battleTimeLimitMs,
+                    tables: `rows:${battleRows.join(',')};cols:${battleCols.join(',')}`
+                },
                 state: {
                     marker_position: 0,
                     current_op_index: 0,
+                    start_time: firebase.database.ServerValue.TIMESTAMP,
                     status: 'waiting' // waiting | active | finished
                 },
                 players: {
@@ -169,7 +182,7 @@ const BattleManager = (() => {
         } catch (err) {
             console.error('[BattleManager] searchOpponent error:', err);
             setStatus(myUid, 'idle');
-            _updateDuelBtn('⚔️ Buscar Duelo', false);
+            _updateDuelBtn('Duelo VS', false);
         }
     }
 
@@ -244,9 +257,23 @@ const BattleManager = (() => {
             opponentNickname = snap.val() || 'Oponente';
         });
 
-        // Leer datos de la room para obtener opsTotal
+        // Leer config de la room (tiempo límite y tablas vienen del host)
         db.ref(`battles/${roomId}/config`).once('value').then(snap => {
-            if (snap.exists()) opsTotal = snap.val().ops_total || 20;
+            if (snap.exists()) {
+                const cfg = snap.val();
+                battleTimeLimitMs = cfg.time_limit_ms || 60000;
+                // Parsear tablas si vinieron del host
+                if (cfg.tables && cfg.tables !== 'all') {
+                    try {
+                        const parts = cfg.tables.split(';');
+                        battleRows = parts[0].replace('rows:', '').split(',').map(Number);
+                        battleCols = parts[1].replace('cols:', '').split(',').map(Number);
+                    } catch (e) {
+                        battleRows = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                        battleCols = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+                    }
+                }
+            }
         });
 
         // Marcar room como activa
@@ -282,6 +309,22 @@ const BattleManager = (() => {
 
         // Escuchar cambios del estado de la room
         _listenRoomState();
+
+        // Iniciar el temporizador de límite de tiempo (f15 §3.1)
+        if (battleTimer) clearTimeout(battleTimer);
+        battleTimer = setTimeout(() => {
+            if (gameActive) {
+                // Al agotar el tiempo, determinar ganador por posición del marcador
+                db.ref(`battles/${currentRoomId}/state`).transaction(state => {
+                    if (!state || state.status === 'finished') return state;
+                    state.status = 'finished';
+                    state.winner_uid = markerPosition > 0
+                        ? myUid  // azul gana si marcador es positivo
+                        : opponentUid; // amarillo gana si es negativo (empate: oponente)
+                    return state;
+                });
+            }
+        }, battleTimeLimitMs);
 
         // Generar primera operación
         _generateOperation();
@@ -391,17 +434,11 @@ const BattleManager = (() => {
             // Incrementar operación
             room.state.current_op_index = (room.state.current_op_index || 0) + 1;
 
-            // Verificar condición de victoria
+            // Verificar únicamente KO Técnico (victoria por tiempo la maneja el timer)
             const pos = room.state.marker_position;
             if (Math.abs(pos) >= MARKER_WIN) {
                 room.state.status = 'finished';
                 room.state.winner_uid = myUid;
-            } else if (room.state.current_op_index >= opsTotal) {
-                room.state.status = 'finished';
-                // Gana quien tiene el marcador a su favor
-                room.state.winner_uid = pos > 0
-                    ? Object.keys(room.players).find(uid => room.players[uid].color === 'blue')
-                    : Object.keys(room.players).find(uid => room.players[uid].color === 'yellow');
             }
 
             return room;
@@ -409,15 +446,16 @@ const BattleManager = (() => {
 
         // Generar siguiente operación localmente
         currentOpIndex++;
-        if (currentOpIndex < opsTotal) {
-            _generateOperation();
-        }
+        _generateOperation();
     }
 
     // ── Operaciones ───────────────────────────────────────────────────────────
     function _generateOperation() {
-        const a = Math.floor(Math.random() * 12) + 1;
-        const b = Math.floor(Math.random() * 12) + 1;
+        // Usar las tablas seleccionadas por el jugador (f15 §2)
+        const rowPool = battleRows.length ? battleRows : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        const colPool = battleCols.length ? battleCols : [1, 2, 3, 4, 5, 6, 7, 8, 9];
+        const a = rowPool[Math.floor(Math.random() * rowPool.length)];
+        const b = colPool[Math.floor(Math.random() * colPool.length)];
         currentOp = { a, b, result: a * b, startTime: Date.now() };
 
         const factorA = document.getElementById('battle-factor-a');
@@ -451,9 +489,21 @@ const BattleManager = (() => {
             if (oppName) oppName.textContent = myNickname || 'Tú';
         }
 
-        // Configurar total de ops
-        const opsEl = document.getElementById('battle-ops-total');
-        if (opsEl) opsEl.textContent = opsTotal;
+        // Iniciar countdown visual en el header
+        battleStartEpoch = Date.now();
+        if (battleCountdownInterval) clearInterval(battleCountdownInterval);
+        battleCountdownInterval = setInterval(() => {
+            const remaining = Math.max(0, battleTimeLimitMs - (Date.now() - battleStartEpoch));
+            const mins = Math.floor(remaining / 60000);
+            const secs = Math.floor((remaining % 60000) / 1000);
+            const display = document.getElementById('battle-timer-display');
+            if (display) {
+                display.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
+                if (remaining < 10000) display.style.color = '#ef4444'; // rojo al final
+                else display.style.color = '';
+            }
+            if (remaining <= 0) clearInterval(battleCountdownInterval);
+        }, 500);
 
         // Configurar control: Mis botones son el panel derecho si soy azul, izquierdo si soy amarillo
         _configureDials();
@@ -594,6 +644,10 @@ const BattleManager = (() => {
         const overlay = document.getElementById('battle-result-overlay');
         if (overlay) overlay.classList.remove('active');
 
+        // Limpiar timer de tiempo límite y countdown
+        if (battleTimer) { clearTimeout(battleTimer); battleTimer = null; }
+        if (battleCountdownInterval) { clearInterval(battleCountdownInterval); battleCountdownInterval = null; }
+
         // Volver a CONFIG
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('config-view')?.classList.add('active');
@@ -627,10 +681,12 @@ const BattleManager = (() => {
     }
 
     function _updateDuelBtn(text, disabled) {
-        const btn = document.getElementById('btn-find-duel');
-        if (!btn) return;
-        btn.textContent = text;
-        btn.disabled = disabled;
+        // El modo VS ya no tiene botón separado; se refleja en el radio label
+        // Podemos usar el botón COMENZAR o simplemente loguear en consola
+        const modeVsLabel = document.querySelector('label[for="mode-vs"]');
+        if (!modeVsLabel) return;
+        const descEl = modeVsLabel.querySelector('.mode-desc');
+        if (descEl) descEl.textContent = disabled ? text : 'Multijugador';
     }
 
     // ── API pública ────────────────────────────────────────────────────────────

@@ -199,6 +199,12 @@ input[type="number"]:focus {
     gap: var(--space-md);
 }
 
+/* Feature 15: Selector con 4 modos */
+.mode-selector-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-sm);
+}
+
 .mode-selector input[type="radio"] {
     display: none;
 }
@@ -224,6 +230,7 @@ input[type="number"]:focus {
     box-shadow: 0 4px 0 var(--clr-rose-500);
 }
 
+/* El modo VS ahora hereda los colores del Design System estándar (.mode-option) sin estilos inline azules */
 .mode-icon {
     font-size: 2rem;
     margin-bottom: var(--space-sm);
@@ -689,8 +696,9 @@ input[type="number"]:focus {
         padding: var(--space-lg);
     }
 
-    .mode-selector {
-        grid-template-columns: 1fr;
+    .mode-selector,
+    .mode-selector-4 {
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .game-grid {
@@ -2989,8 +2997,15 @@ body::before {
 }
 
 @keyframes dropdownFadeIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .dropdown-item {
@@ -3162,34 +3177,83 @@ body::before {
 }
 
 /* Colores por liga — número y nombre */
-.league-diamante .community-position-number { color: #00c8ff; }
-.league-diamante .community-league-name     { color: #00c8ff; }
-.league-diamante { border-color: rgba(0, 200, 255, 0.35); }
+.league-diamante .community-position-number {
+    color: #00c8ff;
+}
 
-.league-platino  .community-position-number { color: #b8d0e0; }
-.league-platino  .community-league-name     { color: #b8d0e0; }
-.league-platino  { border-color: rgba(184, 208, 224, 0.4); }
+.league-diamante .community-league-name {
+    color: #00c8ff;
+}
 
-.league-oro      .community-position-number { color: #f5a623; }
-.league-oro      .community-league-name     { color: #f5a623; }
-.league-oro      { border-color: rgba(245, 166, 35, 0.4); }
+.league-diamante {
+    border-color: rgba(0, 200, 255, 0.35);
+}
 
-.league-plata    .community-position-number { color: #8ea7b8; }
-.league-plata    .community-league-name     { color: #8ea7b8; }
-.league-plata    { border-color: rgba(142, 167, 184, 0.4); }
+.league-platino .community-position-number {
+    color: #b8d0e0;
+}
 
-.league-bronce   .community-position-number { color: #cd7f32; }
-.league-bronce   .community-league-name     { color: #cd7f32; }
-.league-bronce   { border-color: rgba(205, 127, 50, 0.4); }
+.league-platino .community-league-name {
+    color: #b8d0e0;
+}
 
-.league-madera   .community-position-number { color: #8b6042; }
-.league-madera   .community-league-name     { color: #8b6042; }
-.league-madera   { border-color: rgba(139, 96, 66, 0.4); }
+.league-platino {
+    border-color: rgba(184, 208, 224, 0.4);
+}
+
+.league-oro .community-position-number {
+    color: #f5a623;
+}
+
+.league-oro .community-league-name {
+    color: #f5a623;
+}
+
+.league-oro {
+    border-color: rgba(245, 166, 35, 0.4);
+}
+
+.league-plata .community-position-number {
+    color: #8ea7b8;
+}
+
+.league-plata .community-league-name {
+    color: #8ea7b8;
+}
+
+.league-plata {
+    border-color: rgba(142, 167, 184, 0.4);
+}
+
+.league-bronce .community-position-number {
+    color: #cd7f32;
+}
+
+.league-bronce .community-league-name {
+    color: #cd7f32;
+}
+
+.league-bronce {
+    border-color: rgba(205, 127, 50, 0.4);
+}
+
+.league-madera .community-position-number {
+    color: #8b6042;
+}
+
+.league-madera .community-league-name {
+    color: #8b6042;
+}
+
+.league-madera {
+    border-color: rgba(139, 96, 66, 0.4);
+}
 
 @media (max-width: 600px) {
     .profile-header-row {
         grid-template-columns: 1fr;
     }
+
     .community-badge {
         flex-direction: row;
         gap: 12px;
@@ -3198,12 +3262,15 @@ body::before {
         align-items: center;
         min-width: unset;
     }
+
     .community-league-icon {
         font-size: 2rem;
     }
+
     .community-position-number {
         font-size: 2.6rem;
     }
+
     .community-league-name {
         font-size: 0.75rem;
     }
@@ -3270,7 +3337,7 @@ body::before {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .pstat-icon {
@@ -3392,7 +3459,7 @@ body::before {
     border-radius: var(--radius-md);
     border: var(--border-light);
     background: var(--bg-primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     margin-bottom: 48px;
 }
 
@@ -3542,7 +3609,7 @@ body::before {
     white-space: nowrap;
 }
 
-.game-actions-cell > * + * {
+.game-actions-cell>*+* {
     margin-left: 6px;
 }
 
@@ -3754,18 +3821,22 @@ body::before {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-color: var(--clr-sand-300);
     }
+
     15% {
         box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(250, 204, 21, 0.35);
         border-color: #FFD700;
     }
+
     40% {
         box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 0 60px rgba(250, 204, 21, 0.35);
         border-color: #FFD700;
     }
+
     55% {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-color: var(--clr-sand-300);
     }
+
     100% {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         border-color: var(--clr-sand-300);
