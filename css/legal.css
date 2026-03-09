@@ -51,11 +51,11 @@
 .legal-content h3 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1A5C4F; /* Verde institucional */
+    color: var(--clr-ink-900, #2C241B);
     margin-top: 2rem;
     margin-bottom: 1rem;
     padding-bottom: 0.5rem;
-    border-bottom: 1px solid #E6DCC3;
+    border-bottom: 1px solid var(--clr-sand-300, #E6DCC3);
 }
 
 .legal-content h4 {
@@ -77,10 +77,10 @@
 .legal-content blockquote {
     margin: 1.5rem 0;
     padding: 1rem;
-    background-color: #F5F1E6;
-    border-left: 5px solid #1A5C4F;
+    background-color: var(--bg-secondary, #FAF9F6);
+    border-left: 5px solid var(--clr-rose-500, #D16BA5);
     font-style: italic;
-    color: #5C5A52;
+    color: var(--text-secondary, #8B7E66);
 }
 
 .legal-content table {
@@ -110,15 +110,15 @@
 }
 
 .btn-green {
-    background-color: #1A5C4F;
+    background-color: var(--clr-rose-500, #D16BA5);
     color: #FFFFFF;
-    border: 2px solid #1A5C4F;
+    border: 2px solid var(--clr-rose-500, #D16BA5);
     text-decoration: none;
 }
 
 .btn-green:hover {
-    background-color: #13463b;
-    border-color: #13463b;
+    background-color: var(--clr-rose-700, #A84B82);
+    border-color: var(--clr-rose-700, #A84B82);
     color: #FFFFFF;
 }
 
