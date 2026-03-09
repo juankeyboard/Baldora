@@ -106,7 +106,8 @@
 }
 
 .logo-header img {
-    max-width: 150px;
+    max-width: 300px;
+    width: 100%;
 }
 
 .btn-green {
@@ -128,4 +129,11 @@
     right: 20px;
     z-index: 1000;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* --- Responsive --- */
+@media (max-width: 480px) {
+    .logo-header img {
+        max-width: 150px;
+    }
 }
