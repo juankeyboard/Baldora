@@ -1,0 +1,131 @@
+/* legal.css */
+
+.legal-container {
+    max-width: 800px;
+    margin: 4rem auto;
+    padding: 2rem;
+    background-color: #FFF;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    font-family: 'Lexend', sans-serif;
+    color: #3D3B30;
+}
+
+.legal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #E6DCC3;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.legal-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #3D3B30;
+}
+
+.btn-back-legal {
+    text-decoration: none;
+    color: #3D3B30;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: 2px solid #E6DCC3;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.btn-back-legal:hover {
+    background-color: #F5F1E6;
+    border-color: #3D3B30;
+}
+
+.legal-updated {
+    font-size: 0.9rem;
+    color: #7A786E;
+    margin-bottom: 2rem;
+    text-align: right;
+}
+
+.legal-content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1A5C4F; /* Verde institucional */
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #E6DCC3;
+}
+
+.legal-content h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #3D3B30;
+    margin-top: 1.5rem;
+}
+
+.legal-content p, .legal-content li {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.legal-content ul, .legal-content ol {
+    padding-left: 2rem;
+}
+
+.legal-content blockquote {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background-color: #F5F1E6;
+    border-left: 5px solid #1A5C4F;
+    font-style: italic;
+    color: #5C5A52;
+}
+
+.legal-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+}
+
+.legal-content th, .legal-content td {
+    border: 1px solid #E6DCC3;
+    padding: 0.8rem;
+    text-align: left;
+}
+
+.legal-content th {
+    background-color: #F5F1E6;
+    font-weight: 700;
+}
+
+.logo-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.logo-header img {
+    max-width: 150px;
+}
+
+.btn-green {
+    background-color: #1A5C4F;
+    color: #FFFFFF;
+    border: 2px solid #1A5C4F;
+    text-decoration: none;
+}
+
+.btn-green:hover {
+    background-color: #13463b;
+    border-color: #13463b;
+    color: #FFFFFF;
+}
+
+.btn-floating {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}

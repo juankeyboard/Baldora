@@ -27,9 +27,9 @@
     <!-- FileSaver.js -->
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 
-    <!-- jsPDF - Generaci�n de PDF -->
+    <!-- jsPDF - Generacin de PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- html2pdf.js - Exportaci�n PDF -->
+    <!-- html2pdf.js - Exportacin PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Driver.js - Onboarding Tours -->
@@ -53,7 +53,7 @@
     </script>
 
     <script>
-        // Configuraci�n de Firebase (seg�n Main_doc_f8_AI.md)
+        // Configuracin de Firebase (segn Main_doc_f8_AI.md)
         const firebaseConfig = {
             apiKey: "AIzaSyDe9UK69r-s0ZiFIb2fNtS_AOouv2bWBhE",
             authDomain: "baldora.org",
@@ -73,6 +73,9 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+    <!-- REQ-002: Store & Legal styles -->
+    <link rel="stylesheet" href="css/store.css">
+    <link rel="stylesheet" href="css/legal.css">
 </head>
 
 <body>
@@ -140,6 +143,14 @@
         <!-- 5. Ayuda Tour -->
         <button type="button" id="btn-help-tour" class="floating-btn btn-help-tour"
             title="Ver tutorial">?</button>
+
+        <!-- 6. Tienda (REQ-002) — Solo visible con auth -->
+        <button type="button" id="btn-store-float" class="floating-btn store-float-btn"
+            title="Tienda">
+            <svg class="store-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/>
+            </svg>
+        </button>
 
     </div>
 
@@ -762,6 +773,213 @@
         </div>
     </div>
 
+    <!-- ===== VISTA DE TIENDA (REQ-002) ===== -->
+    <section id="store-view" class="view">
+        <div class="store-container">
+            <div class="store-header">
+                <h2>Tienda Baldora</h2>
+                <button class="btn-back-store" type="button" onclick="BaldoraStore.hide()">&#8592; Volver</button>
+            </div>
+
+            <div class="store-tabs">
+                <button class="store-tab active" id="store-tab-catalog" type="button">Catalogo</button>
+                <button class="store-tab" id="store-tab-history" type="button">Mis Compras</button>
+            </div>
+
+            <div class="store-catalog-section active">
+                <div class="store-products-grid">
+                    <!-- Productos se renderizan via JS -->
+                </div>
+            </div>
+
+            <div class="store-history-section">
+                <div class="store-history-list">
+                    <!-- Historial se renderiza via JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== VISTA DE POLITICA DE PRIVACIDAD (REQ-002) ===== -->
+    <section id="privacy-view" class="view">
+        <div class="legal-container">
+            <div class="legal-header">
+                <h2>Politica de Privacidad</h2>
+                <button class="btn-back-legal" type="button">&#8592; Volver</button>
+            </div>
+            <p class="legal-updated">Ultima actualizacion: 9 de marzo de 2026</p>
+            <div class="legal-content">
+                <h3>1. Datos que Baldora Recopila</h3>
+                <table>
+                    <thead>
+                        <tr><th>Dato</th><th>Fuente</th><th>Proposito</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Nickname</td><td>Usuario no autenticado</td><td>Identificar la sesion local</td></tr>
+                        <tr><td>Nombre de Google</td><td>Google Sign-In</td><td>Identidad del usuario autenticado</td></tr>
+                        <tr><td>Email</td><td>Google Sign-In</td><td>Asociacion de cuenta y acceso</td></tr>
+                        <tr><td>Foto de perfil</td><td>Google Sign-In</td><td>Mostrar avatar en interfaz</td></tr>
+                        <tr><td>Historial de partidas</td><td>Uso de la app</td><td>Seguimiento de progreso</td></tr>
+                        <tr><td>Estadisticas agregadas</td><td>Uso de la app</td><td>Analiticas personales y comunidad</td></tr>
+                        <tr><td>CSV exportado</td><td>Sesion de juego</td><td>Descarga local de resultados</td></tr>
+                        <tr><td>Historial de compras</td><td>Tienda</td><td>Consulta y seguimiento de compras</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>2. Datos que Baldora No Recopila</h3>
+                <ul>
+                    <li>Datos de tarjetas de credito o debito directamente en servidores propios.</li>
+                    <li>Datos biometricos.</li>
+                    <li>Ubicacion geografica precisa.</li>
+                    <li>Contactos del dispositivo.</li>
+                    <li>Datos sensibles no necesarios para la funcion educativa.</li>
+                </ul>
+
+                <h3>3. Uso de los Datos</h3>
+                <p>Los datos se usan exclusivamente para:</p>
+                <ul>
+                    <li>Permitir el uso de Baldora como herramienta educativa interactiva.</li>
+                    <li>Guardar el historial de partidas y el progreso del usuario autenticado.</li>
+                    <li>Mostrar analiticas, metricas y posicion comunitaria.</li>
+                    <li>Permitir exportacion de sesiones en formato CSV.</li>
+                    <li>Habilitar funciones de tienda para usuarios registrados.</li>
+                    <li>Mejorar la experiencia y estabilidad del producto.</li>
+                </ul>
+
+                <h3>4. Comparticion con Terceros</h3>
+                <table>
+                    <thead>
+                        <tr><th>Tercero</th><th>Datos compartidos</th><th>Proposito</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Google / Firebase</td><td>Datos de autenticacion, perfil y persistencia</td><td>Login, hosting, base de datos</td></tr>
+                        <tr><td>Shopify</td><td>Datos necesarios para compra</td><td>Comercio electronico</td></tr>
+                    </tbody>
+                </table>
+                <p>Baldora no vende datos personales a terceros.</p>
+
+                <h3>5. Cookies y Tecnologias Similares</h3>
+                <ul>
+                    <li>Se usan cookies esenciales de sesion y autenticacion.</li>
+                    <li>Cookies tecnicas necesarias para Firebase.</li>
+                    <li>No se activan cookies publicitarias sin consentimiento.</li>
+                </ul>
+
+                <h3>6. Derechos del Usuario</h3>
+                <p>De acuerdo con la Ley 1581 de 2012, el usuario puede:</p>
+                <ul>
+                    <li><strong>Acceso:</strong> Conocer que datos se almacenan.</li>
+                    <li><strong>Rectificacion:</strong> Solicitar correccion de datos inexactos.</li>
+                    <li><strong>Supresion:</strong> Solicitar eliminacion de cuenta y datos.</li>
+                    <li><strong>Portabilidad:</strong> Solicitar exportacion de datos disponibles.</li>
+                    <li><strong>Revocacion:</strong> Retirar consentimiento.</li>
+                </ul>
+
+                <h3>7. Transferencias Internacionales</h3>
+                <p>Parte de la infraestructura puede operar en servidores fuera de Colombia, incluyendo Google/Firebase y Shopify. El usuario acepta esta transferencia al usar las funciones que dependen de dichos proveedores.</p>
+
+                <h3>8. Menores de Edad</h3>
+                <p>Baldora es una herramienta educativa y puede ser usada por estudiantes. Si el usuario es menor de edad y va a crear cuenta, realizar compras o compartir datos personales, se recomienda autorizacion y acompanamiento de padre, madre o acudiente.</p>
+
+                <h3>9. Retencion de Datos</h3>
+                <table>
+                    <thead>
+                        <tr><th>Tipo de dato</th><th>Periodo de referencia</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Perfil autenticado</td><td>Mientras la cuenta este activa</td></tr>
+                        <tr><td>Historial de partidas</td><td>Hasta solicitud de eliminacion</td></tr>
+                        <tr><td>Registros de compras</td><td>Segun obligaciones legales</td></tr>
+                        <tr><td>Consentimientos</td><td>Periodo razonable de evidencia legal</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== VISTA DE TERMINOS Y CONDICIONES (REQ-002) ===== -->
+    <section id="terms-view" class="view">
+        <div class="legal-container">
+            <div class="legal-header">
+                <h2>Terminos y Condiciones</h2>
+                <button class="btn-back-legal" type="button">&#8592; Volver</button>
+            </div>
+            <p class="legal-updated">Ultima actualizacion: 9 de marzo de 2026</p>
+            <div class="legal-content">
+                <h3>1. Aceptacion</h3>
+                <p>Al usar Baldora, el usuario acepta estos terminos. Si crea cuenta o usa funciones restringidas, puede requerirse aceptacion expresa adicional.</p>
+
+                <h3>2. Naturaleza del Servicio</h3>
+                <p>Baldora es una aplicacion web educativa enfocada en la practica de tablas de multiplicar y agilidad mental. Las metricas y clasificaciones son herramientas de apoyo y no constituyen certificacion oficial de rendimiento academico.</p>
+
+                <h3>3. Cuenta de Usuario</h3>
+                <ul>
+                    <li>La autenticacion con Google es opcional.</li>
+                    <li>Sin login, el usuario puede usar el flujo base con nickname manual.</li>
+                    <li>Con login se habilitan funciones adicionales: historial en la nube, perfil, analiticas, comunidad y tienda.</li>
+                    <li>El usuario es responsable del uso seguro de su cuenta de Google.</li>
+                </ul>
+
+                <h3>4. Uso Aceptable</h3>
+                <p>El usuario se compromete a no:</p>
+                <ul>
+                    <li>Manipular el sistema para alterar rankings o estadisticas de forma fraudulenta.</li>
+                    <li>Intentar acceder a datos de otros usuarios.</li>
+                    <li>Interferir con la disponibilidad o seguridad de la plataforma.</li>
+                    <li>Usar la tienda o los enlaces de compra con fines ilicitos.</li>
+                </ul>
+
+                <h3>5. Compras y Tienda</h3>
+                <ul>
+                    <li>La tienda esta disponible para usuarios registrados.</li>
+                    <li>Los botones de compra redirigen a Shopify para completar la transaccion.</li>
+                    <li>La informacion visual se adapta al estilo de Baldora aunque la compra final ocurra en Shopify.</li>
+                    <li>Enlaces, precios, imagenes y disponibilidad dependen de la integracion con Shopify.</li>
+                </ul>
+
+                <h3>6. Historial de Compras</h3>
+                <p>El usuario registrado puede consultar su historial de compras por fecha, sujeto a la implementacion tecnica disponible.</p>
+
+                <h3>7. Pagos, Reembolsos y Retracto</h3>
+                <p>Las condiciones de pago, retracto y reembolso se alinean con el flujo de Shopify y la legislacion colombiana. Para productos digitales, las reglas pueden variar segun tipo de entrega y momento de acceso.</p>
+
+                <h3>8. Propiedad Intelectual</h3>
+                <p>El contenido de Baldora, incluyendo interfaz, textos, imagenes, estructura, logica de juego y recursos visuales, pertenece a sus titulares correspondientes. Queda prohibida la reproduccion o explotacion comercial no autorizada.</p>
+
+                <h3>9. Limitacion de Responsabilidad</h3>
+                <p>Baldora se ofrece segun disponibilidad razonable. No se garantiza disponibilidad ininterrumpida. Baldora no responde por fallos atribuibles a terceros (Google, Firebase, Shopify, conectividad).</p>
+
+                <h3>10. Soporte</h3>
+                <p>El proyecto ofrece canales de contacto visibles. Las incidencias relacionadas con cuenta, datos o compras pueden registrarse con fecha y trazabilidad.</p>
+
+                <h3>11. Jurisdiccion</h3>
+                <p>Este documento se rige por las leyes de la Republica de Colombia. La autoridad administrativa de referencia es la SIC.</p>
+
+                <h3>12. Modificaciones</h3>
+                <p>Baldora puede actualizar estos documentos cuando cambie el producto o su modelo comercial. Si el cambio afecta derechos del usuario, se recomienda nueva aceptacion expresa.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== MODAL DE CONSENTIMIENTO LEGAL (REQ-002) ===== -->
+    <div id="consent-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Terminos y Privacidad</h3>
+            <p>Para continuar usando tu cuenta, por favor revisa y acepta nuestra
+                <a href="#" id="consent-link-privacy">Politica de Privacidad</a> y
+                <a href="#" id="consent-link-terms">Terminos y Condiciones</a>.
+            </p>
+            <label class="consent-checkbox">
+                <input type="checkbox" id="consent-check">
+                He leido y acepto los terminos y la politica de privacidad
+            </label>
+            <div class="consent-actions">
+                <button class="btn-secondary" id="btn-consent-decline" type="button">Cancelar</button>
+                <button class="btn-primary" id="btn-consent-accept" type="button" disabled>Aceptar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== FOOTER INSTITUCIONAL ===== -->
     <footer class="main-footer">
         <div class="footer-content">
@@ -774,11 +992,13 @@
 
             <!-- Legal -->
             <div class="footer-legal">
-                <span>©2026 Baldora</span>
+                <span>©2026 Baldora.org</span>
                 <span class="separator"></span>
-                <span>Cali-Colombia</span>
+                <a href="politica-de-privacidad.html" class="footer-legal-link">Privacidad</a>
                 <span class="separator"></span>
-                <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">MIT License</a>
+                <a href="terminos-y-condiciones.html" class="footer-legal-link">Términos</a>
+                <span class="separator"></span>
+                <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">Licencia MIT</a>
                 <span class="separator"></span>
                 <span class="visit-counter">
                     <svg class="icon-visitors" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
