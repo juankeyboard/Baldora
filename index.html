@@ -76,20 +76,33 @@
 </head>
 
 <body>
-    <!-- Boton de Audio Toggle (Global) -->
-    <button type="button" id="btn-audio-toggle" class="audio-toggle-btn" onclick="AudioManager.toggleMute()"
-        title="Silenciar">&#128266;</button>
+    <!-- ===== BOTONES FLOTANTES (Grupo Derecho) ===== -->
+    <div id="floating-buttons-group" class="floating-buttons-group">
 
-    <!-- Selector de Idioma (i18n) -->
-    <div id="lang-selector-wrapper" class="lang-selector-wrapper">
-        <select id="lang-selector" class="lang-selector" onchange="I18n.setLanguage(this.value)" title="Language / Idioma">
-            <option value="es">ES</option>
-            <option value="en">EN</option>
-        </select>
+        <!-- 1. Audio Toggle -->
+        <button type="button" id="btn-audio-toggle" class="floating-btn audio-toggle-btn"
+            onclick="AudioManager.toggleMute()" title="Silenciar">&#128266;</button>
+
+        <!-- 2. Idioma Toggle (reemplaza select) -->
+        <button type="button" id="btn-lang-toggle" class="floating-btn lang-toggle-btn"
+            onclick="I18n.toggleLanguage()" title="Cambiar idioma">
+            <!-- SVG de bandera se inyecta via JS -->
+        </button>
+
+        <!-- 3. Ayuda Tour -->
+        <button type="button" id="btn-help-tour" class="floating-btn btn-help-tour"
+            title="Ver tutorial">?</button>
+
+        <!-- 4. Patreon -->
+        <a href="https://www.patreon.com/15270903/join" target="_blank" rel="noopener noreferrer"
+           id="btn-patreon-float" class="floating-btn patreon-float-btn"
+           aria-label="Apoyanos en Patreon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M15.386.524c-4.764 0-8.64 3.876-8.64 8.64 0 4.75 3.876 8.613 8.64 8.613 4.75 0 8.614-3.864 8.614-8.613C24 4.4 20.136.524 15.386.524zM.003 23.476h4.22V.524H.003v22.952z"/>
+            </svg>
+        </a>
+
     </div>
-
-    <!-- Boton de Ayuda - Repetir Tour (Global) -->
-    <button type="button" id="btn-help-tour" class="btn-help-tour" title="Ver tutorial">?</button>
 
     <!-- ===== BOTÓN DE AUTENTICACIÓN GOOGLE (Feature 14, Global, Fixed) ===== -->
     <div id="auth-header-btn" class="auth-header-btn">

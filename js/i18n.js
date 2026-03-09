@@ -311,6 +311,7 @@ const I18n = {
         this.currentLang = (saved && this.dict[saved]) ? saved : 'es';
         this._updateSelector();
         this.applyTranslations();
+        this.updateFlagIcon();
     },
 
     /**
@@ -330,6 +331,7 @@ const I18n = {
         localStorage.setItem(this.STORAGE_KEY, code);
         this._updateSelector();
         this.applyTranslations();
+        this.updateFlagIcon();
     },
 
     /**
@@ -350,6 +352,43 @@ const I18n = {
         scope.querySelectorAll('[data-i18n-title]').forEach(el => {
             el.title = this.t(el.dataset.i18nTitle);
         });
+    },
+
+    // ── Toggle y bandera ────────────────────────────────────────────────────
+
+    /**
+     * Alterna entre 'es' y 'en' y actualiza el icono de bandera.
+     */
+    toggleLanguage() {
+        const newLang = this.currentLang === 'es' ? 'en' : 'es';
+        this.setLanguage(newLang);
+    },
+
+    /**
+     * Actualiza el SVG de bandera en el boton de idioma.
+     */
+    updateFlagIcon() {
+        const btn = document.getElementById('btn-lang-toggle');
+        if (!btn) return;
+
+        const flagES = '<svg viewBox="0 0 36 36" width="24" height="24">'
+            + '<rect fill="#C60A1D" width="36" height="36" rx="4"/>'
+            + '<rect fill="#FFC400" y="9" width="36" height="18"/>'
+            + '</svg>';
+
+        const flagEN = '<svg viewBox="0 0 36 36" width="24" height="24">'
+            + '<rect fill="#B22234" width="36" height="36" rx="4"/>'
+            + '<rect fill="#FFF" y="2.77" width="36" height="2.77"/>'
+            + '<rect fill="#FFF" y="8.31" width="36" height="2.77"/>'
+            + '<rect fill="#FFF" y="13.85" width="36" height="2.77"/>'
+            + '<rect fill="#FFF" y="19.38" width="36" height="2.77"/>'
+            + '<rect fill="#FFF" y="24.92" width="36" height="2.77"/>'
+            + '<rect fill="#FFF" y="30.46" width="36" height="2.77"/>'
+            + '<rect fill="#3C3B6E" width="14.4" height="19.38"/>'
+            + '</svg>';
+
+        btn.innerHTML = this.currentLang === 'es' ? flagES : flagEN;
+        btn.title = this.currentLang === 'es' ? 'Cambiar idioma' : 'Change language';
     },
 
     // ── Internos ──────────────────────────────────────────────────────────────
