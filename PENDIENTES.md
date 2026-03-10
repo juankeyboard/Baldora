@@ -3,9 +3,9 @@
 Este documento centraliza las tareas pendientes, errores detectados y mejoras planificadas para el proyecto.
 
 ## 🔴 Prioridad Alta (Errores y Bloqueos)
-- [ ] **Reparar cálculo de posición:** El sistema de "Posición en la Comunidad" (Tiers/Ligas) se averió tras el último despliegue. Revisar `cloudSync.js` y las reglas de Firebase.
-- [ ] **Flujo de Inicio:** El botón "COMENZAR" no avanza correctamente hacia la pantalla de selección de multijugador cuando este modo está seleccionado.
-- [ ] **Configuración Multijugador:** Al entrar a la selección de multijugador, todas las opciones en las tablas de factores deben aparecer seleccionadas por defecto.
+- [x] **Reparar cálculo de posición:** El update multi-ruta desde la raíz de Firebase bloqueaba si algún nodo no tenía permiso. Separado en 2 llamadas independientes en `cloudSync.js` (`_recalculateMyTier`). *(Resuelto: 2026-03-10)*
+- [x] **Flujo de Inicio:** Botón "COMENZAR" en modo VS sin login ahora dispara automáticamente Google Sign-In y retoma el flujo VS tras autenticarse (`app.js` + `auth.js`). *(Resuelto: 2026-03-10)*
+- [x] **Configuración Multijugador:** Al seleccionar modo VS, ahora SIEMPRE se fuerzan todas las 15 tablas activas (independiente del estado previo) en `app.js updateModeUI()`. *(Resuelto: 2026-03-10)*
 
 ## 🟡 Prioridad Media (UI/UX y Ajustes Visuales)
 - [ ] **Estandarización de Botones:** Cambiar el estilo de todos los botones "Volver" (o equivalentes de retroceso) para que sean de color VERDE.
@@ -25,4 +25,4 @@ Este documento centraliza las tareas pendientes, errores detectados y mejoras pl
 - Consultar `docs/f14_UserSystem.md` y `docs/f15_Multiplayer.md` para especificaciones técnicas detalladas.
 
 ---
-*Última actualización: 9 de marzo de 2026*
+*Última actualización: 10 de marzo de 2026*
