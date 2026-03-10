@@ -801,5 +801,181 @@
     .battle-header {
         padding: 6px 16px;
     }
-}`n/* ===== GHOST SELECTION UI ===== */`n.ghost-selection-content { max-width: 500px !important; max-height: 80vh; display: flex; flex-direction: column; }`n.ghost-list-container { flex: 1; overflow-y: auto; margin: 20px 0; padding-right: 10px; min-height: 200px; max-height: 50vh; }`n.ghost-loader { text-align: center; padding: 40px; color: var(--text-muted); font-style: italic; }`n.ghost-league-header { font-family: var(--font-display); font-size: 0.8rem; padding: 8px 12px; margin-top: 15px; border-radius: 6px; letter-spacing: 0.1em; font-weight: 700; background: rgba(0,0,0,0.05); text-transform: uppercase; }`n.ghost-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--clr-sand-200); transition: background 0.2s; }`n.ghost-item:hover { background: var(--clr-sand-100); }`n.ghost-info { display: flex; flex-direction: column; gap: 2px; }`n.ghost-name { font-weight: 700; color: var(--clr-ink-900); }`n.ghost-stats { font-size: 0.75rem; color: var(--text-muted); }`n.btn-challenge { background: var(--clr-rose-500); color: white; border: none; padding: 6px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 800; cursor: pointer; transition: transform 0.2s, background 0.2s; }`n.btn-challenge:hover { background: var(--clr-rose-600); transform: scale(1.05); }`n.ghost-league-header.league-diamante { color: #00c8ff; background: rgba(0, 200, 255, 0.1); }`n.ghost-league-header.league-platino { color: #b8d0e0; background: rgba(184, 208, 224, 0.1); }`n.ghost-league-header.league-oro { color: #f5a623; background: rgba(245, 166, 35, 0.1); }`n.ghost-league-header.league-plata { color: #8ea7b8; background: rgba(142, 167, 184, 0.1); }`n.ghost-league-header.league-bronce { color: #cd7f32; background: rgba(205, 127, 50, 0.1); }`n.ghost-league-header.league-madera { color: #8b6042; background: rgba(139, 96, 66, 0.1); }
-`n/* ===== GHOST SELECTION FULL VIEW ===== */`n#ghost-selection-view .profile-container { background: var(--clr-sand-50); border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20px; }`n.ghost-list-full-container { padding: 20px; background: white; border-radius: var(--radius-md); border: 1px solid var(--clr-sand-200); margin-bottom: 40px; }`n.ghost-list-full-container .ghost-item { padding: 15px 20px; border-radius: 12px; margin-bottom: 10px; background: var(--clr-sand-50); border: 1px solid transparent; transition: all 0.3s ease; }`n.ghost-list-full-container .ghost-item:hover { border-color: var(--clr-rose-200); background: white; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.1); transform: translateY(-2px); }`n.ghost-list-full-container .ghost-league-header { font-size: 1rem; margin-top: 30px; margin-bottom: 15px; border-left: 4px solid currentColor; padding-left: 15px; background: none; }`n.ghost-list-full-container .ghost-name { font-size: 1.1rem; }`n.ghost-list-full-container .btn-challenge { padding: 10px 25px; font-size: 0.9rem; }
+}
+
+/* ─── Ghost Selection: Layout base ─────────────────────── */
+.ghost-selection-content {
+    max-width: 500px !important;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.ghost-list-container {
+    flex: 1;
+    overflow-y: auto;
+    margin: 20px 0;
+    padding-right: 10px;
+    min-height: 200px;
+    max-height: 50vh;
+}
+
+.ghost-loader {
+    text-align: center;
+    padding: 40px;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ─── Ghost Selection Full View ────────────────────────── */
+#ghost-selection-view .profile-container {
+    background: var(--clr-sand-50);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+
+.ghost-list-full-container {
+    padding: 20px;
+    background: white;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--clr-sand-200);
+    margin-bottom: 40px;
+}
+
+/* ─── Ghost Selection: Hall of Fame Table ──────────────── */
+.ghost-count-msg {
+    font-size: 0.82rem;
+    color: var(--text-muted, #888);
+    margin-bottom: 12px;
+    padding-left: 4px;
+}
+
+.ghost-table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius-md, 12px);
+    border: 1px solid var(--clr-sand-300, #e8ddd0);
+    background: var(--bg-primary, #fff);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.ghost-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.ghost-table thead th {
+    padding: 12px 14px;
+    text-align: left;
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary, #666);
+    background: var(--bg-secondary, #faf7f4);
+    border-bottom: 2px solid var(--clr-sand-300, #e8ddd0);
+    white-space: nowrap;
+}
+
+.ghost-table tbody td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--clr-sand-200, #f0ebe4);
+    color: var(--text-primary, #1a1a1a);
+    vertical-align: middle;
+}
+
+.ghost-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ghost-table tbody tr:hover td {
+    background: var(--bg-secondary, #faf7f4);
+}
+
+.ghost-table tbody tr.ghost-row-me td {
+    background: rgba(209, 107, 165, 0.05);
+}
+
+.ghost-table tbody tr.ghost-row-me:hover td {
+    background: rgba(209, 107, 165, 0.09);
+}
+
+.ghost-td-rank {
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-weight: 700;
+    color: var(--text-secondary, #888);
+    font-size: 0.82rem;
+    min-width: 36px;
+}
+
+.ghost-td-name {
+    font-weight: 700;
+    min-width: 120px;
+}
+
+.ghost-you-tag {
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--clr-rose-500, #e91e63);
+    margin-left: 4px;
+}
+
+.ghost-td-score,
+.ghost-td-time {
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.ghost-td-action {
+    white-space: nowrap;
+}
+
+/* Liga pill */
+.ghost-league-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.ghost-league-pill.league-diamante { background: rgba(0,200,255,0.12); color: #00a8d8; }
+.ghost-league-pill.league-platino  { background: rgba(180,200,215,0.18); color: #607d8b; }
+.ghost-league-pill.league-oro      { background: rgba(245,166,35,0.12); color: #c47d00; }
+.ghost-league-pill.league-plata    { background: rgba(142,167,184,0.12); color: #546e7a; }
+.ghost-league-pill.league-bronce   { background: rgba(205,127,50,0.12); color: #a0522d; }
+.ghost-league-pill.league-madera   { background: rgba(139,96,66,0.12); color: #795548; }
+
+/* Botones RETAR / SUPERAR */
+.btn-challenge {
+    background: var(--clr-rose-500, #e91e63);
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 999px;
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+}
+
+.btn-challenge:hover {
+    background: #c2185b;
+    transform: scale(1.05);
+}
+
+.btn-challenge-self {
+    background: #2e7d32;
+}
+
+.btn-challenge-self:hover {
+    background: #1b5e20;
+}

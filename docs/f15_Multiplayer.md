@@ -55,4 +55,41 @@ Al finalizar cualquier duelo, el sistema debe:
 - [x] Headers de liga con colores distintivos.
 - [x] Botones de reto ("RETAR") con feedback visual.
 - [x] BotÃ³n de "Volver" en color verde esmeralda.
-`n---`n# Reporte de Sesión y Estado Actual (10 de Marzo, 2026)`n`n## ??? Trabajo Realizado`n1. **Cambio de Paradigma (Asíncrono):** Se eliminó el sistema de matchmaking en tiempo real (Firebase Invites) en favor de un sistema de \\\"Fantasmas\\\" (Ghosts) basado en partidas guardadas.`n2. **Arquitectura de Vistas (SPA):** Evolución del selector de oponentes de un modal emergente a una vista de pantalla completa integrada en el flujo de la aplicación (\`GHOST_SELECTION\`).`n3. **Motor de Simulación (Ghost Engine):** Implementación de un bot en \`battleManager.js\` que replica exactamente los tiempos de respuesta del oponente seleccionado.`n4. **Ingeniería de Ligas y Tiers:** `n   - Implementación de un cálculo atómico de \`community_score\` (Aciertos + Velocidad + Precisión).`n   - Corrección de bugs de sobreescritura en transacciones de Firebase.`n   - Implementación de \\\"Arquitectura Segura\\\" para evitar errores de permisos (\`PERMISSION_DENIED\`) al intentar actualizar a otros jugadores.`n5. **Auto-Migración de Datos:** Creación de un script en \`CloudSync.js\` que promueve automáticamente la mejor de las partidas antiguas (legacy) a una \\\"Sesión Fantasma\\\" retable en el Salón de la Fama.`n`n## ?? Problemas Actuales y Pendientes`n1. **Consistencia de Datos (Fantasmas):** A pesar de la migración, algunos usuarios reportan que el listado del Salón de la Fama aparece vacío (\`leaderboard/ghosts\`). Se sospecha de una latencia en la propagación de datos tras el borrado masivo previo.`n2. **Fuga de Recursos SFX:** Errores 404 detectados en la consola para los archivos \`audio/sfx/baldora_sfx_win.mp3\` y \`gameover.mp3\`. Los nombres de los archivos en el servidor no coinciden con las llamadas en \`audio.js\`.`n3. **Latencia de App Check:** Se detectan errores 403 intermitentes en la validación de tokens de Firebase App Check, lo que puede retrasar la carga de estadísticas en el primer inicio de sesión.`n4. **Visualización de Ligas:** Persistencia intermitente del estado \\\"SIN LIGA\\\" en el perfil de usuario debido a la falta de récords globales (\`community_benchmarks\`) cuando el sistema se reinicia desde cero (efecto \\\"Huevo o Gallina\\\").`n`n## ?? Próximos Pasos Sugeridos`n- Verificar manualmente en la consola de Firebase si el nodo \`leaderboard/ghosts\` contiene datos después de una partida.`n- Renombrar los archivos de audio para corregir los errores 404.`n- Ajustar las reglas de seguridad de Firebase para permitir el incremento de benchmarks globales de forma anónima o controlada.
+`n---`n# Reporte de Sesiï¿½n y Estado Actual (10 de Marzo, 2026)`n`n## ??? Trabajo Realizado`n1. **Cambio de Paradigma (Asï¿½ncrono):** Se eliminï¿½ el sistema de matchmaking en tiempo real (Firebase Invites) en favor de un sistema de \\\"Fantasmas\\\" (Ghosts) basado en partidas guardadas.`n2. **Arquitectura de Vistas (SPA):** Evoluciï¿½n del selector de oponentes de un modal emergente a una vista de pantalla completa integrada en el flujo de la aplicaciï¿½n (\`GHOST_SELECTION\`).`n3. **Motor de Simulaciï¿½n (Ghost Engine):** Implementaciï¿½n de un bot en \`battleManager.js\` que replica exactamente los tiempos de respuesta del oponente seleccionado.`n4. **Ingenierï¿½a de Ligas y Tiers:** `n   - Implementaciï¿½n de un cï¿½lculo atï¿½mico de \`community_score\` (Aciertos + Velocidad + Precisiï¿½n).`n   - Correcciï¿½n de bugs de sobreescritura en transacciones de Firebase.`n   - Implementaciï¿½n de \\\"Arquitectura Segura\\\" para evitar errores de permisos (\`PERMISSION_DENIED\`) al intentar actualizar a otros jugadores.`n5. **Auto-Migraciï¿½n de Datos:** Creaciï¿½n de un script en \`CloudSync.js\` que promueve automï¿½ticamente la mejor de las partidas antiguas (legacy) a una \\\"Sesiï¿½n Fantasma\\\" retable en el Salï¿½n de la Fama.`n`n## ?? Problemas Actuales y Pendientes`n1. **Consistencia de Datos (Fantasmas):** A pesar de la migraciï¿½n, algunos usuarios reportan que el listado del Salï¿½n de la Fama aparece vacï¿½o (\`leaderboard/ghosts\`). Se sospecha de una latencia en la propagaciï¿½n de datos tras el borrado masivo previo.`n2. **Fuga de Recursos SFX:** Errores 404 detectados en la consola para los archivos \`audio/sfx/baldora_sfx_win.mp3\` y \`gameover.mp3\`. Los nombres de los archivos en el servidor no coinciden con las llamadas en \`audio.js\`.`n3. **Latencia de App Check:** Se detectan errores 403 intermitentes en la validaciï¿½n de tokens de Firebase App Check, lo que puede retrasar la carga de estadï¿½sticas en el primer inicio de sesiï¿½n.`n4. **Visualizaciï¿½n de Ligas:** Persistencia intermitente del estado \\\"SIN LIGA\\\" en el perfil de usuario debido a la falta de rï¿½cords globales (\`community_benchmarks\`) cuando el sistema se reinicia desde cero (efecto \\\"Huevo o Gallina\\\").`n`n## ?? Prï¿½ximos Pasos Sugeridos`n- Verificar manualmente en la consola de Firebase si el nodo \`leaderboard/ghosts\` contiene datos despuï¿½s de una partida.`n- Renombrar los archivos de audio para corregir los errores 404.`n- Ajustar las reglas de seguridad de Firebase para permitir el incremento de benchmarks globales de forma anï¿½nima o controlada.
+
+---
+
+## 5. Historial de Implementacion y Correcciones (2026-03-10)
+
+### 5.1 Problemas encontrados durante implementacion
+
+| # | Problema | Causa raiz | Solucion |
+|---|----------|-----------|---------|
+| 1 | Listado de oponentes siempre vacio | Se leia de `leaderboard/ghosts` que estaba vacio por reset previo del servidor | Cambiar fuente a `leaderboard/players` (se actualiza en cada partida) |
+| 2 | Flag `ghost_available` nunca escrito en players existentes | `_ensureGhostExists` creaba el ghost pero no marcaba el flag en `leaderboard/players` | Agregar `leaderboard/players/{uid}/ghost_available: true` en la migracion |
+| 3 | Filtro `ghost_available === true` bloqueaba a todos | El flag solo se escribia en partidas nuevas post-deploy, no para usuarios historicos | Cambiar filtro a `community_score !== undefined` (cualquier jugador que haya guardado una partida) |
+| 4 | Tier/league en `leaderboard/ghosts` siempre en DIAMANTE | `saveGame` hardcodeaba `tier:1, league:'DIAMANTE'`; `_recalculateMyTier` no actualizaba ghosts | `_recalculateMyTier` ahora tambien actualiza `leaderboard/ghosts/{uid}` |
+| 5 | Update multi-ruta fallaba silenciosamente por permisos Firebase | `db.ref().update(paths)` desde la raiz falla completo si cualquier ruta tiene permiso denegado | Separado en 2 llamadas independientes con `.catch()` para la publica |
+
+### 5.2 Flujo de datos actual (estado funcional)
+
+```
+saveGame()
+  |-- users/{uid}/games/{gameId}          <- partida completa
+  |-- users/{uid}/stats                   <- acumulados + community_score
+  |-- users/{uid}/best_session_ghost      <- respuestas del mejor ghost
+  |-- leaderboard/players/{uid}           <- displayName, score, last_played, ghost_available
+  |-- leaderboard/ghosts/{uid}            <- nickname, score, avg_time_ms (solo si es mejor ghost)
+  |-- _recalculateMyTier()
+        |-- users/{uid}/stats             <- community_tier, community_league, community_rank
+        |-- leaderboard/players/{uid}     <- tier, league, rank
+        |-- leaderboard/ghosts/{uid}      <- tier, league (sincronizado)
+```
+
+### 5.3 Fuente de datos del Hall of Fame
+
+El listado de oponentes lee de **`leaderboard/players`** (fuente de verdad), enriquecido con datos de `leaderboard/ghosts` cuando existen (aciertos y tiempo del mejor ghost). Se muestran todos los jugadores con `community_score` definido.
+
+### 5.4 Pendientes de la funcionalidad multijugador
+
+Ver `PENDIENTES.md` -- el flujo completo de extremo a extremo (seleccion -> duelo -> guardado de resultado) aun requiere validacion integral.

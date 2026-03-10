@@ -110,51 +110,64 @@ const BattleManager = (() => {
                 return;
             }
 
-            // Organizar por Ligas y Score (Mejor a Peor)
-            const leagues = ['DIAMANTE', 'PLATINO', 'ORO', 'PLATA', 'BRONCE', 'MADERA'];
+            // Ordenar todos los players por rank asc (o score desc si no hay rank)
+            players.sort((a, b) => {
+                if (a.rank && b.rank) return a.rank - b.rank;
+                return (b.score || b.community_score) - (a.score || a.community_score);
+            });
+
             const leagueIcons = {
                 'DIAMANTE': '\uD83D\uDC8E', 'PLATINO': '\uD83C\uDFC5', 'ORO': '\uD83E\uDD47',
                 'PLATA': '\uD83E\uDD48', 'BRONCE': '\uD83E\uDD49', 'MADERA': '\uD83E\uDEB5'
             };
 
-            leagues.forEach(league => {
-                const leaguePlayers = players.filter(p => p.league === league || (league === 'MADERA' && !p.league));
-                if (leaguePlayers.length === 0) return;
+            const rows = players.map((player, i) => {
+                const isMe = player.uid === myUid;
+                const statsText = player.score !== null ? player.score : '\u2014';
+                const timeText = player.avg_time_ms !== null ? `${player.avg_time_ms}ms` : '\u2014';
+                const icon = leagueIcons[player.league] || '\uD83C\uDFAE';
+                const rankDisplay = player.rank ? `#${player.rank}` : `#${i + 1}`;
 
-                // Header de liga
-                const header = document.createElement('div');
-                header.className = `ghost-league-header league-${league.toLowerCase()}`;
-                header.innerHTML = (leagueIcons[league] || '') + ' ' + league;
-                listContainer.appendChild(header);
+                return `
+                    <tr class="${isMe ? 'ghost-row-me' : ''}">
+                        <td class="ghost-td-rank">${rankDisplay}</td>
+                        <td class="ghost-td-name">${player.nickname}${isMe ? ' <span class="ghost-you-tag">(T\u00fa)</span>' : ''}</td>
+                        <td class="ghost-td-league">
+                            <span class="ghost-league-pill league-${(player.league || 'madera').toLowerCase()}">
+                                ${icon} ${player.league || 'MADERA'}
+                            </span>
+                        </td>
+                        <td class="ghost-td-score">${statsText}</td>
+                        <td class="ghost-td-time">${timeText}</td>
+                        <td class="ghost-td-action">
+                            <button class="btn-challenge${isMe ? ' btn-challenge-self' : ''}"
+                                onclick="BattleManager.startGhostBattle('${player.uid}')">
+                                ${isMe ? 'SUPERAR' : 'RETAR'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
 
-                // Ordenar: por score de ghost desc, fallback a community_score
-                leaguePlayers.sort((a, b) => (b.score || b.community_score) - (a.score || a.community_score));
-
-                leaguePlayers.forEach(player => {
-                    const item = document.createElement('div');
-                    item.className = 'ghost-item';
-                    const isMe = player.uid === myUid;
-
-                    const statsText = player.score !== null
-                        ? player.score + ' aciertos \u00B7 ' + player.avg_time_ms + 'ms avg'
-                        : 'Score: ' + player.community_score.toFixed(1);
-
-                    const rankText = player.rank ? '#' + player.rank : '';
-
-                    item.innerHTML = `
-                        <div class="ghost-info">
-                            <span class="ghost-name">${player.nickname}${isMe ? ' <em>(Tu)</em>' : ''}</span>
-                            <span class="ghost-league-badge">${leagueIcons[player.league] || ''} ${player.league} ${rankText}</span>
-                            <span class="ghost-stats">${statsText}</span>
-                        </div>
-                        <button class="btn-challenge${isMe ? ' btn-challenge-self' : ''}"
-                            onclick="BattleManager.startGhostBattle('${player.uid}')">
-                            ${isMe ? 'SUPERAR' : 'RETAR'}
-                        </button>
-                    `;
-                    listContainer.appendChild(item);
-                });
-            });
+            // Contador de jugadores + tabla HTML
+            listContainer.innerHTML = `
+                <p class="ghost-count-msg">${players.length} cavern\u00edcola${players.length !== 1 ? 's' : ''} en la comunidad</p>
+                <div class="ghost-table-wrapper">
+                    <table class="ghost-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Jugador</th>
+                                <th>Liga</th>
+                                <th>Aciertos</th>
+                                <th>Tiempo avg</th>
+                                <th>Acci\u00f3n</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
 
         } catch (err) {
             console.error('Error cargando oponentes:', err);
