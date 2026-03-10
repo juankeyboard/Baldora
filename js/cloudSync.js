@@ -240,11 +240,15 @@ const CloudSync = {
         const communityScore = Math.round((W1 * scoreC + W2 * scoreT + W3 * scoreA) * 10) / 10;
 
         // Actualizar score en stats y leaderboard
-        await this.db.ref(`users/${uid}/stats/community_score`).set(communityScore);
-        await this.db.ref(`users/${uid}/stats/score_correctas`).set(Math.round(scoreC * 10) / 10);
-        await this.db.ref(`users/${uid}/stats/score_tiempo`).set(Math.round(scoreT * 10) / 10);
-        await this.db.ref(`users/${uid}/stats/score_accuracy`).set(Math.round(scoreA * 10) / 10);
-        await this.db.ref(`leaderboard/players/${uid}/community_score`).set(communityScore);
+        // ⚡ Bolt Optimization: Batched update to avoid 5 sequential network roundtrips
+        const updates = {};
+        updates[`users/${uid}/stats/community_score`] = communityScore;
+        updates[`users/${uid}/stats/score_correctas`] = Math.round(scoreC * 10) / 10;
+        updates[`users/${uid}/stats/score_tiempo`] = Math.round(scoreT * 10) / 10;
+        updates[`users/${uid}/stats/score_accuracy`] = Math.round(scoreA * 10) / 10;
+        updates[`leaderboard/players/${uid}/community_score`] = communityScore;
+
+        await this.db.ref().update(updates);
     },
 
     /**
