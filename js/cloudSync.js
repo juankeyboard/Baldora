@@ -192,8 +192,8 @@ const CloudSync = {
                     nickname: user.displayName || 'Cavernícola',
                     score: stats.correct,
                     avg_time_ms: avgCorrectTime || stats.avgTime,
-                    tier: 1, // Se ajusta en recalculateMyTier
-                    league: initialLeague
+                    tier: 1, // Se actualiza correctamente en _recalculateMyTier
+                    league: 'MADERA' // Se actualiza correctamente en _recalculateMyTier
                 });
             }
 
@@ -257,6 +257,12 @@ const CloudSync = {
                 league: league,
                 rank: rank
             }).catch(e => console.warn('[CloudSync] No se pudo actualizar el leaderboard público:', e));
+
+            // ACTUALIZAR GHOST PÚBLICO con tier/league correcto (si existe)
+            this.db.ref(`leaderboard/ghosts/${uid}`).update({
+                tier: tier,
+                league: league
+            }).catch(e => console.warn('[CloudSync] No se pudo actualizar tier en ghost:', e));
 
             console.log(`%c[CloudSync] Tu rango oficial: ${league} (Posición #${rank})`, "color: #00c8ff; font-weight: bold;");
         } catch (e) {

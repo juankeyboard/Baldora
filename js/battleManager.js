@@ -1,730 +1,421 @@
 /**
- * BATTLEMANAGER.JS - Lógica de Sincronización Multijugador (Feature 15)
- * Baldora – "La Cinchada" (Tug-of-War)
- * Módulo aditivo: no interfiere con la lógica de juego individual.
- *
- * Estructura RTDB:
- *  presence/{uid}: { online, last_login_at, current_status }
- *  battles/{roomId}: { config, state, players }
+ * BATTLEMANAGER.JS - Multijugador Asíncrono ("Ghosts") (Feature 15)
+ * Baldora – "La Cinchada: Duelo de Fantasmas"
  */
 
 const BattleManager = (() => {
-    // ── Estado interno ─────────────────────────────────────────────────────────
+    // --- Referencias Firebase ---
     let db = null;
-    let currentRoomId = null;
     let myUid = null;
-    let opponentUid = null;
-    let myColor = null;           // 'blue' | 'yellow'
-    let debounceActive = false;   // CA-04: anti doble-tap 100ms
-    let roomListener = null;
-    let duelInviteListener = null;
-    let battleRows = [];          // Tablas (filas) seleccionadas en el formulario
-    let battleCols = [];          // Tablas (cols) seleccionadas en el formulario
-    let battleTimeLimitMs = 60000; // Tiempo límite en ms
-    let battleTimer = null;       // Timer interno de límite de tiempo
-    let battleCountdownInterval = null; // Interval para el display del countdown
-    let battleStartEpoch = 0;     // Epoch cuando arrancó la batalla
-    let currentOpIndex = 0;
-    let myScore = 0;
-    let markerPosition = 0;       // -50..+50 (+ = azul gana, - = amarillo gana)
+
+    // --- Estado de la Batalla ---
     let gameActive = false;
-    let currentOp = null;         // { a, b, result }
-    let opponentNickname = '';
-    let myNickname = '';
+    let myColor = 'blue';
+    let oponentGhost = null; // Datos de la sesión fantasma
+    let ghostResponses = []; // Array de respuestas del bot
+    let ghostIndex = 0;
+    let ghostTimer = null;
 
-    const MARKER_WIN = 50;
-    const STEP = 5;
+    // --- Configuración de Sesión ---
+    let currentRows = [];
+    let currentCols = [];
+    let currentTimeLimit = 60000;
 
-    // ── Inicialización ─────────────────────────────────────────────────────────
+    // --- Game Logic ---
+    let markerPosition = 50; 
+    let blueScore = 0;
+    let yellowScore = 0;
+    let currentOp = null;
+    let myAnswerBuffer = '';
+    let operationStartTime = null;
+
+    /**
+     * Inicializa el Manager
+     */
     function init() {
-        if (!firebase?.database) {
-            console.warn('[BattleManager] Firebase RTDB no disponible');
-            return;
-        }
+        if (typeof firebase === 'undefined') return;
         db = firebase.database();
-        console.log('[BattleManager] Inicializado');
-    }
 
-    // ── Presencia ──────────────────────────────────────────────────────────────
-    /**
-     * Registra al usuario como online con onDisconnect automático.
-     * @param {string} uid
-     * @param {string} nickname
-     */
-    function setOnline(uid, nickname) {
-        if (!db) return;
-        myUid = uid;
-        myNickname = nickname;
-
-        const presenceRef = db.ref(`presence/${uid}`);
-        const connectedRef = db.ref('.info/connected');
-
-        connectedRef.on('value', snap => {
-            if (!snap.val()) return;
-
-            // Al desconectarse, marcar offline y registrar timestamp
-            presenceRef.onDisconnect().update({
-                online: false,
-                last_login_at: firebase.database.ServerValue.TIMESTAMP
-            });
-
-            // Actualizar estado online
-            presenceRef.update({
-                online: true,
-                nickname: nickname,
-                last_login_at: firebase.database.ServerValue.TIMESTAMP,
-                current_status: 'idle'
-            });
-        });
-
-        // Escuchar invitaciones de duelo entrantes
-        _listenForDuelInvite(uid);
-    }
-
-    function setOffline(uid) {
-        if (!db || !uid) return;
-        db.ref(`presence/${uid}`).update({
-            online: false,
-            current_status: 'offline',
-            last_login_at: firebase.database.ServerValue.TIMESTAMP
+        firebase.auth().onAuthStateChanged(user => {
+            if (user) {
+                myUid = user.uid;
+            } else {
+                myUid = null;
+            }
         });
     }
 
-    function setStatus(uid, status) {
-        if (!db || !uid) return;
-        db.ref(`presence/${uid}`).update({ current_status: status });
-    }
-
     /**
-     * Busca un oponente online (idle) y le envía una invitación de duelo.
-     * @param {number[]} rows   - Filas seleccionadas por el jugador en el formulario
-     * @param {number[]} cols   - Columnas seleccionadas por el jugador
-     * @param {number} timeLimitMs - Tiempo límite del duelo en milisegundos
+     * Muestra la vista de pantalla completa para selección de oponentes
      */
-    async function searchOpponent(rows = [], cols = [], timeLimitMs = 60000) {
-        if (!db || !myUid) { _showToast('Debes iniciar sesión para el modo VS'); return; }
+    async function showGhostSelection(rows, cols, timeLimit) {
+        currentRows = rows;
+        currentCols = cols;
+        currentTimeLimit = timeLimit;
 
-        battleRows = rows.length ? rows : [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        battleCols = cols.length ? cols : [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        battleTimeLimitMs = timeLimitMs || 60000;
+        // Cambiar a la vista de selección en el sistema SPA
+        if (typeof App !== 'undefined') {
+            App.showView('GHOST_SELECTION');
+        } else {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const selectionView = document.getElementById('ghost-selection-view');
+            if (selectionView) selectionView.classList.add('active');
+        }
 
-        setStatus(myUid, 'searching');
-        _updateDuelBtn('Buscando...', true);
+        const listContainer = document.getElementById('ghost-list');
+        const loader = document.getElementById('ghost-list-loading');
+
+        if (loader) loader.style.display = 'block';
+        if (listContainer) listContainer.innerHTML = '';
 
         try {
-            // Query: usuarios online e idle
-            const snap = await db.ref('presence')
-                .orderByChild('last_login_at')
-                .limitToLast(10)
-                .once('value');
+            // Leer de leaderboard/players (fuente de verdad con tier/league actualizados)
+            // y enricher con datos de ghosts si existen (score, avg_time_ms)
+            const [playersSnap, ghostsSnap] = await Promise.all([
+                db.ref('leaderboard/players').once('value'),
+                db.ref('leaderboard/ghosts').once('value')
+            ]);
 
-            const candidates = [];
-            snap.forEach(child => {
-                const data = child.val();
-                if (
-                    child.key !== myUid &&
-                    data.online === true &&
-                    data.current_status === 'idle'
-                ) {
-                    candidates.push({ uid: child.key, ...data });
+            // Mapa de datos de ghosts para enricher con score/tiempo
+            const ghostsData = {};
+            ghostsSnap.forEach(snap => {
+                ghostsData[snap.key] = snap.val();
+            });
+
+            // Construir lista de jugadores con ghost disponible
+            const players = [];
+            playersSnap.forEach(snap => {
+                const d = snap.val();
+                if (d && d.ghost_available === true) {
+                    const ghostInfo = ghostsData[snap.key] || {};
+                    players.push({
+                        uid: snap.key,
+                        nickname: d.displayName || ghostInfo.nickname || 'Cavernicola',
+                        community_score: d.community_score || 0,
+                        tier: d.tier || 100,
+                        league: d.league || 'MADERA',
+                        rank: d.rank || null,
+                        score: ghostInfo.score || null,
+                        avg_time_ms: ghostInfo.avg_time_ms || null,
+                        last_played: d.last_played || null
+                    });
                 }
             });
 
-            if (candidates.length === 0) {
-                setStatus(myUid, 'idle');
-                _updateDuelBtn('Duelo VS', false);
-                _showToast('No hay oponentes disponibles. ¡Inténtalo de nuevo!');
+            if (loader) loader.style.display = 'none';
+
+            if (players.length === 0) {
+                listContainer.innerHTML = '<p class="modal-message">No hay oponentes disponibles aun. Juega una partida para ser el primero en el Salon!</p>';
                 return;
             }
 
-            // Seleccionar el más reciente
-            candidates.sort((a, b) => b.last_login_at - a.last_login_at);
-            const target = candidates[0];
-
-            // Crear room en RTDB con la config del formulario principal
-            const roomRef = db.ref('battles').push();
-            currentRoomId = roomRef.key;
-
-            const roomData = {
-                config: {
-                    time_limit_ms: battleTimeLimitMs,
-                    tables: `rows:${battleRows.join(',')};cols:${battleCols.join(',')}`
-                },
-                state: {
-                    marker_position: 0,
-                    current_op_index: 0,
-                    start_time: firebase.database.ServerValue.TIMESTAMP,
-                    status: 'waiting' // waiting | active | finished
-                },
-                players: {
-                    [myUid]: { score: 0, color: 'blue', nickname: myNickname, last_response_ms: 0 },
-                    [target.uid]: { score: 0, color: 'yellow', nickname: target.nickname || 'Oponente', last_response_ms: 0 }
-                }
+            // Organizar por Ligas y Score (Mejor a Peor)
+            const leagues = ['DIAMANTE', 'PLATINO', 'ORO', 'PLATA', 'BRONCE', 'MADERA'];
+            const leagueIcons = {
+                'DIAMANTE': '\uD83D\uDC8E', 'PLATINO': '\uD83C\uDFC5', 'ORO': '\uD83E\uDD47',
+                'PLATA': '\uD83E\uDD48', 'BRONCE': '\uD83E\uDD49', 'MADERA': '\uD83E\uDEB5'
             };
 
-            await roomRef.set(roomData);
+            leagues.forEach(league => {
+                const leaguePlayers = players.filter(p => p.league === league || (league === 'MADERA' && !p.league));
+                if (leaguePlayers.length === 0) return;
 
-            // Enviar invitación al oponente
-            await db.ref(`presence/${target.uid}/incoming_duel`).set({
-                from_uid: myUid,
-                from_nickname: myNickname,
-                room_id: currentRoomId,
-                timestamp: firebase.database.ServerValue.TIMESTAMP
+                // Header de liga
+                const header = document.createElement('div');
+                header.className = `ghost-league-header league-${league.toLowerCase()}`;
+                header.innerHTML = (leagueIcons[league] || '') + ' ' + league;
+                listContainer.appendChild(header);
+
+                // Ordenar: por score de ghost desc, fallback a community_score
+                leaguePlayers.sort((a, b) => (b.score || b.community_score) - (a.score || a.community_score));
+
+                leaguePlayers.forEach(player => {
+                    const item = document.createElement('div');
+                    item.className = 'ghost-item';
+                    const isMe = player.uid === myUid;
+
+                    const statsText = player.score !== null
+                        ? player.score + ' aciertos \u00B7 ' + player.avg_time_ms + 'ms avg'
+                        : 'Score: ' + player.community_score.toFixed(1);
+
+                    const rankText = player.rank ? '#' + player.rank : '';
+
+                    item.innerHTML = `
+                        <div class="ghost-info">
+                            <span class="ghost-name">${player.nickname}${isMe ? ' <em>(Tu)</em>' : ''}</span>
+                            <span class="ghost-league-badge">${leagueIcons[player.league] || ''} ${player.league} ${rankText}</span>
+                            <span class="ghost-stats">${statsText}</span>
+                        </div>
+                        <button class="btn-challenge${isMe ? ' btn-challenge-self' : ''}"
+                            onclick="BattleManager.startGhostBattle('${player.uid}')">
+                            ${isMe ? 'SUPERAR' : 'RETAR'}
+                        </button>
+                    `;
+                    listContainer.appendChild(item);
+                });
             });
-
-            myColor = 'blue';
-            opponentUid = target.uid;
-            opponentNickname = target.nickname || 'Oponente';
-
-            // Esperar aceptación (timeout 30s)
-            _waitForAcceptance();
 
         } catch (err) {
-            console.error('[BattleManager] searchOpponent error:', err);
-            setStatus(myUid, 'idle');
-            _updateDuelBtn('Duelo VS', false);
+            console.error('Error cargando oponentes:', err);
+            if (loader) loader.style.display = 'none';
+            if (listContainer) listContainer.innerHTML = '<p class="modal-message">Error al conectar con la comunidad. Verifica tu conexion.</p>';
         }
-    }
-
-    function _waitForAcceptance() {
-        let timeout = setTimeout(() => {
-            _showToast('El oponente no respondió. Intenta de nuevo.');
-            _cleanupRoom();
-        }, 30000);
-
-        const roomRef = db.ref(`battles/${currentRoomId}/state/status`);
-        roomRef.on('value', snap => {
-            if (snap.val() === 'active') {
-                clearTimeout(timeout);
-                roomRef.off();
-                _startBattle();
-            }
-        });
-    }
-
-    // ── Invitación entrante ───────────────────────────────────────────────────
-    function _listenForDuelInvite(uid) {
-        if (duelInviteListener) duelInviteListener.off();
-
-        const ref = db.ref(`presence/${uid}/incoming_duel`);
-        ref.on('value', snap => {
-            if (!snap.exists()) return;
-            const invite = snap.val();
-            if (!invite?.room_id) return;
-
-            // Mostrar overlay de invitación
-            _showDuelOverlay(invite);
-        });
-        duelInviteListener = ref;
-    }
-
-    function _showDuelOverlay(invite) {
-        const overlay = document.getElementById('duel-invite-overlay');
-        if (!overlay) return;
-
-        document.getElementById('duel-invite-from').textContent = invite.from_nickname || 'Alguien';
-        overlay.classList.add('active');
-
-        // Guardar datos de la invitación
-        overlay.dataset.roomId = invite.room_id;
-        overlay.dataset.fromUid = invite.from_uid;
     }
 
     /**
-     * El usuario acepta el duelo entrante.
-     * Si hay una sesión activa, se hace forceReset() (CA-03).
+     * Regresa al menú de configuración
      */
-    function acceptDuel() {
-        const overlay = document.getElementById('duel-invite-overlay');
-        if (!overlay) return;
-
-        const roomId = overlay.dataset.roomId;
-        const fromUid = overlay.dataset.fromUid;
-
-        // CA-03: Limpiar sesión individual activa
-        if (typeof App !== 'undefined' && App.state === 'PLAYING') {
-            _forceResetGame();
+    function hideGhostSelection() {
+        if (typeof App !== 'undefined') {
+            App.showView('CONFIG');
+        } else {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const configView = document.getElementById('config-view');
+            if (configView) configView.classList.add('active');
         }
+    }
 
-        overlay.classList.remove('active');
+    /**
+     * Inicia el duelo contra un Fantasma específico
+     */
+    async function startGhostBattle(opponentUid) {
+        try {
+            // Obtener el nickname del oponente (intentar ghosts, fallback a players)
+            const [ghostInfoSnap, playerInfoSnap] = await Promise.all([
+                db.ref(`leaderboard/ghosts/${opponentUid}`).once('value'),
+                db.ref(`leaderboard/players/${opponentUid}/displayName`).once('value')
+            ]);
+            const ghostInfo = ghostInfoSnap.val();
+            const ghostNickname = (ghostInfo && ghostInfo.nickname) || playerInfoSnap.val() || 'Fantasma';
 
-        currentRoomId = roomId;
-        myColor = 'yellow';
-        opponentUid = fromUid;
+            // Cargar datos detallados del ghost
+            const snapshot = await db.ref(`users/${opponentUid}/best_session_ghost`).once('value');
+            const ghostData = snapshot.val();
 
-        // Leer nickname del oponente
-        db.ref(`presence/${fromUid}/nickname`).once('value').then(snap => {
-            opponentNickname = snap.val() || 'Oponente';
-        });
-
-        // Leer config de la room (tiempo límite y tablas vienen del host)
-        db.ref(`battles/${roomId}/config`).once('value').then(snap => {
-            if (snap.exists()) {
-                const cfg = snap.val();
-                battleTimeLimitMs = cfg.time_limit_ms || 60000;
-                // Parsear tablas si vinieron del host
-                if (cfg.tables && cfg.tables !== 'all') {
-                    try {
-                        const parts = cfg.tables.split(';');
-                        battleRows = parts[0].replace('rows:', '').split(',').map(Number);
-                        battleCols = parts[1].replace('cols:', '').split(',').map(Number);
-                    } catch (e) {
-                        battleRows = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-                        battleCols = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-                    }
-                }
+            if (!ghostData) {
+                alert('No se pudieron cargar los datos del oponente.');
+                return;
             }
-        });
 
-        // Marcar room como activa
-        db.ref(`battles/${roomId}/state/status`).set('active');
-        setStatus(myUid, 'playing');
-
-        // Limpiar la invitación entrante
-        db.ref(`presence/${myUid}/incoming_duel`).remove();
-
-        _startBattle();
+            oponentGhost = ghostData;
+            oponentGhost.nickname = ghostNickname;
+            ghostResponses = ghostData.responses || [];
+            ghostIndex = 0;
+            
+            _startBattle();
+        } catch (err) {
+            console.error('Error iniciando batalla ghost:', err);
+        }
     }
 
-    function declineDuel() {
-        const overlay = document.getElementById('duel-invite-overlay');
-        if (!overlay) return;
-        overlay.classList.remove('active');
-        db.ref(`presence/${myUid}/incoming_duel`).remove();
-    }
-
-    // ── Batalla ───────────────────────────────────────────────────────────────
     function _startBattle() {
-        if (!currentRoomId) return;
-
         gameActive = true;
-        myScore = 0;
-        markerPosition = 0;
-        currentOpIndex = 0;
+        myColor = 'blue';
+        
+        // Inicializar DataManager para registrar esta sesión de duelo (Aporta a las ligas)
+        if (typeof DataManager !== 'undefined') {
+            const user = AuthManager.getUser();
+            DataManager.init(user ? user.displayName : 'Cavernícola');
+        }
 
-        setStatus(myUid, 'playing');
-
-        // Mostrar la vista de batalla
         _showBattleView();
-
-        // Escuchar cambios del estado de la room
-        _listenRoomState();
-
-        // Iniciar el temporizador de límite de tiempo (f15 §3.1)
-        if (battleTimer) clearTimeout(battleTimer);
-        battleTimer = setTimeout(() => {
-            if (gameActive) {
-                // Al agotar el tiempo, determinar ganador por posición del marcador
-                db.ref(`battles/${currentRoomId}/state`).transaction(state => {
-                    if (!state || state.status === 'finished') return state;
-                    state.status = 'finished';
-                    state.winner_uid = markerPosition > 0
-                        ? myUid  // azul gana si marcador es positivo
-                        : opponentUid; // amarillo gana si es negativo (empate: oponente)
-                    return state;
-                });
-            }
-        }, battleTimeLimitMs);
-
-        // Generar primera operación
-        _generateOperation();
-    }
-
-    function _listenRoomState() {
-        if (roomListener) roomListener.off();
-
-        const roomRef = db.ref(`battles/${currentRoomId}`);
-        roomRef.on('value', snap => {
-            if (!snap.exists()) return;
-            const data = snap.val();
-            _updateBattleUI(data);
-
-            if (data.state?.status === 'finished') {
-                roomRef.off();
-                _showBattleResult(data);
-            }
-        });
-        roomListener = roomRef;
-    }
-
-    // ── Respuesta del jugador ─────────────────────────────────────────────────
-    /**
-     * El jugador presiona un número del dial.
-     * CA-04: debounce de 100ms para prevenir doble-tap
-     * @param {number} digit - Dígito presionado (0-9)
-     */
-    function onDialPress(digit) {
-        if (!gameActive || debounceActive) return;
-        debounceActive = true;
-        setTimeout(() => { debounceActive = false; }, 100);
-
-        if (!currentOp) return;
-
-        // Acumular dígitos para la respuesta
-        const inputEl = document.getElementById('battle-answer-display');
-        if (!inputEl) return;
-
-        const current = inputEl.textContent === '?' ? '' : inputEl.textContent;
-        const newVal = current + digit;
-        inputEl.textContent = newVal;
-
-        // Auto-verificar cuando el número ingresado ya es >= resultado correcto en dígitos
-        const digits = String(currentOp.result).length;
-        if (newVal.length >= digits) {
-            _submitBattleAnswer(parseInt(newVal));
+        _generateNewOp();
+        _startGhostEngine();
+        _startBattleTimer();
+        
+        if (typeof AudioManager !== 'undefined') {
+            AudioManager.playStart();
         }
     }
 
-    /**
-     * Borra el último dígito ingresado.
-     */
-    function onDialClear() {
-        const inputEl = document.getElementById('battle-answer-display');
-        if (!inputEl) return;
-        const current = inputEl.textContent;
-        if (current === '?' || current.length <= 1) {
-            inputEl.textContent = '?';
-        } else {
-            inputEl.textContent = current.slice(0, -1);
-        }
-    }
-
-    function _submitBattleAnswer(answer) {
-        if (!currentOp || !gameActive) return;
-
-        const isCorrect = answer === currentOp.result;
-        const responseMs = Date.now() - currentOp.startTime;
-
-        // Reset display
-        const inputEl = document.getElementById('battle-answer-display');
-        if (inputEl) inputEl.textContent = '?';
-
-        if (!isCorrect) {
-            // Feedback visual de error
-            inputEl?.classList.add('wrong-flash');
-            setTimeout(() => inputEl?.classList.remove('wrong-flash'), 400);
-            return;
-        }
-
-        // Enviar acierto a RTDB (transacción para sincronización)
-        _sendCorrectAnswer(responseMs);
-    }
-
-    function _sendCorrectAnswer(responseMs) {
-        if (!db || !currentRoomId || !myUid) return;
-
-        const roomRef = db.ref(`battles/${currentRoomId}`);
-
-        roomRef.transaction(room => {
-            if (!room) return room;
-
-            // Registrar tiempo de respuesta
-            if (!room.players) room.players = {};
-            if (!room.players[myUid]) room.players[myUid] = {};
-            room.players[myUid].last_response_ms = responseMs;
-            room.players[myUid].score = (room.players[myUid].score || 0) + 1;
-
-            // Mover marcador
-            if (myColor === 'blue') {
-                room.state.marker_position = Math.min(MARKER_WIN, (room.state.marker_position || 0) + STEP);
-            } else {
-                room.state.marker_position = Math.max(-MARKER_WIN, (room.state.marker_position || 0) - STEP);
-            }
-
-            // Incrementar operación
-            room.state.current_op_index = (room.state.current_op_index || 0) + 1;
-
-            // Verificar únicamente KO Técnico (victoria por tiempo la maneja el timer)
-            const pos = room.state.marker_position;
-            if (Math.abs(pos) >= MARKER_WIN) {
-                room.state.status = 'finished';
-                room.state.winner_uid = myUid;
-            }
-
-            return room;
-        });
-
-        // Generar siguiente operación localmente
-        currentOpIndex++;
-        _generateOperation();
-    }
-
-    // ── Operaciones ───────────────────────────────────────────────────────────
-    function _generateOperation() {
-        // Usar las tablas seleccionadas por el jugador (f15 §2)
-        const rowPool = battleRows.length ? battleRows : [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        const colPool = battleCols.length ? battleCols : [1, 2, 3, 4, 5, 6, 7, 8, 9];
-        const a = rowPool[Math.floor(Math.random() * rowPool.length)];
-        const b = colPool[Math.floor(Math.random() * colPool.length)];
-        currentOp = { a, b, result: a * b, startTime: Date.now() };
-
-        const factorA = document.getElementById('battle-factor-a');
-        const factorB = document.getElementById('battle-factor-b');
-        const display = document.getElementById('battle-answer-display');
-
-        if (factorA) factorA.textContent = a;
-        if (factorB) factorB.textContent = b;
-        if (display) display.textContent = '?';
-    }
-
-    // ── UI de Batalla ─────────────────────────────────────────────────────────
     function _showBattleView() {
-        // Ocultar todas las vistas
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        if (typeof App !== 'undefined' && typeof App.showView === 'function') {
+            App.showView('BATTLE');
+        }
+        
+        // Reset UI
+        blueScore = 0;
+        yellowScore = 0;
+        markerPosition = 50;
+        document.getElementById('battle-score-blue').textContent = '0';
+        document.getElementById('battle-score-yellow').textContent = '0';
+        document.getElementById('battle-rope-indicator').style.left = '50%';
+        
+        // Nombres
+        document.getElementById('battle-player-blue-name').textContent = 'Tú';
+        document.getElementById('battle-player-yellow-name').textContent = oponentGhost ? oponentGhost.nickname : 'Fantasma';
+    }
 
-        const battleView = document.getElementById('battle-view');
-        if (battleView) {
-            battleView.classList.add('active');
+    /**
+     * El "Motor Ghost": Simula al oponente basado en sus tiempos grabados
+     */
+    function _startGhostEngine() {
+        if (!gameActive) return;
+
+        let responseData = ghostResponses[ghostIndex];
+        if (!responseData) {
+            responseData = ghostResponses[Math.floor(Math.random() * ghostResponses.length)];
         }
 
-        // Configurar cabecera de batalla
-        const myName = document.getElementById('battle-player-blue-name');
-        const oppName = document.getElementById('battle-player-yellow-name');
+        const delay = responseData ? responseData.time_ms : 2000;
 
-        if (myColor === 'blue') {
-            if (myName) myName.textContent = myNickname || 'Tú';
-            if (oppName) oppName.textContent = opponentNickname;
-        } else {
-            if (myName) myName.textContent = opponentNickname;
-            if (oppName) oppName.textContent = myNickname || 'Tú';
-        }
+        ghostTimer = setTimeout(() => {
+            if (!gameActive) return;
+            _handleGhostHit();
+            ghostIndex++;
+            _startGhostEngine();
+        }, delay);
+    }
 
-        // Iniciar countdown visual en el header
-        battleStartEpoch = Date.now();
-        if (battleCountdownInterval) clearInterval(battleCountdownInterval);
-        battleCountdownInterval = setInterval(() => {
-            const remaining = Math.max(0, battleTimeLimitMs - (Date.now() - battleStartEpoch));
-            const mins = Math.floor(remaining / 60000);
-            const secs = Math.floor((remaining % 60000) / 1000);
-            const display = document.getElementById('battle-timer-display');
-            if (display) {
-                display.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
-                if (remaining < 10000) display.style.color = '#ef4444'; // rojo al final
-                else display.style.color = '';
+    function _handleGhostHit() {
+        yellowScore++;
+        document.getElementById('battle-score-yellow').textContent = yellowScore;
+        markerPosition += 5;
+        markerPosition = Math.min(100, markerPosition);
+        _updateRopeUI();
+        if (markerPosition >= 95) _endBattle('ko_yellow');
+    }
+
+    function _generateNewOp() {
+        const r = currentRows[Math.floor(Math.random() * currentRows.length)];
+        const c = currentCols[Math.floor(Math.random() * currentCols.length)];
+        currentOp = { row: r, col: c };
+        operationStartTime = Date.now(); // Reset cronómetro de operación
+        
+        document.getElementById('battle-factor-a').textContent = r;
+        document.getElementById('battle-factor-b').textContent = c;
+        document.getElementById('battle-answer-display').textContent = '?';
+        myAnswerBuffer = '';
+    }
+
+    function onDialPress(num) {
+        if (!gameActive || !currentOp) return;
+        
+        myAnswerBuffer += num.toString();
+        document.getElementById('battle-answer-display').textContent = myAnswerBuffer;
+        
+        const result = parseInt(myAnswerBuffer);
+        const correct = currentOp.row * currentOp.col;
+        
+        if (result === correct) {
+            const responseTime = Date.now() - operationStartTime;
+            if (typeof DataManager !== 'undefined') {
+                DataManager.recordAttempt(currentOp.row, currentOp.col, result, true, responseTime, 'BATTLE');
             }
-            if (remaining <= 0) clearInterval(battleCountdownInterval);
-        }, 500);
-
-        // Configurar control: Mis botones son el panel derecho si soy azul, izquierdo si soy amarillo
-        _configureDials();
-    }
-
-    function _updateBattleUI(data) {
-        if (!data) return;
-
-        const pos = data.state?.marker_position || 0;
-        const opIdx = data.state?.current_op_index || 0;
-
-        // pos: -50 (amarillo) a +50 (azul). Centro = 0 → izquierda = 50%
-        const pct = 50 + pos; // 0..100
-
-        // Actualizar indicador (bola blanca) en la cuerda
-        const rope = document.getElementById('battle-rope-indicator');
-        if (rope) {
-            rope.style.left = `${pct}%`;
-        }
-
-        // Actualizar fills de colores (CA-02: transición CSS ≤250ms)
-        const fillBlue = document.querySelector('.battle-rope-fill-blue');
-        const fillYellow = document.querySelector('.battle-rope-fill-yellow');
-        if (fillBlue) fillBlue.style.width = `${pct}%`;
-        if (fillYellow) fillYellow.style.width = `${100 - pct}%`;
-
-        // Actualizar posición visual de cavernícolas
-        const caveBlue = document.getElementById('battle-cave-blue');
-        const caveYellow = document.getElementById('battle-cave-yellow');
-        if (caveBlue && caveYellow) {
-            const offset = pos * 1.2; // px de desplazamiento visual proporcional
-            caveBlue.style.transform = `scaleX(-1) translateX(${-offset}px)`;
-            caveYellow.style.transform = `translateX(${offset}px)`;
-        }
-
-        // Actualizar contador de operaciones
-        const opEl = document.getElementById('battle-current-op');
-        if (opEl) opEl.textContent = opIdx;
-
-        // Actualizar scores por color
-        if (data.players) {
-            Object.entries(data.players).forEach(([uid, player]) => {
-                const color = player.color;
-                const scoreEl = document.getElementById(`battle-score-${color}`);
-                if (scoreEl) scoreEl.textContent = player.score || 0;
-            });
+            _handlePlayerHit();
+        } else if (myAnswerBuffer.length >= correct.toString().length) {
+            const responseTime = Date.now() - operationStartTime;
+            if (typeof DataManager !== 'undefined') {
+                DataManager.recordAttempt(currentOp.row, currentOp.col, result, false, responseTime, 'BATTLE');
+            }
+            myAnswerBuffer = '';
+            document.getElementById('battle-answer-display').textContent = '?';
+            if (typeof AudioManager !== 'undefined') AudioManager.playWrong();
         }
     }
 
-    function _showBattleResult(data) {
+    function onDialClear() {
+        myAnswerBuffer = '';
+        document.getElementById('battle-answer-display').textContent = '?';
+    }
+
+    function _handlePlayerHit() {
+        if (typeof AudioManager !== 'undefined') AudioManager.playCorrect();
+        blueScore++;
+        document.getElementById('battle-score-blue').textContent = blueScore;
+        markerPosition -= 5;
+        markerPosition = Math.max(0, markerPosition);
+        _updateRopeUI();
+
+        if (markerPosition <= 5) {
+            _endBattle('ko_blue');
+        } else {
+            _generateNewOp();
+        }
+    }
+
+    function _updateRopeUI() {
+        const indicator = document.getElementById('battle-rope-indicator');
+        if (indicator) indicator.style.left = `${markerPosition}%`;
+        const blueCave = document.getElementById('battle-cave-blue');
+        const yellowCave = document.getElementById('battle-cave-yellow');
+        if (blueCave && yellowCave) {
+            blueCave.style.transform = `translateX(${(markerPosition-50)*0.5}px)`;
+            yellowCave.style.transform = `translateX(${(markerPosition-50)*0.5}px)`;
+        }
+    }
+
+    function _startBattleTimer() {
+        let timeLeft = 60;
+        const timerEl = document.getElementById('battle-timer-display');
+        const interval = setInterval(() => {
+            if (!gameActive) { clearInterval(interval); return; }
+            timeLeft--;
+            if (timerEl) timerEl.textContent = `0:${String(timeLeft).padStart(2, '0')}`;
+            if (timeLeft <= 0) { clearInterval(interval); _endBattle('timeout'); }
+        }, 1000);
+    }
+
+    function _endBattle(reason) {
+        if (!gameActive) return;
         gameActive = false;
-        const winnerUid = data.state?.winner_uid;
-        const didIWin = winnerUid === myUid;
+        if (ghostTimer) clearTimeout(ghostTimer);
+        
+        let winner = 'tie';
+        if (markerPosition <= 10) winner = 'blue';
+        else if (markerPosition >= 90) winner = 'yellow';
+        else {
+            if (blueScore > yellowScore) winner = 'blue';
+            else if (yellowScore > blueScore) winner = 'yellow';
+        }
+        
+        _showResultOverlay(winner);
 
-        const resultOverlay = document.getElementById('battle-result-overlay');
-        if (!resultOverlay) return;
+        // SYNC: Guardar el duelo para que cuente en las Ligas de la Comunidad
+        if (typeof CloudSync !== 'undefined' && AuthManager.isLoggedIn()) {
+            console.log('[Battle] Sincronizando resultados del duelo...');
+            CloudSync.saveGame();
+        }
+    }
 
+    function _showResultOverlay(winner) {
+        const overlay = document.getElementById('battle-result-overlay');
         const titleEl = document.getElementById('battle-result-title');
         const msgEl = document.getElementById('battle-result-msg');
-        const addFriendBtn = document.getElementById('btn-add-friend');
-
-        if (titleEl) titleEl.textContent = didIWin ? '🏆 ¡Victoria!' : '💀 Derrota';
-        if (msgEl) {
-            const pos = data.state?.marker_position || 0;
-            const score = data.players?.[myUid]?.score || 0;
-            msgEl.textContent = `Operaciones correctas: ${score} | Posición marcador: ${pos}`;
+        if (!overlay) return;
+        
+        if (winner === 'blue') {
+            titleEl.textContent = '¡VICTORIA!';
+            titleEl.style.color = '#76c442';
+            msgEl.textContent = 'Has derrotado al fantasma con tu agilidad mental.';
+        } else if (winner === 'yellow') {
+            titleEl.textContent = 'DERROTA';
+            titleEl.style.color = '#e91e63';
+            msgEl.textContent = 'El fantasma ha sido más rápido esta vez.';
+        } else {
+            titleEl.textContent = 'EMPATE';
+            msgEl.textContent = 'Fuerzas igualadas en la arena.';
         }
-
-        // CA-05: Mostrar botón "Añadir a Amigos" si no es ya amigo
-        if (addFriendBtn) {
-            _checkFriendship(opponentUid).then(isFriend => {
-                addFriendBtn.style.display = isFriend ? 'none' : 'flex';
-                addFriendBtn.onclick = () => addFriend(opponentUid);
-            });
-        }
-
-        // Guardar duelo en historial
-        _saveDuelHistory(data, didIWin);
-
-        resultOverlay.classList.add('active');
-        setStatus(myUid, 'idle');
-    }
-
-    // ── Amigos ────────────────────────────────────────────────────────────────
-    async function _checkFriendship(uid) {
-        if (!db || !myUid || !uid) return false;
-        const snap = await db.ref(`users/${myUid}/friends/${uid}`).once('value');
-        return snap.exists();
-    }
-
-    async function addFriend(targetUid) {
-        if (!db || !myUid || !targetUid) return;
-        await db.ref(`users/${myUid}/friends/${targetUid}`).set({
-            since: new Date().toISOString(),
-            nickname: opponentNickname
-        });
-        const btn = document.getElementById('btn-add-friend');
-        if (btn) {
-            btn.textContent = '✓ Añadido';
-            btn.disabled = true;
-        }
-    }
-
-    // ── Historial ─────────────────────────────────────────────────────────────
-    function _saveDuelHistory(roomData, won) {
-        if (!db || !myUid) return;
-        const players = roomData.players || {};
-        const uids = Object.keys(players);
-        db.ref(`duel_history/${currentRoomId}`).set({
-            winner_uid: roomData.state?.winner_uid,
-            loser_uid: uids.find(u => u !== roomData.state?.winner_uid) || null,
-            ops_total: opsTotal,
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            marker_final: roomData.state?.marker_position || 0
-        });
-    }
-
-    // ── Configurar Diales ─────────────────────────────────────────────────────
-    function _configureDials() {
-        // Mi panel está a la derecha (azul) o izquierda (amarillo)
-        const myPanelId = myColor === 'blue' ? 'dial-right' : 'dial-left';
-        const myPanel = document.getElementById(myPanelId);
-        if (myPanel) myPanel.classList.add('my-dial');
-    }
-
-    // ── Cleanup ───────────────────────────────────────────────────────────────
-    function _cleanupRoom() {
-        gameActive = false;
-        currentRoomId = null;
-        opponentUid = null;
-        myColor = null;
-        if (roomListener) { roomListener.off(); roomListener = null; }
-        setStatus(myUid, 'idle');
-        _updateDuelBtn('⚔️ Buscar Duelo', false);
+        overlay.style.display = 'flex';
     }
 
     function closeBattleResult() {
         const overlay = document.getElementById('battle-result-overlay');
-        if (overlay) overlay.classList.remove('active');
-
-        // Limpiar timer de tiempo límite y countdown
-        if (battleTimer) { clearTimeout(battleTimer); battleTimer = null; }
-        if (battleCountdownInterval) { clearInterval(battleCountdownInterval); battleCountdownInterval = null; }
-
-        // Volver a CONFIG
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.getElementById('config-view')?.classList.add('active');
-        _cleanupRoom();
+        if (overlay) overlay.style.display = 'none';
+        if (typeof App !== 'undefined') App.showView('CONFIG');
     }
 
-    // ── Force Reset del juego individual (CA-03) ──────────────────────────────
-    function _forceResetGame() {
-        if (typeof App === 'undefined') return;
-        // Limpiar todos los intervalos y timeouts
-        if (App.timerInterval) { clearInterval(App.timerInterval); App.timerInterval = null; }
-        if (App.inactivityTimeout) { clearTimeout(App.inactivityTimeout); App.inactivityTimeout = null; }
-        if (App.helpCheckInterval) { clearInterval(App.helpCheckInterval); App.helpCheckInterval = null; }
-        // IMPORTANTE: NO guardar estadísticas (corrupción de datos)
-        if (typeof AudioManager !== 'undefined') AudioManager.stopBGM();
-        console.log('[BattleManager] forceReset() ejecutado – sesión individual limpiada sin guardar.');
-    }
-
-    // ── Helpers UI ─────────────────────────────────────────────────────────────
-    function _showToast(msg) {
-        let toast = document.getElementById('battle-toast');
-        if (!toast) {
-            toast = document.createElement('div');
-            toast.id = 'battle-toast';
-            toast.className = 'battle-toast';
-            document.body.appendChild(toast);
-        }
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3500);
-    }
-
-    function _updateDuelBtn(text, disabled) {
-        // Actualizar el label del modo
-        const modeVsLabel = document.querySelector('label[for="mode-vs"]');
-        if (modeVsLabel) {
-            const descEl = modeVsLabel.querySelector('.mode-desc');
-            if (descEl) descEl.textContent = disabled ? text : 'Multijugador';
-        }
-
-        // Actualizar el botón principal de inicio (COMENZAR)
-        const btnStart = document.querySelector('.btn-start');
-        if (btnStart) {
-            const spanText = btnStart.querySelector('[data-i18n="config.btn_start"]') || btnStart.querySelector('span');
-            if (spanText) {
-                if (disabled) {
-                    if (!btnStart.dataset.originalText) {
-                        btnStart.dataset.originalText = spanText.textContent;
-                    }
-                    spanText.textContent = text.toUpperCase();
-                } else {
-                    spanText.textContent = btnStart.dataset.originalText || 'COMENZAR';
-                }
-            }
-            btnStart.disabled = disabled;
-            btnStart.classList.toggle('loading', disabled);
-        }
-    }
-
-    // ── API pública ────────────────────────────────────────────────────────────
     return {
         init,
-        setOnline,
-        setOffline,
-        searchOpponent,
-        acceptDuel,
-        declineDuel,
+        showGhostSelection,
+        hideGhostSelection,
+        startGhostBattle,
         onDialPress,
         onDialClear,
-        addFriend,
-        closeBattleResult,
-        // Exponer para tests / debugging
-        _state: () => ({ currentRoomId, myColor, markerPosition, gameActive })
+        closeBattleResult
     };
 })();
 
-// Auto-init cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => BattleManager.init(), 900);
 });
