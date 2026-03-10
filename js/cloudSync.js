@@ -68,7 +68,11 @@ const CloudSync = {
                     tier: stats ? stats.community_tier : 100,
                     league: stats ? stats.community_league : 'MADERA'
                 });
-                
+
+                // Marcar ghost_available en el leaderboard público
+                this.db.ref(`leaderboard/players/${uid}`).update({ ghost_available: true })
+                    .catch(e => console.warn('[CloudSync] No se pudo marcar ghost_available:', e));
+
                 console.log('%c[CloudSync] ¡Migración exitosa! Tu mejor récord ahora es un Fantasma retable.', "color: #00c8ff; font-weight: bold;");
             }
         } catch (e) {

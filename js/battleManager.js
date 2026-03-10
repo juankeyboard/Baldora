@@ -82,15 +82,16 @@ const BattleManager = (() => {
                 ghostsData[snap.key] = snap.val();
             });
 
-            // Construir lista de jugadores con ghost disponible
+            // Construir lista de todos los jugadores registrados en la comunidad
+            // (ghost_available es opcional — startGhostBattle verifica si hay datos reales)
             const players = [];
             playersSnap.forEach(snap => {
                 const d = snap.val();
-                if (d && d.ghost_available === true) {
+                if (d && d.community_score !== undefined) {
                     const ghostInfo = ghostsData[snap.key] || {};
                     players.push({
                         uid: snap.key,
-                        nickname: d.displayName || ghostInfo.nickname || 'Cavernicola',
+                        nickname: d.displayName || ghostInfo.nickname || 'Cavernícola',
                         community_score: d.community_score || 0,
                         tier: d.tier || 100,
                         league: d.league || 'MADERA',
