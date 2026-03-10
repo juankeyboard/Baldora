@@ -121,11 +121,10 @@ const AuthManager = {
         // Crear/actualizar perfil en la base de datos
         this._ensureUserProfile(user);
 
-        // Feature 15: Activar sistema de presencia multijugador
-        if (typeof NicknameGenerator !== 'undefined' && typeof BattleManager !== 'undefined') {
-            NicknameGenerator.assignIfNeeded(user.uid).then(nickname => {
-                BattleManager.setOnline(user.uid, nickname);
-            });
+        // Si había un intento pendiente de VS, retomar automáticamente
+        if (typeof App !== 'undefined' && App._pendingVsStart) {
+            App._pendingVsStart = false;
+            setTimeout(() => App.startGame(), 300);
         }
     },
 
@@ -155,11 +154,6 @@ const AuthManager = {
 
         if (isProfileActive || isStoreActive) {
             if (typeof App !== 'undefined') App.showView('CONFIG');
-        }
-
-        // Feature 15: desactivar presencia
-        if (typeof BattleManager !== 'undefined' && this.currentUser) {
-            BattleManager.setOffline(this.currentUser.uid);
         }
     },
 

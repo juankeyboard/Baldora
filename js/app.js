@@ -24,6 +24,9 @@ const App = {
     inactivityTimeout: null,
     INACTIVITY_LIMIT: 30000, // 30 segundos en ms
 
+    // Pending VS start (se activa si el usuario intenta VS sin login)
+    _pendingVsStart: false,
+
     // Operación actual
     currentOperation: null,
     operationStartTime: null,
@@ -91,6 +94,9 @@ const App = {
             configView: document.getElementById('config-view'),
             gameView: document.getElementById('game-view'),
             dashboardView: document.getElementById('dashboard-view'),
+            battleView: document.getElementById('battle-view'),
+            ghostSelectionView: document.getElementById('ghost-selection-view'),
+            searchingOverlay: document.getElementById('searching-opponent-overlay'),
 
             // Config
             configForm: document.getElementById('config-form'),
@@ -287,6 +293,16 @@ const App = {
                 if (profileView) profileView.classList.add('active');
                 if (helpBtn) helpBtn.style.display = 'none';
                 break;
+            case 'BATTLE':
+                if (this.elements.battleView) this.elements.battleView.classList.add('active');
+                if (helpBtn) helpBtn.style.display = 'none';
+                // Asegurar que la música de batalla suene
+                AudioManager.playBGM('gameplay');
+                break;
+            case 'GHOST_SELECTION':
+                if (this.elements.ghostSelectionView) this.elements.ghostSelectionView.classList.add('active');
+                if (helpBtn) helpBtn.style.display = 'none';
+                break;
         }
     },
 
@@ -308,11 +324,21 @@ const App = {
         // Mostrar/ocultar info del modo adaptativo (ocultar en VS)
         this.elements.adaptiveInfo.hidden = !isAdaptive;
 
-        // Si es modo adaptativo o VS, seleccionar todas las tablas por defecto (si solo hay una seleccionada)
-        const isDefaultState = this.selectedRows.length === 1 && this.selectedRows[0] === 1 && 
+        const isDefaultState = this.selectedRows.length === 1 && this.selectedRows[0] === 1 &&
                              this.selectedCols.length === 1 && this.selectedCols[0] === 1;
 
-        if ((isAdaptive || isVs) && isDefaultState) {
+        // VS: SIEMPRE seleccionar todas las tablas (especificación f15)
+        if (isVs && this.selectedRows.length !== 15) {
+            this.selectedRows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+            document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.add('active'));
+        }
+        if (isVs && this.selectedCols.length !== 15) {
+            this.selectedCols = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+            document.querySelectorAll('#cols-grid .table-btn').forEach(btn => btn.classList.add('active'));
+        }
+
+        // Adaptativo: Solo si es estado por defecto
+        if (isAdaptive && isDefaultState) {
             this.selectAllRows();
             this.selectAllCols();
         }
@@ -410,15 +436,26 @@ const App = {
             this.gameMode = 'FREE';
         }
 
-        // Si el usuario seleccionó Modo VS, delegar a BattleManager
+        // Si el usuario seleccionó Modo VS, delegar a BattleManager para selección de Ghost
         if (this.elements.modeVs && this.elements.modeVs.checked) {
             if (this.selectedRows.length === 0 || this.selectedCols.length === 0) {
                 alert('Por favor selecciona al menos una fila y una columna para el duelo');
                 return;
             }
+            
+            // Validar login (requerido para asíncrono también para acceder a ghosts)
+            if (typeof AuthManager !== 'undefined' && !AuthManager.isLoggedIn()) {
+                // Guardar la intención VS para retomar después del login
+                App._pendingVsStart = true;
+                // Disparar el login de Google automáticamente
+                const signInBtn = document.getElementById('btn-google-signin');
+                if (signInBtn) signInBtn.click();
+                return;
+            }
+
             const timeLimitMs = parseInt(this.elements.timeLimit.value) * 60 * 1000;
             if (typeof BattleManager !== 'undefined') {
-                BattleManager.searchOpponent(this.selectedRows, this.selectedCols, timeLimitMs);
+                BattleManager.showGhostSelection(this.selectedRows, this.selectedCols, timeLimitMs);
             } else {
                 alert('BattleManager no está disponible.');
             }

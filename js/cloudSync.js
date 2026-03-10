@@ -7,297 +7,265 @@
 const CloudSync = {
     db: null,
 
-    /**
-     * Inicializa la referencia a la base de datos
-     */
     init() {
         if (typeof firebase !== 'undefined' && firebase.database) {
             this.db = firebase.database();
+            
+            // Auto-migración al detectar login
+            firebase.auth().onAuthStateChanged(user => {
+                if (user) {
+                    setTimeout(() => this._ensureGhostExists(user.uid), 2000);
+                }
+            });
         }
     },
 
     /**
-     * Guarda la partida actual en Firebase.
-     * Llamado desde el hook en app.js endGame() solo si el usuario está autenticado.
+     * Verifica si el usuario tiene un ghost y si no, promueve su mejor partida antigua.
+     */
+    async _ensureGhostExists(uid) {
+        try {
+            const ghostSnap = await this.db.ref(`users/${uid}/best_session_ghost`).once('value');
+            if (ghostSnap.exists()) return;
+
+            console.log('[CloudSync] Buscando mejor partida antigua para promover a Fantasma...');
+            const gamesSnap = await this.db.ref(`users/${uid}/games`).limitToLast(50).once('value');
+            if (!gamesSnap.exists()) return;
+
+            let bestGame = null;
+            let bestScore = -1;
+            let bestTime = Infinity;
+
+            gamesSnap.forEach(snap => {
+                const game = snap.val();
+                if (game.correct_operations > bestScore || (game.correct_operations === bestScore && game.avg_response_time < bestTime)) {
+                    bestScore = game.correct_operations;
+                    bestTime = game.avg_response_time;
+                    bestGame = game;
+                }
+            });
+
+            if (bestGame) {
+                const ghostData = {
+                    timestamp: bestGame.timestamp,
+                    total_correct: bestGame.correct_operations,
+                    avg_time_ms: bestGame.avg_response_time,
+                    responses: bestGame.attempts.map(a => ({
+                        time_ms: a.response_time, is_correct: a.is_correct, factor_a: a.factor_a, factor_b: a.factor_b
+                    }))
+                };
+                
+                await this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData);
+                
+                // Actualizar también en el leaderboard de fantasmas
+                const statsSnap = await this.db.ref(`users/${uid}/stats`).once('value');
+                const stats = statsSnap.val();
+                
+                await this.db.ref(`leaderboard/ghosts/${uid}`).update({
+                    nickname: firebase.auth().currentUser.displayName || 'Cavernícola',
+                    score: bestScore,
+                    avg_time_ms: bestTime,
+                    tier: stats ? stats.community_tier : 100,
+                    league: stats ? stats.community_league : 'MADERA'
+                });
+                
+                console.log('%c[CloudSync] ¡Migración exitosa! Tu mejor récord ahora es un Fantasma retable.', "color: #00c8ff; font-weight: bold;");
+            }
+        } catch (e) {
+            console.warn('[CloudSync] Error en auto-migración:', e);
+        }
+    },
+
+    /**
+     * Motor de Guardado Seguro - Solo escribe en rutas permitidas (propiedad del usuario)
      */
     async saveGame() {
         if (!this.db) this.init();
-        if (!this.db) return;
-        if (!AuthManager.isLoggedIn()) return;
+        if (!this.db || !AuthManager.isLoggedIn()) return;
 
         const user = AuthManager.getUser();
         const uid = user.uid;
         const sessionData = DataManager.sessionData;
-
         if (!sessionData || sessionData.length === 0) return;
 
-        // Calcular estadísticas de la partida
         const stats = DataManager.getSessionStats();
         const correctAttempts = sessionData.filter(a => a.is_correct === 1);
         const avgCorrectTime = correctAttempts.length > 0
             ? Math.round(correctAttempts.reduce((s, a) => s + a.response_time, 0) / correctAttempts.length)
             : 0;
 
-        const gameMode = sessionData[0]?.game_mode || 'UNKNOWN';
-        const tables = {
-            rows: [...new Set(sessionData.map(a => a.factor_a))].sort((a, b) => a - b),
-            cols: [...new Set(sessionData.map(a => a.factor_b))].sort((a, b) => a - b)
-        };
-
-        // Calcular duración de la sesión (diferencia entre primer y último timestamp)
-        const timestamps = sessionData.map(a => new Date(a.timestamp).getTime());
-        const durationMs = timestamps.length > 1
-            ? timestamps[timestamps.length - 1] - timestamps[0]
-            : 0;
-
-        // Datos de la partida
-        const gameData = {
-            timestamp: new Date().toISOString(),
-            game_mode: gameMode,
-            duration_ms: durationMs,
-            total_operations: stats.total,
-            correct_operations: stats.correct,
-            accuracy: stats.accuracy,
-            avg_response_time: avgCorrectTime || stats.avgTime,
-            tables_used: tables,
-            ai_analysis: null,
-            attempts: sessionData.map((a, i) => ({
-                index: i,
-                factor_a: a.factor_a,
-                factor_b: a.factor_b,
-                user_input: a.user_input,
-                correct_result: a.correct_result,
-                is_correct: a.is_correct === 1,
-                response_time: a.response_time
-            }))
-        };
-
         try {
-            // Guardar partida
-            const gameRef = this.db.ref(`users/${uid}/games`);
-            const newGameRef = await gameRef.push(gameData);
-            const gameId = newGameRef.key;
+            // 1. Obtener datos actuales
+            const [statsSnap, benchSnap] = await Promise.all([
+                this.db.ref(`users/${uid}/stats`).once('value'),
+                this.db.ref('leaderboard/community_benchmarks').once('value')
+            ]);
 
-            // Guardar gameId en window para que GeminiService lo use al guardar análisis
-            window.lastCloudGameId = gameId;
-            window.lastCloudUid = uid;
+            const s = statsSnap.val() || { total_games: 0, total_operations: 0, total_correct: 0, global_accuracy: 0, avg_response_time: 0 };
+            const b = benchSnap.val() || { max_total_correct: stats.correct, min_response_time: avgCorrectTime, max_response_time: avgCorrectTime, min_accuracy: stats.accuracy, max_accuracy: stats.accuracy };
 
-            // Actualizar stats agregados del usuario
-            await this._updateUserStats(uid, stats, avgCorrectTime || stats.avgTime);
+            // 2. Calcular nuevas estadísticas acumuladas
+            const newTotalOps = s.total_operations + stats.total;
+            const newTotalCorrect = s.total_correct + stats.correct;
+            const newGlobalAccuracy = Math.round((newTotalCorrect / newTotalOps) * 100 * 10) / 10;
+            const newAvgTime = s.total_operations > 0
+                ? Math.round((s.avg_response_time * s.total_operations + avgCorrectTime * stats.total) / newTotalOps)
+                : avgCorrectTime;
 
-            // Actualizar leaderboard
-            await this._updateLeaderboard(uid, user);
+            // 3. Benchmarks temporales en memoria
+            const newMaxCorrect = Math.max(b.max_total_correct || 0, newTotalCorrect);
+            const newMinTime = Math.min(b.min_response_time || 99999, newAvgTime);
+            const newMaxTime = Math.max(b.max_response_time || 0, newAvgTime);
+            const newMinAcc = Math.min(b.min_accuracy || 100, newGlobalAccuracy);
+            const newMaxAcc = Math.max(b.max_accuracy || 0, newGlobalAccuracy);
 
-            // Recalcular tiers y ligas de todos los jugadores
-            await this._recalculateAllTiers();
+            // 4. Calcular Score y Liga (Simulación inicial como líder)
+            const scoreC = newMaxCorrect > 0 ? (newTotalCorrect / newMaxCorrect) * 100 : 100;
+            let scoreT = 100;
+            const timeRange = newMaxTime - newMinTime;
+            if (timeRange > 0) scoreT = ((newMaxTime - newAvgTime) / timeRange) * 100;
+            let scoreA = 100;
+            const accRange = newMaxAcc - newMinAcc;
+            if (accRange > 0) scoreA = ((newGlobalAccuracy - newMinAcc) / accRange) * 100;
 
-            console.log('Partida guardada en la nube:', gameId);
+            const communityScore = Math.round((scoreC + scoreT + scoreA) / 3 * 10) / 10;
+            
+            // Asumimos Diamante inicialmente, _recalculateAllTiers lo ajustará si hay otros
+            const initialLeague = 'DIAMANTE';
+
+            // 5. ACTUALIZACIÓN POR NODOS (Evita fallo en raíz /)
+            const now = new Date().toISOString();
+            const gameId = this.db.ref(`users/${uid}/games`).push().key;
+
+            // Guardar partida y stats (Nodo privado: permiso garantizado)
+            await this.db.ref(`users/${uid}`).update({
+                [`games/${gameId}`]: {
+                    timestamp: now,
+                    game_mode: sessionData[0]?.game_mode || 'UNKNOWN',
+                    total_operations: stats.total,
+                    correct_operations: stats.correct,
+                    accuracy: stats.accuracy,
+                    avg_response_time: avgCorrectTime || stats.avgTime,
+                    attempts: sessionData.map(a => ({ factor_a: a.factor_a, factor_b: a.factor_b, is_correct: a.is_correct === 1, response_time: a.response_time }))
+                },
+                stats: {
+                    ...s,
+                    total_games: (s.total_games || 0) + 1,
+                    total_operations: newTotalOps,
+                    total_correct: newTotalCorrect,
+                    global_accuracy: newGlobalAccuracy,
+                    avg_response_time: newAvgTime,
+                    community_score: communityScore,
+                    community_league: initialLeague,
+                    community_rank: 1,
+                    last_updated: now
+                }
+            });
+
+            // Actualizar entrada pública (Nodo leaderboard: debe estar permitido)
+            const leaderboardUpdate = {
+                displayName: user.displayName || 'Cavernícola',
+                photoURL: user.photoURL || '',
+                community_score: communityScore,
+                last_played: now
+            };
+
+            // 5.1. ACTUALIZAR GHOST (Feature 15)
+            const ghostSnap = await this.db.ref(`users/${uid}/best_session_ghost`).once('value');
+            const currentBest = ghostSnap.val();
+            let isBetterGhost = !currentBest || stats.correct > currentBest.total_correct || (stats.correct === currentBest.total_correct && avgCorrectTime < currentBest.avg_time_ms);
+
+            if (isBetterGhost) {
+                const ghostData = {
+                    timestamp: now,
+                    total_correct: stats.correct,
+                    avg_time_ms: avgCorrectTime || stats.avgTime,
+                    responses: sessionData.map(a => ({
+                        time_ms: a.response_time, is_correct: a.is_correct === 1, factor_a: a.factor_a, factor_b: a.factor_b
+                    }))
+                };
+                // Guardar en el perfil privado
+                await this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData);
+                // Inyectar en el listado rápido del Salón de la Fama
+                leaderboardUpdate.ghost_available = true; // Flag para búsqueda rápida si fuera necesario
+                await this.db.ref(`leaderboard/ghosts/${uid}`).update({
+                    nickname: user.displayName || 'Cavernícola',
+                    score: stats.correct,
+                    avg_time_ms: avgCorrectTime || stats.avgTime,
+                    tier: 1, // Se ajusta en recalculateMyTier
+                    league: initialLeague
+                });
+            }
+
+            await this.db.ref(`leaderboard/players/${uid}`).update(leaderboardUpdate);
+
+            // Intentar actualizar benchmarks (Solo si las reglas lo permiten)
+            this.db.ref(`leaderboard/community_benchmarks`).update({
+                max_total_correct: newMaxCorrect,
+                min_response_time: newMinTime,
+                max_response_time: newMaxTime,
+                min_accuracy: newMinAcc,
+                max_accuracy: newMaxAcc
+            }).catch(e => console.warn('[CloudSync] No tienes permiso para actualizar Benchmarks, pero tus stats se guardaron.'));
+
+            // 6. RECALCULAR MI POSICIÓN REAL
+            await this._recalculateMyTier(uid);
+
+            console.log(`%c[CloudSync] Sincronización terminada con éxito.`, "color: #76c442; font-weight: bold;");
+
         } catch (err) {
-            console.error('Error al guardar partida en la nube:', err);
+            console.error('[CloudSync] Error de guardado:', err);
         }
     },
 
     /**
-     * Guarda el análisis de IA de la última partida en la DB
+     * Recalcula la posición del usuario actual sin tocar a los demás (Seguro)
      */
-    async saveAiAnalysis(analysisData) {
-        if (!this.db || !window.lastCloudGameId || !window.lastCloudUid) return;
-
-        const ref = this.db.ref(`users/${window.lastCloudUid}/games/${window.lastCloudGameId}/ai_analysis`);
-        await ref.set({
-            generated_at: new Date().toISOString(),
-            ...analysisData
-        }).catch(err => console.error('Error al guardar análisis IA:', err));
-    },
-
-    /**
-     * Actualiza las estadísticas agregadas del jugador
-     */
-    async _updateUserStats(uid, sessionStats, avgCorrectTime) {
-        const statsRef = this.db.ref(`users/${uid}/stats`);
-
-        await statsRef.transaction(current => {
-            const s = current || {
-                total_games: 0,
-                total_operations: 0,
-                total_correct: 0,
-                global_accuracy: 0,
-                avg_response_time: 0,
-                best_accuracy: 0,
-                best_avg_time: Infinity
-            };
-
-            const newTotalGames = s.total_games + 1;
-            const newTotalOps = s.total_operations + sessionStats.total;
-            const newTotalCorrect = s.total_correct + sessionStats.correct;
-            const newGlobalAccuracy = newTotalOps > 0
-                ? Math.round((newTotalCorrect / newTotalOps) * 100 * 10) / 10
-                : 0;
-
-            // Promedio ponderado del tiempo de respuesta
-            const newAvgTime = s.total_operations > 0
-                ? Math.round((s.avg_response_time * s.total_operations + avgCorrectTime * sessionStats.total) / newTotalOps)
-                : avgCorrectTime;
-
-            return {
-                total_games: newTotalGames,
-                total_operations: newTotalOps,
-                total_correct: newTotalCorrect,
-                global_accuracy: newGlobalAccuracy,
-                avg_response_time: newAvgTime,
-                best_accuracy: Math.max(s.best_accuracy || 0, sessionStats.accuracy),
-                best_avg_time: Math.min(s.best_avg_time === Infinity ? avgCorrectTime : s.best_avg_time, avgCorrectTime),
-                community_score: 0, // Se recalcula después
-                last_updated: new Date().toISOString()
-            };
-        });
-
-        // Recalcular community score después de actualizar stats
-        await this._recalculateCommunityScore(uid);
-    },
-
-    /**
-     * Actualiza los benchmarks de la comunidad y la entrada del jugador en el leaderboard
-     */
-    async _updateLeaderboard(uid, user) {
-        const statsSnap = await this.db.ref(`users/${uid}/stats`).once('value');
-        const stats = statsSnap.val();
-        if (!stats) return;
-
-        // Actualizar entrada del jugador en leaderboard
-        await this.db.ref(`leaderboard/players/${uid}`).set({
-            displayName: user.displayName || '',
-            photoURL: user.photoURL || '',
-            community_score: stats.community_score || 0,
-            total_correct: stats.total_correct || 0,
-            avg_response_time: stats.avg_response_time || 0,
-            global_accuracy: stats.global_accuracy || 0,
-            total_games: stats.total_games || 0,
-            last_played: new Date().toISOString()
-        });
-
-        // Actualizar benchmarks de la comunidad
-        await this._updateCommunityBenchmarks(stats);
-    },
-
-    /**
-     * Actualiza los benchmarks globales de la comunidad
-     */
-    async _updateCommunityBenchmarks(playerStats) {
-        const benchRef = this.db.ref('leaderboard/community_benchmarks');
-        await benchRef.transaction(current => {
-            const b = current || {
-                max_total_correct: 0,
-                min_response_time: 99999,
-                max_response_time: 0,
-                min_accuracy: 100,
-                max_accuracy: 0
-            };
-
-            return {
-                max_total_correct: Math.max(b.max_total_correct || 0, playerStats.total_correct || 0),
-                min_response_time: Math.min(b.min_response_time || 99999, playerStats.avg_response_time || 99999),
-                max_response_time: Math.max(b.max_response_time || 0, playerStats.avg_response_time || 0),
-                min_accuracy: Math.min(b.min_accuracy || 100, playerStats.global_accuracy || 100),
-                max_accuracy: Math.max(b.max_accuracy || 0, playerStats.global_accuracy || 0)
-            };
-        });
-    },
-
-    /**
-     * Recalcula el community score del jugador basado en benchmarks actuales
-     */
-    async _recalculateCommunityScore(uid) {
-        const [statsSnap, benchSnap] = await Promise.all([
-            this.db.ref(`users/${uid}/stats`).once('value'),
-            this.db.ref('leaderboard/community_benchmarks').once('value')
-        ]);
-
-        const stats = statsSnap.val();
-        const bench = benchSnap.val();
-        if (!stats || !bench) return;
-
-        // Pesos iguales: volumen, velocidad y asertividad con igual importancia
-        const W1 = 1/3, W2 = 1/3, W3 = 1/3;
-
-        // Score_C: Operaciones correctas vs máximo de la comunidad
-        const scoreC = bench.max_total_correct > 0
-            ? (stats.total_correct / bench.max_total_correct) * 100
-            : 0;
-
-        // Score_T: Tiempo promedio normalizado entre min y max de la comunidad
-        const timeRange = (bench.max_response_time || 0) - (bench.min_response_time || 0);
-        const scoreT = timeRange > 0
-            ? ((bench.max_response_time - stats.avg_response_time) / timeRange) * 100
-            : 50;
-
-        // Score_A: Accuracy normalizada entre min y max de la comunidad
-        const accRange = (bench.max_accuracy || 0) - (bench.min_accuracy || 0);
-        const scoreA = accRange > 0
-            ? ((stats.global_accuracy - bench.min_accuracy) / accRange) * 100
-            : 50;
-
-        const communityScore = Math.round((W1 * scoreC + W2 * scoreT + W3 * scoreA) * 10) / 10;
-
-        // Actualizar score en stats y leaderboard
-        await this.db.ref(`users/${uid}/stats/community_score`).set(communityScore);
-        await this.db.ref(`users/${uid}/stats/score_correctas`).set(Math.round(scoreC * 10) / 10);
-        await this.db.ref(`users/${uid}/stats/score_tiempo`).set(Math.round(scoreT * 10) / 10);
-        await this.db.ref(`users/${uid}/stats/score_accuracy`).set(Math.round(scoreA * 10) / 10);
-        await this.db.ref(`leaderboard/players/${uid}/community_score`).set(communityScore);
-    },
-
-    /**
-     * Recalcula el tier y la liga de todos los jugadores del leaderboard.
-     * Tier = percentil (1-100), donde rank es posición por community_score desc.
-     */
-    async _recalculateAllTiers() {
+    async _recalculateMyTier(uid) {
         try {
             const playersSnap = await this.db.ref('leaderboard/players').once('value');
             if (!playersSnap.exists()) return;
 
             const players = [];
             playersSnap.forEach(snap => {
-                const data = snap.val();
-                if (data && typeof data.community_score === 'number') {
-                    players.push({ uid: snap.key, score: data.community_score });
+                const d = snap.val();
+                if (d && typeof d.community_score === 'number') {
+                    players.push({ uid: snap.key, score: d.community_score });
                 }
             });
 
-            if (players.length === 0) return;
-
-            // Ordenar por community_score descendente
             players.sort((a, b) => b.score - a.score);
-
             const total = players.length;
-            const updates = {};
+            const myIndex = players.findIndex(p => p.uid === uid);
+            
+            if (myIndex === -1) return;
 
-            players.forEach((player, index) => {
-                const rank = index + 1;
-                const tier = Math.min(100, Math.floor(((rank - 1) / total) * 100) + 1);
-                const league = this._tierToLeague(tier);
-                
-                updates[`leaderboard/players/${player.uid}/tier`] = tier;
-                updates[`leaderboard/players/${player.uid}/league`] = league;
-                updates[`leaderboard/players/${player.uid}/rank`] = rank;
-                // Redundancia en stats del usuario
-                updates[`users/${player.uid}/stats/community_tier`] = tier;
-                updates[`users/${player.uid}/stats/community_league`] = league;
-                updates[`users/${player.uid}/stats/community_rank`] = rank;
+            const rank = myIndex + 1;
+            const tier = Math.min(100, Math.floor(((rank - 1) / total) * 100) + 1);
+            const league = this._tierToLeague(tier);
+
+            // ACTUALIZAR STATS PRIVADOS (usuario siempre tiene permiso)
+            await this.db.ref(`users/${uid}/stats`).update({
+                community_tier: tier,
+                community_league: league,
+                community_rank: rank
             });
 
-            await this.db.ref().update(updates);
-            console.log(`[CloudSync] Tiers recalculados para ${total} jugadores.`);
-        } catch (err) {
-            console.error('[CloudSync] Error en _recalculateAllTiers:', err);
+            // ACTUALIZAR LEADERBOARD PÚBLICO (puede fallar por permisos, no es bloqueante)
+            this.db.ref(`leaderboard/players/${uid}`).update({
+                tier: tier,
+                league: league,
+                rank: rank
+            }).catch(e => console.warn('[CloudSync] No se pudo actualizar el leaderboard público:', e));
+
+            console.log(`%c[CloudSync] Tu rango oficial: ${league} (Posición #${rank})`, "color: #00c8ff; font-weight: bold;");
+        } catch (e) {
+            console.error('[CloudSync] Error al calcular rango:', e);
         }
     },
 
-    /**
-     * Convierte un tier (1-100) en nombre de liga
-     */
     _tierToLeague(tier) {
-        if (tier <= 5)  return 'DIAMANTE';
+        if (tier <= 5) return 'DIAMANTE';
         if (tier <= 15) return 'PLATINO';
         if (tier <= 30) return 'ORO';
         if (tier <= 50) return 'PLATA';
@@ -306,9 +274,6 @@ const CloudSync = {
     }
 };
 
-// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        CloudSync.init();
-    }, 600);
+    setTimeout(() => CloudSync.init(), 600);
 });
