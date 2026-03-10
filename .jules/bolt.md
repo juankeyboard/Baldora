@@ -1,0 +1,3 @@
+## 2026-03-10 - Batched Firebase Writes
+**Learning:** In the `CloudSync` module (`js/cloudSync.js`), independent Firebase Realtime Database write operations should be batched into a single `.update(updates)` call for multi-path writes to minimize network roundtrips, rather than using multiple sequential `.set()` calls.
+**Action:** When performing multiple database updates in Firebase Realtime Database that do not depend on each other sequentially, collect the changes into an `updates` object and execute them simultaneously with `ref.update(updates)` instead of chaining `await ref.set()` calls.
