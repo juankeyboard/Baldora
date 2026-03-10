@@ -1207,21 +1207,29 @@
         </div>
     </section>
 
-    <!-- ===== OVERLAY: INVITACIÓN DE DUELO (Feature 15) ===== -->
-    <div id="duel-invite-overlay">
-        <div class="duel-invite-card">
-            <div class="duel-invite-icon">⚔️</div>
-            <div class="duel-invite-title">¡Te han retado!</div>
-            <div class="duel-invite-challenger" id="duel-invite-from">Oponente</div>
-            <div class="duel-invite-actions">
-                <button class="btn-duel-accept" onclick="BattleManager.acceptDuel()">⚡ ¡Acepto el Duelo!</button>
-                <button class="btn-duel-decline" onclick="BattleManager.declineDuel()">Declinar</button>
+    <!-- ===== VISTA: SELECCIÓN DE OPONENTE (GHOSTS) (Feature 15) ===== -->
+    <section id="ghost-selection-view" class="view">
+        <div class="profile-container">
+            <div class="profile-header">
+                <button class="btn-back-profile btn-return" type="button" onclick="BattleManager.hideGhostSelection()">
+                    &#8592; Volver al Menú
+                </button>
+                <div class="profile-title">
+                    <h2 data-i18n="ghost.selection_title">Salón de la Fama</h2>
+                    <p data-i18n="ghost.selection_desc">Selecciona un oponente para el Duelo.</p>
+                </div>
+            </div>
+
+            <div class="ghost-list-full-container">
+                <div id="ghost-list-loading" class="ghost-loader">Cargando oponentes...</div>
+                <div id="ghost-list" class="ghost-list">
+                    <!-- Los oponentes se inyectan vía JS -->
+                </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <!-- ===== OVERLAY: RESULTADO DE BATALLA (Feature 15) ===== -->
-    <div id="battle-result-overlay">
+    <!-- ===== OVERLAY: RESULTADO DE BATALLA (Feature 15) ===== -->    <div id="battle-result-overlay">
         <div class="battle-result-card">
             <div id="battle-result-title"
                 style="font-family: var(--font-display); font-size: 2.5rem; color: white; margin-bottom: 8px;">Resultado

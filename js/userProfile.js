@@ -225,30 +225,29 @@ const UserProfile = {
 
     async _renderCommunityScore(uid, stats) {
         const badgeEl = document.getElementById('community-badge-container');
+        if (!badgeEl) return;
+
+        const t = (key) => (typeof I18n !== 'undefined') ? I18n.t(key) : key;
 
         try {
-            const db = firebase.database();
-            const leaderSnap = await db.ref('leaderboard/players').once('value');
+            // 1. Intentar usar datos ya presentes en el objeto stats
+            let tier = stats.community_tier;
+            let league = stats.community_league;
 
-            const players = [];
-            leaderSnap.forEach(snap => players.push({ uid: snap.key, ...snap.val() }));
+            // 2. Si no están en stats (legacy o delay), intentar buscarlos en el leaderboard directamente para este UID
+            if (!tier || !league) {
+                const db = firebase.database();
+                const playerSnap = await db.ref(`leaderboard/players/${uid}`).once('value');
+                const playerData = playerSnap.val();
+                if (playerData) {
+                    tier = playerData.tier;
+                    league = playerData.league;
+                }
+            }
 
-            if (players.length === 0) return;
-
-            // Ordenar por community_score descendente
-            players.sort((a, b) => (b.community_score || 0) - (a.community_score || 0));
-
-            const total = players.length;
-            const rank = players.findIndex(p => p.uid === uid) + 1;
-
-            if (rank === 0) return; // usuario no está en el leaderboard aún
-
-            const tier = Math.floor((rank - 1) / total * 100) + 1;
-            const league = this._tierToLeague(tier);
-            const icon = this._leagueToIcon(league);
-
-            if (badgeEl) {
-                const t = (key) => (typeof I18n !== 'undefined') ? I18n.t(key) : key;
+            // 3. Renderizar según disponibilidad de datos
+            if (tier && league) {
+                const icon = this._leagueToIcon(league);
                 badgeEl.className = `community-badge league-${league.toLowerCase()}`;
                 badgeEl.innerHTML = `
                     <span class="community-league-icon">${icon}</span>
@@ -259,17 +258,23 @@ const UserProfile = {
                     <span class="community-league-name">${t('league.' + league)}</span>
                     <span class="community-badge-label">${t('league.badge')}</span>
                 `;
+            } else {
+                // Estado: Sin clasificar (el usuario aún no ha guardado partidas competitivas)
+                badgeEl.className = `community-badge league-madera`;
+                badgeEl.innerHTML = `
+                    <span class="community-league-icon">🎮</span>
+                    <div class="community-position-wrap">
+                        <span class="community-position-label">${t('league.position')}</span>
+                        <span class="community-position-number">—</span>
+                    </div>
+                    <span class="community-league-name">SIN LIGA</span>
+                    <span class="community-badge-label">Guarda una partida para calificar</span>
+                `;
             }
-
-            // Persistir tier y liga para que cloudSync los tenga actualizados
-            db.ref(`leaderboard/players/${uid}/tier`).set(tier);
-            db.ref(`leaderboard/players/${uid}/league`).set(league);
 
         } catch (err) {
-            console.error('Error al calcular posición en comunidad:', err);
-            if (badgeEl) {
-                badgeEl.innerHTML = `<span class="community-badge-label">Sin datos de comunidad</span>`;
-            }
+            console.error('Error al renderizar posición en comunidad:', err);
+            badgeEl.innerHTML = `<span class="community-badge-label">Error al cargar datos</span>`;
         }
     },
 
