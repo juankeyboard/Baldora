@@ -194,31 +194,23 @@ const BattleManager = (() => {
      */
     async function startGhostBattle(opponentUid) {
         try {
-            // Obtener el nickname del oponente (intentar ghosts, fallback a players)
-            const [ghostInfoSnap, playerInfoSnap] = await Promise.all([
-                db.ref(`leaderboard/ghosts/${opponentUid}`).once('value'),
-                db.ref(`leaderboard/players/${opponentUid}/displayName`).once('value')
-            ]);
-            const ghostInfo = ghostInfoSnap.val();
-            const ghostNickname = (ghostInfo && ghostInfo.nickname) || playerInfoSnap.val() || 'Fantasma';
+            // Leer ghost desde leaderboard/ghosts (ruta pública — incluye responses)
+            const ghostSnap = await db.ref(`leaderboard/ghosts/${opponentUid}`).once('value');
+            const ghostData = ghostSnap.val();
 
-            // Cargar datos detallados del ghost
-            const snapshot = await db.ref(`users/${opponentUid}/best_session_ghost`).once('value');
-            const ghostData = snapshot.val();
-
-            if (!ghostData) {
-                alert('No se pudieron cargar los datos del oponente.');
+            if (!ghostData || !ghostData.responses || ghostData.responses.length === 0) {
+                alert('Este cavernícola aún no tiene partida registrada. ¡Invítalo a jugar!');
                 return;
             }
 
             oponentGhost = ghostData;
-            oponentGhost.nickname = ghostNickname;
-            ghostResponses = ghostData.responses || [];
+            ghostResponses = ghostData.responses;
             ghostIndex = 0;
-            
+
             _startBattle();
         } catch (err) {
             console.error('Error iniciando batalla ghost:', err);
+            alert('Error al conectar con la comunidad.');
         }
     }
 

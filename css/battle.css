@@ -973,9 +973,9 @@
 }
 
 .btn-challenge-self {
-    background: #2e7d32;
+    background: var(--clr-green-500, #6E8C38);
 }
 
 .btn-challenge-self:hover {
-    background: #1b5e20;
+    background: #5a7830;
 }

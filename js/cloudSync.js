@@ -66,7 +66,8 @@ const CloudSync = {
                     score: bestScore,
                     avg_time_ms: bestTime,
                     tier: stats ? stats.community_tier : 100,
-                    league: stats ? stats.community_league : 'MADERA'
+                    league: stats ? stats.community_league : 'MADERA',
+                    responses: ghostData.responses
                 });
 
                 // Marcar ghost_available en el leaderboard público
@@ -192,12 +193,14 @@ const CloudSync = {
                 await this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData);
                 // Inyectar en el listado rápido del Salón de la Fama
                 leaderboardUpdate.ghost_available = true; // Flag para búsqueda rápida si fuera necesario
+                // Guardar ghost público con responses para que otros jugadores puedan retarlo
                 await this.db.ref(`leaderboard/ghosts/${uid}`).update({
                     nickname: user.displayName || 'Cavernícola',
                     score: stats.correct,
                     avg_time_ms: avgCorrectTime || stats.avgTime,
                     tier: 1, // Se actualiza correctamente en _recalculateMyTier
-                    league: 'MADERA' // Se actualiza correctamente en _recalculateMyTier
+                    league: 'MADERA', // Se actualiza correctamente en _recalculateMyTier
+                    responses: ghostData.responses
                 });
             }
 
