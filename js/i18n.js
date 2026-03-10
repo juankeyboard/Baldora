@@ -377,14 +377,11 @@ const I18n = {
             + '</svg>';
 
         const flagEN = '<svg viewBox="0 0 36 36" width="24" height="24">'
-            + '<rect fill="#B22234" width="36" height="36" rx="4"/>'
-            + '<rect fill="#FFF" y="2.77" width="36" height="2.77"/>'
-            + '<rect fill="#FFF" y="8.31" width="36" height="2.77"/>'
-            + '<rect fill="#FFF" y="13.85" width="36" height="2.77"/>'
-            + '<rect fill="#FFF" y="19.38" width="36" height="2.77"/>'
-            + '<rect fill="#FFF" y="24.92" width="36" height="2.77"/>'
-            + '<rect fill="#FFF" y="30.46" width="36" height="2.77"/>'
-            + '<rect fill="#3C3B6E" width="14.4" height="19.38"/>'
+            + '<rect fill="#012169" width="36" height="36" rx="4"/>'
+            + '<path d="m0 0 36 36M36 0 0 36" stroke="#FFF" stroke-width="4"/>'
+            + '<path d="m0 0 36 36M36 0 0 36" stroke="#C8102E" stroke-width="2"/>'
+            + '<path d="M18 0v36M0 18h36" stroke="#FFF" stroke-width="6"/>'
+            + '<path d="M18 0v36M0 18h36" stroke="#C8102E" stroke-width="4"/>'
             + '</svg>';
 
         btn.innerHTML = this.currentLang === 'es' ? flagES : flagEN;

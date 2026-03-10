@@ -147,9 +147,13 @@ const AuthManager = {
         const nicknameInput = document.getElementById('nickname');
         if (nicknameInput) nicknameInput.setAttribute('required', '');
 
-        // Si estaba en perfil, volver a config
+        // Si estaba en perfil o tienda, volver a config (Feature 14/REQ-002)
         const profileView = document.getElementById('profile-view');
-        if (profileView && profileView.classList.contains('active')) {
+        const storeView = document.getElementById('store-view');
+        const isProfileActive = profileView && profileView.classList.contains('active');
+        const isStoreActive = storeView && storeView.classList.contains('active');
+
+        if (isProfileActive || isStoreActive) {
             if (typeof App !== 'undefined') App.showView('CONFIG');
         }
 

@@ -103,15 +103,7 @@ body {
 }
 
 .btn-back-store {
-    background: var(--clr-sand-100);
-    border: 2px solid var(--clr-sand-300);
-    border-radius: var(--radius-full);
-    padding: var(--space-sm) var(--space-lg);
-    font-family: var(--font-main);
-    font-weight: 600;
-    color: var(--clr-rock-500);
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    /* Hereda de estilos unificados en styles.css */
 }
 
 .btn-back-store:hover {

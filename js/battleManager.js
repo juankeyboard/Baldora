@@ -681,12 +681,30 @@ const BattleManager = (() => {
     }
 
     function _updateDuelBtn(text, disabled) {
-        // El modo VS ya no tiene botón separado; se refleja en el radio label
-        // Podemos usar el botón COMENZAR o simplemente loguear en consola
+        // Actualizar el label del modo
         const modeVsLabel = document.querySelector('label[for="mode-vs"]');
-        if (!modeVsLabel) return;
-        const descEl = modeVsLabel.querySelector('.mode-desc');
-        if (descEl) descEl.textContent = disabled ? text : 'Multijugador';
+        if (modeVsLabel) {
+            const descEl = modeVsLabel.querySelector('.mode-desc');
+            if (descEl) descEl.textContent = disabled ? text : 'Multijugador';
+        }
+
+        // Actualizar el botón principal de inicio (COMENZAR)
+        const btnStart = document.querySelector('.btn-start');
+        if (btnStart) {
+            const spanText = btnStart.querySelector('[data-i18n="config.btn_start"]') || btnStart.querySelector('span');
+            if (spanText) {
+                if (disabled) {
+                    if (!btnStart.dataset.originalText) {
+                        btnStart.dataset.originalText = spanText.textContent;
+                    }
+                    spanText.textContent = text.toUpperCase();
+                } else {
+                    spanText.textContent = btnStart.dataset.originalText || 'COMENZAR';
+                }
+            }
+            btnStart.disabled = disabled;
+            btnStart.classList.toggle('loading', disabled);
+        }
     }
 
     // ── API pública ────────────────────────────────────────────────────────────

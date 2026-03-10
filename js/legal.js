@@ -19,30 +19,26 @@ const BaldoraLegal = {
 
     // ---- Navegacion a vistas legales ----
     showPrivacy() {
-        this._savePreviousView();
-        this._switchToView('privacy-view');
+        if (typeof App !== 'undefined') {
+            App.showView('PRIVACY');
+            window.scrollTo(0, 0);
+        }
     },
 
     showTerms() {
-        this._savePreviousView();
-        this._switchToView('terms-view');
+        if (typeof App !== 'undefined') {
+            App.showView('TERMS');
+            window.scrollTo(0, 0);
+        }
     },
 
     goBack() {
-        const viewName = this.previousView || 'CONFIG';
-        if (typeof App !== 'undefined' && typeof App.showView === 'function') {
+        if (typeof App !== 'undefined') {
+            const viewName = App.previousView || 'CONFIG';
             App.showView(viewName);
         } else {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            const viewMap = {
-                'config': 'config-view',
-                'playing': 'game-view',
-                'dashboard': 'dashboard-view',
-                'profile': 'profile-view',
-                'store': 'store-view'
-            };
-            const target = document.getElementById(viewMap[viewName.toLowerCase()] || 'config-view');
-            if (target) target.classList.add('active');
+            // Fallback si App no esta disponible
+            this._switchToView('config-view');
         }
     },
 
@@ -61,24 +57,34 @@ const BaldoraLegal = {
         window.scrollTo(0, 0);
     },
 
-    // ---- Footer Links ----
+    // ---- Footer & Modal Links ----
     _setupFooterLinks() {
-        const privacyLink = document.getElementById('footer-link-privacy');
-        const termsLink = document.getElementById('footer-link-terms');
+        const privacyLinks = [
+            document.getElementById('footer-link-privacy'),
+            document.getElementById('consent-link-privacy')
+        ];
+        const termsLinks = [
+            document.getElementById('footer-link-terms'),
+            document.getElementById('consent-link-terms')
+        ];
 
-        if (privacyLink) {
-            privacyLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showPrivacy();
-            });
-        }
+        privacyLinks.forEach(link => {
+            if (link) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showPrivacy();
+                });
+            }
+        });
 
-        if (termsLink) {
-            termsLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.showTerms();
-            });
-        }
+        termsLinks.forEach(link => {
+            if (link) {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.showTerms();
+                });
+            }
+        });
     },
 
     // ---- Back Buttons ----

@@ -108,7 +108,7 @@
                 <div class="auth-user-btn-wrapper">
                     <button id="btn-user-avatar" class="floating-btn floating-btn-avatar" type="button"
                         title="Mi cuenta">
-                        <img id="user-avatar-img" class="user-avatar-img" src="" alt="Usuario">
+                        <img id="user-avatar-img" class="user-avatar-img" src="" alt="Usuario" referrerpolicy="no-referrer">
                         <span id="user-display-name" class="user-display-name" style="display:none;"></span>
                     </button>
                     <!-- Dropdown -->
@@ -663,8 +663,7 @@
                 </button>
                 <div class="profile-header-row">
                     <div class="profile-user-info">
-                        <img id="profile-avatar" class="profile-avatar" src="" alt="Avatar">
-                        <div class="profile-user-details">
+                        <img id="profile-avatar" class="profile-avatar" src="" alt="Avatar" referrerpolicy="no-referrer">                        <div class="profile-user-details">
                             <h2 id="profile-name" class="profile-name">Usuario</h2>
                             <p id="profile-email" class="profile-email"></p>
                             <p class="profile-member">
@@ -838,12 +837,18 @@
     <!-- ===== VISTA DE POLITICA DE PRIVACIDAD (REQ-002) ===== -->
     <section id="privacy-view" class="view">
         <div class="legal-container">
-            <div class="legal-header">
-                <h2>Politica de Privacidad</h2>
-                <button class="btn-back-legal" type="button">&#8592; Volver</button>
-            </div>
+            <h2>Politica de Privacidad</h2>
             <p class="legal-updated">Ultima actualizacion: 9 de marzo de 2026</p>
             <div class="legal-content">
+                <!-- Logo y Botón Volver integrados -->
+                <div class="logo-header-internal">
+                    <a href="#" onclick="App.showView('CONFIG'); return false;">
+                        <img src="images/baldora_banner.png" alt="Logo Baldora.org" class="logo-banner">
+                    </a>
+                </div>
+                
+                <button class="btn-back-legal" type="button" onclick="BaldoraLegal.goBack()">Volver al Inicio</button>
+
                 <h3>1. Datos que Baldora Recopila</h3>
                 <table>
                     <thead>
@@ -1002,12 +1007,18 @@
     <!-- ===== VISTA DE TERMINOS Y CONDICIONES (REQ-002) ===== -->
     <section id="terms-view" class="view">
         <div class="legal-container">
-            <div class="legal-header">
-                <h2>Terminos y Condiciones</h2>
-                <button class="btn-back-legal" type="button">&#8592; Volver</button>
-            </div>
+            <h2>Terminos y Condiciones</h2>
             <p class="legal-updated">Ultima actualizacion: 9 de marzo de 2026</p>
             <div class="legal-content">
+                <!-- Logo y Botón Volver integrados -->
+                <div class="logo-header-internal">
+                    <a href="#" onclick="App.showView('CONFIG'); return false;">
+                        <img src="images/baldora_banner.png" alt="Logo Baldora.org" class="logo-banner">
+                    </a>
+                </div>
+
+                <button class="btn-back-legal" type="button" onclick="BaldoraLegal.goBack()">Volver al Inicio</button>
+
                 <h3>1. Aceptacion</h3>
                 <p>Al usar Baldora, el usuario acepta estos terminos. Si crea cuenta o usa funciones restringidas, puede
                     requerirse aceptacion expresa adicional.</p>
@@ -1243,9 +1254,9 @@
             <div class="footer-legal">
                 <span>©2026 Baldora.org</span>
                 <span class="separator"></span>
-                <a href="politica-de-privacidad.html" class="footer-legal-link">Privacidad</a>
+                <a href="#" id="footer-link-privacy" class="footer-legal-link">Privacidad</a>
                 <span class="separator"></span>
-                <a href="terminos-y-condiciones.html" class="footer-legal-link">Términos</a>
+                <a href="#" id="footer-link-terms" class="footer-legal-link">Términos</a>
                 <span class="separator"></span>
                 <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">Licencia MIT</a>
                 <span class="separator"></span>

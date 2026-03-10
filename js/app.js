@@ -246,13 +246,10 @@ const App = {
     showView(view) {
         this.state = view;
 
-        this.elements.configView.classList.remove('active');
-        this.elements.gameView.classList.remove('active');
-        this.elements.dashboardView.classList.remove('active');
-        // Feature 14: ocultar perfil al cambiar de vista
-        const profileView = document.getElementById('profile-view');
-        if (profileView) profileView.classList.remove('active');
+        // Ocultar todas las vistas de forma genérica
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
+        const profileView = document.getElementById('profile-view');
         // Actualizar el botón de ayuda según la vista
         const helpBtn = document.getElementById('btn-help-tour');
 
@@ -274,11 +271,18 @@ const App = {
                 break;
             case 'DASHBOARD':
                 this.elements.dashboardView.classList.add('active');
-                if (helpBtn) {
-                    helpBtn.style.display = 'none';
-                }
+                if (helpBtn) helpBtn.style.display = 'none';
                 break;
-            // Feature 14: Vista de Perfil de Usuario
+            case 'PRIVACY':
+                const privacyView = document.getElementById('privacy-view');
+                if (privacyView) privacyView.classList.add('active');
+                if (helpBtn) helpBtn.style.display = 'none';
+                break;
+            case 'TERMS':
+                const termsView = document.getElementById('terms-view');
+                if (termsView) termsView.classList.add('active');
+                if (helpBtn) helpBtn.style.display = 'none';
+                break;
             case 'PROFILE':
                 if (profileView) profileView.classList.add('active');
                 if (helpBtn) helpBtn.style.display = 'none';
@@ -304,8 +308,11 @@ const App = {
         // Mostrar/ocultar info del modo adaptativo (ocultar en VS)
         this.elements.adaptiveInfo.hidden = !isAdaptive;
 
-        // Si es modo adaptativo, seleccionar todas las tablas por defecto
-        if (isAdaptive && this.selectedRows.length === 1 && this.selectedRows[0] === 1 && this.selectedCols.length === 1 && this.selectedCols[0] === 1) {
+        // Si es modo adaptativo o VS, seleccionar todas las tablas por defecto (si solo hay una seleccionada)
+        const isDefaultState = this.selectedRows.length === 1 && this.selectedRows[0] === 1 && 
+                             this.selectedCols.length === 1 && this.selectedCols[0] === 1;
+
+        if ((isAdaptive || isVs) && isDefaultState) {
             this.selectAllRows();
             this.selectAllCols();
         }

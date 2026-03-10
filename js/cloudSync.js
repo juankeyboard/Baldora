@@ -249,33 +249,48 @@ const CloudSync = {
 
     /**
      * Recalcula el tier y la liga de todos los jugadores del leaderboard.
-     * Se llama cada vez que alguien guarda una práctica.
-     * Tier = ceil(rank / total * 100), donde rank es posición por community_score desc.
+     * Tier = percentil (1-100), donde rank es posición por community_score desc.
      */
     async _recalculateAllTiers() {
-        const playersSnap = await this.db.ref('leaderboard/players').once('value');
-        const players = [];
-        playersSnap.forEach(snap => {
-            players.push({ uid: snap.key, ...snap.val() });
-        });
+        try {
+            const playersSnap = await this.db.ref('leaderboard/players').once('value');
+            if (!playersSnap.exists()) return;
 
-        if (players.length === 0) return;
+            const players = [];
+            playersSnap.forEach(snap => {
+                const data = snap.val();
+                if (data && typeof data.community_score === 'number') {
+                    players.push({ uid: snap.key, score: data.community_score });
+                }
+            });
 
-        // Ordenar por community_score descendente
-        players.sort((a, b) => (b.community_score || 0) - (a.community_score || 0));
+            if (players.length === 0) return;
 
-        const total = players.length;
-        const updates = {};
+            // Ordenar por community_score descendente
+            players.sort((a, b) => b.score - a.score);
 
-        players.forEach((player, index) => {
-            const rank = index + 1;
-            const tier = Math.floor((rank - 1) / total * 100) + 1;
-            const league = this._tierToLeague(tier);
-            updates[`leaderboard/players/${player.uid}/tier`] = tier;
-            updates[`leaderboard/players/${player.uid}/league`] = league;
-        });
+            const total = players.length;
+            const updates = {};
 
-        await this.db.ref().update(updates);
+            players.forEach((player, index) => {
+                const rank = index + 1;
+                const tier = Math.min(100, Math.floor(((rank - 1) / total) * 100) + 1);
+                const league = this._tierToLeague(tier);
+                
+                updates[`leaderboard/players/${player.uid}/tier`] = tier;
+                updates[`leaderboard/players/${player.uid}/league`] = league;
+                updates[`leaderboard/players/${player.uid}/rank`] = rank;
+                // Redundancia en stats del usuario
+                updates[`users/${player.uid}/stats/community_tier`] = tier;
+                updates[`users/${player.uid}/stats/community_league`] = league;
+                updates[`users/${player.uid}/stats/community_rank`] = rank;
+            });
+
+            await this.db.ref().update(updates);
+            console.log(`[CloudSync] Tiers recalculados para ${total} jugadores.`);
+        } catch (err) {
+            console.error('[CloudSync] Error en _recalculateAllTiers:', err);
+        }
     },
 
     /**

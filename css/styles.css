@@ -1502,20 +1502,54 @@ input[type="number"]:focus {
     gap: var(--space-sm);
 }
 
-.btn-download {
-    background: var(--clr-green-500);
-    color: white;
-    border: none;
-    border-bottom: 3px solid #4A6B28;
+/* ── BOTONES VERDES UNIFICADOS (Descargar, Nueva Partida, Volver Perfil/Legal) ── */
+.btn-download,
+#btn-new-game,
+.btn-back-profile,
+.btn-back-legal,
+.btn-back-store,
+.btn-green-project,
+.btn-return {
+    background: var(--clr-green-500) !important;
+    color: white !important;
+    border: none !important;
+    border-bottom: 3px solid #4A6B28 !important;
     padding: var(--space-sm) var(--space-md);
     border-radius: var(--radius-md);
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     transition: all var(--transition-fast);
+    text-transform: uppercase !important;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    font-family: var(--font-main);
 }
 
-.btn-download:hover {
-    transform: translateY(-1px);
+.btn-download:hover,
+#btn-new-game:hover,
+.btn-back-profile:hover,
+.btn-back-legal:hover,
+.btn-back-store:hover,
+.btn-green-project:hover,
+.btn-return:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(110, 140, 56, 0.3) !important;
+    background: #7a9c3d !important; /* Verde ligeramente más claro para el hover */
+}
+
+.btn-download:active,
+#btn-new-game:active,
+.btn-back-profile:active,
+.btn-back-legal:active,
+.btn-back-store:active,
+.btn-green-project:active,
+.btn-return:active {
+    transform: translateY(1px) !important;
+    border-bottom-width: 1px !important;
 }
 
 /* ===== BTN START ===== */
@@ -1555,6 +1589,8 @@ input[type="number"]:focus {
 .btn-arrow {
     font-size: 1.5rem;
 }
+
+/* El estilo de .btn-return ha sido movido a la seccion de BOTONES VERDES UNIFICADOS */
 
 /* ===== ADAPTIVE INFO TEXT ===== */
 

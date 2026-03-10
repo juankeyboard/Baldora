@@ -40,7 +40,11 @@ const BaldoraStore = {
         if (!btn) return;
 
         btn.addEventListener('click', () => {
-            this.show();
+            // REDIRECCION TEMPORAL A SHOPIFY (REQ SOLICITADO)
+            const shopifyProductUrl = "https://pitias-2.myshopify.com/products/montessori-wooden-math-toy-multiplication-board-game-for-kids-counting-learning-education";
+            window.open(shopifyProductUrl, '_blank');
+            
+            // Comentado temporalmente: this.show();
         });
     },
 
