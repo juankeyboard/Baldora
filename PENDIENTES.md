@@ -3,6 +3,12 @@
 Este documento centraliza las tareas pendientes, errores detectados y mejoras planificadas para el proyecto.
 
 ## 🔴 Prioridad Alta (Errores y Bloqueos)
+- [ ] **Flujo Multijugador completo — No implementado funcional.** El modo VS debe completar el siguiente flujo de extremo a extremo:
+    1. **Modo de juego:** El jugador selecciona modo VS desde la pantalla de configuración.
+    2. **Variables de factores y tiempo:** El jugador elige sus tablas (filas/columnas) y el tiempo límite del duelo.
+    3. **Selección de oponente:** Se muestra el Hall of Fame con los jugadores de la comunidad (nickname, liga, mejor partida). El jugador elige contra quién competir.
+    4. **Simulación del oponente (Ghost Engine):** La mejor partida guardada del oponente actúa como rival en vivo. Las operaciones que no coincidan con las tablas seleccionadas se omiten; para esas posiciones, el bot responde usando tiempos aleatorios tomados del historial del oponente, simulando presencia en tiempo real.
+    5. **Guardado del resultado:** Al finalizar el duelo se registra victoria o derrota en el historial del jugador y se actualiza su posición en el leaderboard de la comunidad.
 - [x] **Reparar cálculo de posición:** El update multi-ruta desde la raíz de Firebase bloqueaba si algún nodo no tenía permiso. Separado en 2 llamadas independientes en `cloudSync.js` (`_recalculateMyTier`). *(Resuelto: 2026-03-10)*
 - [x] **Flujo de Inicio:** Botón "COMENZAR" en modo VS sin login ahora dispara automáticamente Google Sign-In y retoma el flujo VS tras autenticarse (`app.js` + `auth.js`). *(Resuelto: 2026-03-10)*
 - [x] **Configuración Multijugador:** Al seleccionar modo VS, ahora SIEMPRE se fuerzan todas las 15 tablas activas (independiente del estado previo) en `app.js updateModeUI()`. *(Resuelto: 2026-03-10)*
@@ -25,4 +31,4 @@ Este documento centraliza las tareas pendientes, errores detectados y mejoras pl
 - Consultar `docs/f14_UserSystem.md` y `docs/f15_Multiplayer.md` para especificaciones técnicas detalladas.
 
 ---
-*Última actualización: 10 de marzo de 2026*
+*Última actualización: 10 de marzo de 2026 — Pendiente multijugador completo agregado.*
