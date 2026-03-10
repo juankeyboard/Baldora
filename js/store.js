@@ -41,7 +41,7 @@ const BaldoraStore = {
 
         btn.addEventListener('click', () => {
             // REDIRECCION TEMPORAL A SHOPIFY (REQ SOLICITADO)
-            const shopifyProductUrl = "https://pitias-2.myshopify.com/products/montessori-wooden-math-toy-multiplication-board-game-for-kids-counting-learning-education";
+            const shopifyProductUrl = "https://tienda.baldora.org/products/montessori-wooden-math-toy-multiplication-board-game-for-kids-counting-learning-education";
             window.open(shopifyProductUrl, '_blank');
             
             // Comentado temporalmente: this.show();
