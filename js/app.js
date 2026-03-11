@@ -498,7 +498,10 @@ const App = {
         } else {
             GridManager.init(this.selectedRows, this.selectedCols);
             this.elements.adaptivePhaseIndicator.hidden = true;
-            this.elements.matrixTitle.textContent = 'Tabla de Multiplicar';
+            // f19 §3.2: mostrar modo y total de operaciones en el título
+            const totalOpsNonAdaptive = this.selectedRows.length * this.selectedCols.length;
+            const modeLabel = this.gameMode === 'FREE' ? 'Práctica Libre' : 'Contrarreloj';
+            this.elements.matrixTitle.textContent = `${modeLabel} - ${totalOpsNonAdaptive} operaciones`;
             this.elements.weaknessesCounter.hidden = true;
         }
 
