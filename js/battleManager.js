@@ -15,6 +15,7 @@ const BattleManager = (() => {
     let ghostResponses = []; // Array de respuestas del bot
     let ghostIndex = 0;
     let ghostTimer = null;
+    let currentOpponentUid = null; // UID del oponente para detectar auto-duelo
 
     // --- Configuración de Sesión ---
     let currentRows = [];
@@ -194,6 +195,7 @@ const BattleManager = (() => {
      * Inicia el duelo contra un Fantasma específico
      */
     async function startGhostBattle(opponentUid) {
+        currentOpponentUid = opponentUid;
         try {
             // Leer ghost público (incluye responses si ya fueron guardadas)
             const [ghostSnap, playerSnap] = await Promise.all([
@@ -474,7 +476,10 @@ const BattleManager = (() => {
             if (iconEl) iconEl.textContent = '🏆';
             titleEl.textContent = '¡Victoria!';
             titleEl.style.color = '';
-            msgEl.textContent = 'Has derrotado al fantasma con tu agilidad mental.';
+            const isSelf = currentOpponentUid && myUid && currentOpponentUid === myUid;
+            const ghostName = oponentGhost ? oponentGhost.nickname : null;
+            const defeatedName = isSelf ? 'tu versión anterior' : (ghostName || 'el fantasma');
+            msgEl.textContent = `Has derrotado a ${defeatedName} con tu agilidad mental.`;
         } else if (winner === 'yellow') {
             if (iconEl) iconEl.textContent = '👻';
             titleEl.textContent = 'Derrota';
