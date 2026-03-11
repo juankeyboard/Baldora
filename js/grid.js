@@ -73,6 +73,10 @@ const GridManager = {
                 cell.addEventListener('click', () => {
                     if (!cell.classList.contains('disabled') && !cell.classList.contains('header')) {
                         this.showResultOnClick(row, col);
+                        // f19 §2.2: clic en matriz resetea timer de inactividad
+                        if (typeof App !== 'undefined') {
+                            App.resetInactivityTimer();
+                        }
                     }
                 });
 
@@ -253,6 +257,11 @@ const GridManager = {
         const key = `${row}-${col}`;
         const cell = this.cells[key];
         if (!cell) return;
+
+        // f19 §3.1: solo mostrar resultado en celdas no resueltas
+        if (cell.classList.contains('correct') || cell.classList.contains('mastered')) {
+            return;
+        }
 
         // Reproducir sonido de pista
         if (typeof AudioManager !== 'undefined') {
