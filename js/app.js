@@ -528,6 +528,24 @@ const App = {
         // Mostrar vista de juego
         this.showView('PLAYING');
 
+        // === MODO ARCADE: EL RIO (f19 v2.0) ===
+        if (this.gameMode === 'FREE' && typeof RiverMode !== 'undefined') {
+            // Iniciar timer (cronometro)
+            this.startTime = Date.now();
+            this.startTimer();
+            // Iniciar timer de inactividad
+            this.startInactivityTimer();
+            // Delegar toda la mecanica al motor del rio
+            RiverMode.start(this.selectedRows, this.selectedCols);
+            // Activar sonido y BGM
+            if (AudioManager.getMuteState()) {
+                AudioManager.toggleMute();
+            }
+            AudioManager.playStart();
+            AudioManager.playBGM('gameplay');
+            return;
+        }
+
         // Iniciar timer
         this.startTime = Date.now();
         this.startTimer();
@@ -746,6 +764,11 @@ const App = {
      * Finaliza el juego
      */
     endGame() {
+        // Detener Modo Arcade El Rio si estaba activo
+        if (typeof RiverMode !== 'undefined') {
+            RiverMode.stop();
+        }
+
         // Detener timer
         if (this.timerInterval) {
             clearInterval(this.timerInterval);
@@ -796,6 +819,10 @@ const App = {
      * Reinicia el juego
      */
     resetGame() {
+        // Detener Modo Arcade El Rio si estaba activo
+        if (typeof RiverMode !== 'undefined') {
+            RiverMode.stop();
+        }
         this.clearInactivityTimer();
         // Detener intervalo de ayuda visual
         this.clearHelpCheck();

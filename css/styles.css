@@ -3920,3 +3920,189 @@ body::before {
         height: 18px;
     }
 }
+
+/* ===== MODO ARCADE: EL RIO (f19 v2.0) ===== */
+
+.river-arena {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: transparent;
+}
+
+.river-containers-layer {
+    position: relative;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Contenedores flotantes (burbujas con operacion) */
+.river-container {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem 1.2rem;
+    min-width: 110px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 2px solid var(--clr-sand-300);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--clr-ink-900);
+    white-space: nowrap;
+    pointer-events: none;
+    transition: none;
+    will-change: transform;
+    z-index: 2;
+}
+
+[data-theme="dark"] .river-container {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: var(--clr-sand-300);
+}
+
+.river-op {
+    letter-spacing: 0.04em;
+}
+
+/* Explosion al acertar */
+.river-container.exploding {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    transform: scale(1.4) !important;
+    opacity: 0 !important;
+    border-color: var(--clr-green-500);
+    background: rgba(110, 140, 56, 0.2);
+}
+
+/* Hundimiento al fallar */
+.river-container.drowning {
+    transition: transform 0.4s ease-in, opacity 0.4s ease-in;
+    transform: translateY(40px) !important;
+    opacity: 0 !important;
+    border-color: var(--clr-rose-500);
+    background: rgba(209, 107, 165, 0.2);
+}
+
+/* Silueta del rio */
+.river-silhouette {
+    position: relative;
+    width: 100%;
+    height: 22%;
+    min-height: 80px;
+    max-height: 160px;
+    background: linear-gradient(
+        180deg,
+        rgba(126, 200, 227, 0.15) 0%,
+        rgba(126, 200, 227, 0.35) 40%,
+        rgba(74, 144, 164, 0.5) 100%
+    );
+    border-top-left-radius: 50% 30px;
+    border-top-right-radius: 50% 30px;
+    flex-shrink: 0;
+    z-index: 1;
+}
+
+.river-silhouette::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 0;
+    right: 0;
+    height: 12px;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 40px,
+        rgba(126, 200, 227, 0.4) 40px,
+        rgba(126, 200, 227, 0.4) 80px
+    );
+    border-radius: 50%;
+    animation: river-wave 3s ease-in-out infinite alternate;
+}
+
+@keyframes river-wave {
+    0% { transform: translateX(-10px); }
+    100% { transform: translateX(10px); }
+}
+
+[data-theme="dark"] .river-silhouette {
+    background: linear-gradient(
+        180deg,
+        rgba(30, 41, 59, 0.2) 0%,
+        rgba(74, 144, 164, 0.3) 40%,
+        rgba(74, 144, 164, 0.55) 100%
+    );
+}
+
+/* Input global del rio */
+.river-input {
+    position: absolute;
+    bottom: calc(22% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(200px, 60%);
+    padding: 0.65rem 1rem;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--clr-ink-900);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 2px solid var(--clr-rose-500);
+    border-radius: var(--radius-full);
+    box-shadow: 0 4px 20px rgba(209, 107, 165, 0.25);
+    outline: none;
+    z-index: 10;
+    -moz-appearance: textfield;
+}
+
+.river-input::-webkit-inner-spin-button,
+.river-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.river-input:focus {
+    border-color: var(--clr-rose-700);
+    box-shadow: 0 4px 24px rgba(209, 107, 165, 0.4);
+}
+
+[data-theme="dark"] .river-input {
+    background: rgba(15, 23, 42, 0.92);
+    color: var(--clr-ink-900);
+    border-color: var(--clr-rose-500);
+}
+
+/* Responsive: river arena en mobile */
+@media (max-width: 600px) {
+    .river-arena {
+        min-height: 60vh;
+    }
+
+    .river-container {
+        font-size: 1.05rem;
+        padding: 0.45rem 0.85rem;
+        min-width: 90px;
+    }
+
+    .river-input {
+        font-size: 1.3rem;
+        width: min(170px, 70%);
+        padding: 0.5rem 0.8rem;
+    }
+
+    .river-silhouette {
+        min-height: 60px;
+    }
+}
