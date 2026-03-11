@@ -176,8 +176,8 @@ const RiverMode = {
         if (!this.arenaEl || !this.layerEl) return;
 
         const op = this._nextOp();
-        // 30% de probabilidad de caer a 1.2x la velocidad base
-        const speed = Math.random() < 0.3 ? this.baseSpeed * 1.2 : this.baseSpeed;
+        // 30% de probabilidad de caer a 1.8x la velocidad base
+        const speed = Math.random() < 0.3 ? this.baseSpeed * 1.8 : this.baseSpeed;
 
         // Crear elemento DOM
         const el = document.createElement('div');

@@ -4000,6 +4000,7 @@ body::before {
     flex-shrink: 0;
     box-shadow: 0 0 12px rgba(224, 0, 122, 0.6);
     z-index: 3;
+    margin-top: auto;
 }
 
 /* Barra de controles debajo de la línea */
@@ -4008,7 +4009,7 @@ body::before {
     align-items: center;
     justify-content: center;
     gap: 12px;
-    padding: 10px 16px;
+    padding: 4px 16px 6px;
     flex-shrink: 0;
     z-index: 3;
 }
@@ -4020,7 +4021,7 @@ body::before {
     flex-shrink: 0;
     padding: 0.5vw 1vw;
     font-family: var(--font-display);
-    font-size: clamp(1rem, 4.5vw, 5.5rem);
+    font-size: clamp(0.9rem, 4.05vw, 4.95rem);
     font-weight: 700;
     text-align: center;
     color: var(--clr-ink-900);
@@ -4074,5 +4075,5 @@ body::before {
 @media (max-width: 600px) {
     .river-arena { min-height: 60vh; }
     .river-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
-    .river-input { font-size: clamp(1rem, 4.5vw, 3rem); }
+    .river-input { font-size: clamp(0.9rem, 4.05vw, 2.7rem); }
 }
