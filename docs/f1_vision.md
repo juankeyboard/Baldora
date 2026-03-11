@@ -189,5 +189,8 @@ Baldora/
 | `f14.md` | Sistema de Usuarios y Comunidad |
 | `f15.md` | Modalidad Multijugador |
 | `f16_store.md` | GestiÃ³n de Estado Global |
-| `f17_legal.md` | Aspectos Legales y Privacidad |
+| f17_legal.md | Aspectos Legales y Privacidad |
+| f18_captacion-datos-venta.md | Captación de Datos (Colombia) |
+| f19_practica_libre.md | Modalidad Práctica Libre |
+
 

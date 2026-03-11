@@ -52,7 +52,7 @@ const RiverMode = {
         // Cachear elementos DOM
         this.arenaEl = document.getElementById('river-arena');
         this.layerEl = document.getElementById('river-containers-layer');
-        this.groundEl = document.getElementById('river-ground');
+        this.groundEl = document.getElementById('river-limit-line');
         this.inputEl = document.getElementById('river-input');
 
         // Limpiar capa
@@ -242,6 +242,10 @@ const RiverMode = {
     // === Input ===
 
     _handleInput() {
+        // Ajustar ancho del input al contenido (mín 3ch, máx 6ch)
+        const len = this.inputEl.value.length || 1;
+        this.inputEl.style.width = Math.min(len + 1, 6) + 'ch';
+
         const val = parseInt(this.inputEl.value);
         if (isNaN(val)) return;
 

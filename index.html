@@ -387,8 +387,10 @@
             <!-- Modo Arcade: El Rio (f19 v2.0) -->
             <div id="river-arena" class="river-arena" style="display:none;">
                 <div id="river-containers-layer" class="river-containers-layer"></div>
-                <div id="river-ground" class="river-ground">
+                <div id="river-limit-line" class="river-limit-line"></div>
+                <div class="river-controls">
                     <input id="river-input" class="river-input" type="number" autocomplete="off" inputmode="numeric" placeholder="?" />
+                    <button type="button" class="river-end-btn" onclick="App.endGame()">Terminar</button>
                 </div>
             </div>
         </div>
