@@ -166,6 +166,16 @@ const App = {
         this.elements.modeTimer.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
         this.elements.modeFree.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
         this.elements.modeAdaptive.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
+
+        // f19 v2.0: slider de velocidad de caída (FREE mode)
+        const freeSpeedSlider = document.getElementById('free-speed');
+        const freeSpeedDisplay = document.getElementById('free-speed-display');
+        if (freeSpeedSlider && freeSpeedDisplay) {
+            freeSpeedSlider.addEventListener('input', () => {
+                const v = parseInt(freeSpeedSlider.value);
+                freeSpeedDisplay.textContent = v <= 60 ? 'Muy lenta' : v <= 100 ? 'Normal' : v <= 160 ? 'Rápida' : 'Extrema';
+            });
+        }
         // Feature 15: Modo VS
         if (this.elements.modeVs) {
             this.elements.modeVs.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
@@ -317,9 +327,14 @@ const App = {
         const isAdaptive = this.elements.modeAdaptive.checked;
         // Feature 15: Modo VS también usa el slider de tiempo (f15 §2)
         const isVs = this.elements.modeVs && this.elements.modeVs.checked;
+        const isFree = this.elements.modeFree.checked;
 
         // Mostrar slider de tiempo en modo Contrarreloj Y en modo VS
         this.elements.timerConfig.classList.toggle('hidden', !isTimer && !isVs);
+
+        // f19 v2.0: mostrar slider de velocidad solo en Práctica Libre
+        const freeConfig = document.getElementById('free-config');
+        if (freeConfig) freeConfig.classList.toggle('hidden', !isFree);
 
         // El selector de tablas está disponible en TODOS los modos
         this.elements.tablesConfig.hidden = false;
@@ -536,7 +551,9 @@ const App = {
             // Iniciar timer de inactividad
             this.startInactivityTimer();
             // Delegar toda la mecanica al motor del rio
-            RiverMode.start(this.selectedRows, this.selectedCols);
+            const freeSpeedSlider = document.getElementById('free-speed');
+            const baseSpeed = freeSpeedSlider ? parseInt(freeSpeedSlider.value) : 100;
+            RiverMode.start(this.selectedRows, this.selectedCols, baseSpeed);
             // Activar sonido y BGM
             if (AudioManager.getMuteState()) {
                 AudioManager.toggleMute();

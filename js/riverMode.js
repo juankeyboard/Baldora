@@ -24,7 +24,7 @@ const RiverMode = {
     // Configuracion
     MAX_CONTAINERS: 5,
     SPAWN_INTERVAL: 2000,  // ms entre spawns
-    SPEEDS: [80, 140, 200], // px/s: lenta, media, rapida
+    baseSpeed: 100,        // px/s: velocidad configurada por el usuario
 
     // Tablas seleccionadas (copia local)
     _rows: [],
@@ -38,9 +38,10 @@ const RiverMode = {
      * @param {number[]} rows - Filas seleccionadas
      * @param {number[]} cols - Columnas seleccionadas
      */
-    start(rows, cols) {
+    start(rows, cols, speed = 100) {
         this._rows = rows.slice();
         this._cols = cols.slice();
+        this.baseSpeed = speed;
         this._rebuildPool();
 
         this.correctCount = 0;
@@ -51,7 +52,7 @@ const RiverMode = {
         // Cachear elementos DOM
         this.arenaEl = document.getElementById('river-arena');
         this.layerEl = document.getElementById('river-containers-layer');
-        this.silhouetteEl = document.getElementById('river-silhouette');
+        this.groundEl = document.getElementById('river-ground');
         this.inputEl = document.getElementById('river-input');
 
         // Limpiar capa
@@ -64,9 +65,9 @@ const RiverMode = {
         if (controlsPanel) controlsPanel.style.display = 'none';
         this.arenaEl.style.display = 'flex';
 
-        // Bind input
-        this._onKeyDown = this._handleKeyDown.bind(this);
-        this.inputEl.addEventListener('keydown', this._onKeyDown);
+        // Bind input: auto-submit al escribir, sin necesidad de Enter
+        this._onInput = this._handleInput.bind(this);
+        this.inputEl.addEventListener('input', this._onInput);
 
         // Focus permanente
         this._onBlur = () => {
@@ -111,7 +112,7 @@ const RiverMode = {
 
         // Limpiar listeners
         if (this.inputEl) {
-            this.inputEl.removeEventListener('keydown', this._onKeyDown);
+            this.inputEl.removeEventListener('input', this._onInput);
             this.inputEl.removeEventListener('blur', this._onBlur);
         }
 
@@ -165,7 +166,8 @@ const RiverMode = {
         if (!this.arenaEl || !this.layerEl) return;
 
         const op = this._nextOp();
-        const speed = this.SPEEDS[Math.floor(Math.random() * this.SPEEDS.length)];
+        // 30% de probabilidad de caer a 1.2x la velocidad base
+        const speed = Math.random() < 0.3 ? this.baseSpeed * 1.2 : this.baseSpeed;
 
         // Crear elemento DOM
         const el = document.createElement('div');
@@ -221,19 +223,17 @@ const RiverMode = {
     },
 
     _checkCollisions() {
-        if (!this.silhouetteEl) return;
+        if (!this.groundEl) return;
 
-        const silhouetteTop = this.silhouetteEl.offsetTop;
+        const groundTop = this.groundEl.offsetTop;
 
         for (const c of this.containers) {
             if (c.dead) continue;
 
-            // La posicion real del contenedor: top(-60px inicial) + translateY
-            // El el tiene style.top fijo y transform:translateY se mueve
             const elTop = c.el.offsetTop + c.y;
             const elBottom = elTop + c.el.offsetHeight;
 
-            if (elBottom >= silhouetteTop) {
+            if (elBottom >= groundTop) {
                 this._drown(c);
             }
         }
@@ -241,37 +241,31 @@ const RiverMode = {
 
     // === Input ===
 
-    _handleKeyDown(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const val = parseInt(this.inputEl.value);
-            this.inputEl.value = '';
+    _handleInput() {
+        const val = parseInt(this.inputEl.value);
+        if (isNaN(val)) return;
 
-            if (isNaN(val)) return;
+        // Resetear inactividad de App si existe
+        if (typeof App !== 'undefined') App.resetInactivityTimer();
 
-            // Buscar contenedor cuyo resultado coincida (el mas cercano al rio primero)
-            let match = null;
-            let bestY = -Infinity;
+        // Buscar contenedor cuyo resultado coincida (el más cercano al suelo primero)
+        let match = null;
+        let bestY = -Infinity;
 
-            for (const c of this.containers) {
-                if (c.dead) continue;
-                if (c.result === val) {
-                    const currentY = c.el.offsetTop + c.y;
-                    if (currentY > bestY) {
-                        bestY = currentY;
-                        match = c;
-                    }
+        for (const c of this.containers) {
+            if (c.dead) continue;
+            if (c.result === val) {
+                const currentY = c.el.offsetTop + c.y;
+                if (currentY > bestY) {
+                    bestY = currentY;
+                    match = c;
                 }
             }
+        }
 
-            if (match) {
-                this._explode(match);
-            }
-
-            // Resetear inactividad de App si existe
-            if (typeof App !== 'undefined') {
-                App.resetInactivityTimer();
-            }
+        if (match) {
+            this.inputEl.value = '';
+            this._explode(match);
         }
     },
 

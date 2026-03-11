@@ -3992,76 +3992,35 @@ body::before {
     background: rgba(209, 107, 165, 0.2);
 }
 
-/* Silueta del rio */
-.river-silhouette {
+/* Suelo del río — imagen baldora_ground.png */
+.river-ground {
     position: relative;
     width: 100%;
-    height: 22%;
-    min-height: 80px;
-    max-height: 160px;
-    background: linear-gradient(
-        180deg,
-        rgba(126, 200, 227, 0.15) 0%,
-        rgba(126, 200, 227, 0.35) 40%,
-        rgba(74, 144, 164, 0.5) 100%
-    );
-    border-top-left-radius: 50% 30px;
-    border-top-right-radius: 50% 30px;
+    height: 140px;
     flex-shrink: 0;
-    z-index: 1;
+    background: url('../images/baldora_ground.png') bottom center / cover no-repeat;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 12px;
+    z-index: 3;
 }
 
-.river-silhouette::before {
-    content: '';
-    position: absolute;
-    top: -6px;
-    left: 0;
-    right: 0;
-    height: 12px;
-    background: repeating-linear-gradient(
-        90deg,
-        transparent,
-        transparent 40px,
-        rgba(126, 200, 227, 0.4) 40px,
-        rgba(126, 200, 227, 0.4) 80px
-    );
-    border-radius: 50%;
-    animation: river-wave 3s ease-in-out infinite alternate;
-}
-
-@keyframes river-wave {
-    0% { transform: translateX(-10px); }
-    100% { transform: translateX(10px); }
-}
-
-[data-theme="dark"] .river-silhouette {
-    background: linear-gradient(
-        180deg,
-        rgba(30, 41, 59, 0.2) 0%,
-        rgba(74, 144, 164, 0.3) 40%,
-        rgba(74, 144, 164, 0.55) 100%
-    );
-}
-
-/* Input global del rio */
+/* Input global — centrado encima del suelo */
 .river-input {
-    position: absolute;
-    bottom: calc(22% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(200px, 60%);
-    padding: 0.65rem 1rem;
+    width: min(180px, 55%);
+    padding: 0.55rem 1rem;
     font-family: var(--font-display);
     font-size: 1.6rem;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
     color: var(--clr-ink-900);
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 2px solid var(--clr-rose-500);
     border-radius: var(--radius-full);
-    box-shadow: 0 4px 20px rgba(209, 107, 165, 0.25);
+    box-shadow: 0 4px 20px rgba(209, 107, 165, 0.3);
     outline: none;
     z-index: 10;
     -moz-appearance: textfield;
@@ -4075,34 +4034,19 @@ body::before {
 
 .river-input:focus {
     border-color: var(--clr-rose-700);
-    box-shadow: 0 4px 24px rgba(209, 107, 165, 0.4);
+    box-shadow: 0 4px 24px rgba(209, 107, 165, 0.45);
 }
 
 [data-theme="dark"] .river-input {
     background: rgba(15, 23, 42, 0.92);
-    color: var(--clr-ink-900);
+    color: var(--clr-sand-100);
     border-color: var(--clr-rose-500);
 }
 
-/* Responsive: river arena en mobile */
+/* Responsive */
 @media (max-width: 600px) {
-    .river-arena {
-        min-height: 60vh;
-    }
-
-    .river-container {
-        font-size: 1.05rem;
-        padding: 0.45rem 0.85rem;
-        min-width: 90px;
-    }
-
-    .river-input {
-        font-size: 1.3rem;
-        width: min(170px, 70%);
-        padding: 0.5rem 0.8rem;
-    }
-
-    .river-silhouette {
-        min-height: 60px;
-    }
+    .river-arena { min-height: 60vh; }
+    .river-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
+    .river-ground { height: 110px; }
+    .river-input { font-size: 1.3rem; width: min(150px, 70%); }
 }

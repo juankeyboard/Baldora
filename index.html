@@ -229,6 +229,15 @@
                     </div>
                 </div>
 
+                <!-- Práctica Libre: velocidad de caída (f19 v2.0) -->
+                <div class="form-group free-config hidden" id="free-config">
+                    <label for="free-speed">🌊 Velocidad de caída</label>
+                    <div class="time-slider-container">
+                        <input type="range" id="free-speed" min="40" max="240" value="100" step="20">
+                        <span class="time-display" id="free-speed-display">Normal</span>
+                    </div>
+                </div>
+
                 <div class="form-group" id="tables-config">
                     <div class="factors-selection-container">
                         <!-- Factor A (Filas) -->
@@ -378,8 +387,9 @@
             <!-- Modo Arcade: El Rio (f19 v2.0) -->
             <div id="river-arena" class="river-arena" style="display:none;">
                 <div id="river-containers-layer" class="river-containers-layer"></div>
-                <div id="river-silhouette" class="river-silhouette"></div>
-                <input id="river-input" class="river-input" type="number" autocomplete="off" inputmode="numeric" placeholder="= ?" />
+                <div id="river-ground" class="river-ground">
+                    <input id="river-input" class="river-input" type="number" autocomplete="off" inputmode="numeric" placeholder="?" />
+                </div>
             </div>
         </div>
     </section>
