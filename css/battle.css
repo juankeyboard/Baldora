@@ -42,17 +42,12 @@
 .battle-player-meta {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 2px;
 }
 
-/* Izquierda: avatar exterior, texto alineado hacia el interior (centro) */
-.battle-player-meta-left {
-    align-items: flex-end;
-}
-
-/* Derecha: avatar exterior, texto alineado hacia el interior (centro) */
 .battle-player-meta-right {
-    align-items: flex-start;
+    align-items: flex-end;
 }
 
 /* ─── Vista de Batalla ────────────────────────────────────── */
@@ -94,7 +89,7 @@
 .battle-player-info {
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     gap: 10px;
     min-width: 120px;
 }
