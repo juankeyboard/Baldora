@@ -64,6 +64,7 @@ const RiverMode = {
         const controlsPanel = document.querySelector('.controls-panel');
         if (matrixPanel) matrixPanel.style.display = 'none';
         if (controlsPanel) controlsPanel.style.display = 'none';
+        document.getElementById('game-view')?.classList.add('river-active');
         this.arenaEl.style.display = 'flex';
 
         // Bind input: auto-submit al escribir, sin necesidad de Enter
@@ -128,6 +129,7 @@ const RiverMode = {
         this.containers = [];
 
         // Restaurar UI clasica
+        document.getElementById('game-view')?.classList.remove('river-active');
         if (this.arenaEl) this.arenaEl.style.display = 'none';
         const matrixPanel = document.querySelector('.matrix-panel');
         const controlsPanel = document.querySelector('.controls-panel');

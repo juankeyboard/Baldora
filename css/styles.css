@@ -3923,11 +3923,25 @@ body::before {
 
 /* ===== MODO ARCADE: EL RIO (f19 v2.0) ===== */
 
+/* Cuando el modo río está activo: game-container sin restricciones */
+#game-view.river-active {
+    overflow: hidden;
+}
+
+#game-view.river-active .game-container {
+    padding: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
 .river-arena {
     position: relative;
     width: 100%;
-    height: 100%;
-    min-height: 70vh;
+    flex: 1;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     overflow: visible;
