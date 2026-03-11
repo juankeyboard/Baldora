@@ -4019,7 +4019,7 @@ body::before {
     flex-shrink: 0;
     padding: 0.5vw 1vw;
     font-family: var(--font-display);
-    font-size: clamp(2rem, 9vw, 11rem);
+    font-size: clamp(1rem, 4.5vw, 5.5rem);
     font-weight: 700;
     text-align: center;
     color: var(--clr-ink-900);
@@ -4073,5 +4073,5 @@ body::before {
 @media (max-width: 600px) {
     .river-arena { min-height: 60vh; }
     .river-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
-    .river-input { font-size: clamp(2rem, 9vw, 6rem); }
+    .river-input { font-size: clamp(1rem, 4.5vw, 3rem); }
 }
