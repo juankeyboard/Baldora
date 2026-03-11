@@ -1111,23 +1111,27 @@
     <section id="battle-view" class="view">
         <!-- Header con scores -->
         <div class="battle-header">
+            <!-- Jugador (Tú) -->
             <div class="battle-player-info">
-                <span class="battle-player-color blue"></span>
-                <span class="battle-player-name" id="battle-player-blue-name">Azul</span>
-                <span class="battle-score blue" id="battle-score-blue">0</span>
+                <img id="battle-avatar-blue" class="battle-avatar battle-avatar-blue" src="" alt="Tú" referrerpolicy="no-referrer">
+                <div class="battle-player-meta">
+                    <span class="battle-player-name" id="battle-player-blue-name">Tú</span>
+                    <span class="battle-score blue" id="battle-score-blue">0</span>
+                </div>
             </div>
+            <!-- Centro: timer -->
             <div class="battle-center-info">
                 <div class="battle-ops-counter">
                     ⏱ <strong id="battle-timer-display">1:00</strong>
                 </div>
-                <div class="battle-ops-counter" style="font-size:0.65rem; opacity:0.6">
-                    Op <strong id="battle-current-op">0</strong>
-                </div>
             </div>
-            <div class="battle-player-info">
-                <span class="battle-player-color yellow"></span>
-                <span class="battle-player-name" id="battle-player-yellow-name">Amarillo</span>
-                <span class="battle-score yellow" id="battle-score-yellow">0</span>
+            <!-- Fantasma (Oponente) -->
+            <div class="battle-player-info battle-player-info-right">
+                <div class="battle-player-meta battle-player-meta-right">
+                    <span class="battle-player-name" id="battle-player-yellow-name">Fantasma</span>
+                    <span class="battle-score yellow" id="battle-score-yellow">0</span>
+                </div>
+                <div id="battle-avatar-yellow" class="battle-avatar battle-avatar-yellow">👻</div>
             </div>
         </div>
 

@@ -15,6 +15,41 @@
     --dial-gap: 10px;
 }
 
+/* ─── Avatares circulares en header ──────────────────────── */
+.battle-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid var(--clr-sand-300);
+}
+
+.battle-avatar-blue {
+    border-color: #3b82f6;
+}
+
+.battle-avatar-yellow {
+    border-color: #facc15;
+    background: rgba(250, 204, 21, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    line-height: 1;
+}
+
+.battle-player-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.battle-player-meta-right {
+    align-items: flex-end;
+}
+
 /* ─── Vista de Batalla ────────────────────────────────────── */
 #battle-view {
     min-height: 100vh;
@@ -53,10 +88,14 @@
 
 .battle-player-info {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    gap: 4px;
-    min-width: 100px;
+    gap: 10px;
+    min-width: 120px;
+}
+
+.battle-player-info-right {
+    flex-direction: row-reverse;
 }
 
 .battle-player-color {
@@ -973,6 +1012,7 @@
 
 /* ─── Botones flotantes en vista de batalla ──────────────── */
 /* Solo se mantiene visible el botón de perfil/auth */
+body.battle-mode #auth-header-btn,
 body.battle-mode #btn-lang-toggle,
 body.battle-mode #btn-audio-toggle,
 body.battle-mode #btn-patreon-float,

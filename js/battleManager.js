@@ -275,9 +275,21 @@ const BattleManager = (() => {
         document.getElementById('battle-score-yellow').textContent = '0';
         document.getElementById('battle-rope-indicator').style.left = '50%';
         
-        // Nombres
+        // Nombres y avatares
         document.getElementById('battle-player-blue-name').textContent = 'Tú';
         document.getElementById('battle-player-yellow-name').textContent = oponentGhost ? oponentGhost.nickname : 'Fantasma';
+
+        // Avatar del jugador (foto Google)
+        const avatarBlue = document.getElementById('battle-avatar-blue');
+        if (avatarBlue) {
+            const user = typeof AuthManager !== 'undefined' ? AuthManager.getUser() : null;
+            if (user && user.photoURL) {
+                avatarBlue.src = user.photoURL;
+                avatarBlue.style.display = 'block';
+            } else {
+                avatarBlue.style.display = 'none';
+            }
+        }
     }
 
     /**
