@@ -180,7 +180,8 @@ const UserProfile = {
             const modeLabel = {
                 'TIMER': 'Contrarreloj',
                 'FREE': 'Práctica Libre',
-                'ADAPTIVE': 'Adaptativo'
+                'ADAPTIVE': 'Adaptativo',
+                'BATTLE': 'Duelo VS'
             }[game.game_mode] || game.game_mode;
 
             const aiCell = game.ai_analysis

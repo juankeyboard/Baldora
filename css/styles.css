@@ -3564,6 +3564,11 @@ body::before {
     color: var(--clr-green-500);
 }
 
+.mode-badge.mode-battle {
+    background: rgba(74, 114, 164, 0.13);
+    color: #3a6ea5;
+}
+
 /* Botones de IA en la tabla */
 .btn-ai-view,
 .btn-analyze-game {
