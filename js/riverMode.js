@@ -69,6 +69,16 @@ const RiverMode = {
         this._onInput = this._handleInput.bind(this);
         this.inputEl.addEventListener('input', this._onInput);
 
+        // Enter limpia el campo
+        this._onKeyDown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                this.inputEl.value = '';
+                this.inputEl.style.width = '3ch';
+            }
+        };
+        this.inputEl.addEventListener('keydown', this._onKeyDown);
+
         // Focus permanente
         this._onBlur = () => {
             if (this._running) {
@@ -113,6 +123,7 @@ const RiverMode = {
         // Limpiar listeners
         if (this.inputEl) {
             this.inputEl.removeEventListener('input', this._onInput);
+            this.inputEl.removeEventListener('keydown', this._onKeyDown);
             this.inputEl.removeEventListener('blur', this._onBlur);
         }
 

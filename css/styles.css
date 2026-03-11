@@ -4020,7 +4020,7 @@ body::before {
     max-width: 6ch;
     padding: 0.9rem 0.8rem;
     font-family: var(--font-display);
-    font-size: 4.8rem;
+    font-size: 14.4rem;
     font-weight: 700;
     text-align: center;
     color: var(--clr-ink-900);
@@ -4073,5 +4073,5 @@ body::before {
 @media (max-width: 600px) {
     .river-arena { min-height: 60vh; }
     .river-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
-    .river-input { font-size: 3.5rem; }
+    .river-input { font-size: 10rem; }
 }
