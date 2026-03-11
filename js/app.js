@@ -551,8 +551,8 @@ const App = {
         // Mostrar vista de juego
         this.showView('PLAYING');
 
-        // === MODO ARCADE: EL RIO (f19 v2.0) ===
-        if (this.gameMode === 'FREE' && typeof RiverMode !== 'undefined') {
+        // === MODO ARCADE: LINE MODE (f19 v2.0) ===
+        if (this.gameMode === 'FREE' && typeof LineMode !== 'undefined') {
             // Iniciar timer (cronometro)
             this.startTime = Date.now();
             this.startTimer();
@@ -563,7 +563,7 @@ const App = {
             const multiplier = freeSpeedSlider ? parseInt(freeSpeedSlider.value) / 10 : 1.0;
             const freeDiffSlider = document.getElementById('free-difficulty');
             const difficulty = freeDiffSlider ? parseInt(freeDiffSlider.value) / 10 : 0.3;
-            RiverMode.start(this.selectedRows, this.selectedCols, multiplier * 100, difficulty);
+            LineMode.start(this.selectedRows, this.selectedCols, multiplier * 100, difficulty);
             // Activar sonido y BGM
             if (AudioManager.getMuteState()) {
                 AudioManager.toggleMute();
@@ -791,9 +791,9 @@ const App = {
      * Finaliza el juego
      */
     endGame() {
-        // Detener Modo Arcade El Rio si estaba activo
-        if (typeof RiverMode !== 'undefined') {
-            RiverMode.stop();
+        // Detener Line Mode si estaba activo
+        if (typeof LineMode !== 'undefined') {
+            LineMode.stop();
         }
 
         // Detener timer
@@ -846,9 +846,9 @@ const App = {
      * Reinicia el juego
      */
     resetGame() {
-        // Detener Modo Arcade El Rio si estaba activo
-        if (typeof RiverMode !== 'undefined') {
-            RiverMode.stop();
+        // Detener Line Mode si estaba activo
+        if (typeof LineMode !== 'undefined') {
+            LineMode.stop();
         }
         this.clearInactivityTimer();
         // Detener intervalo de ayuda visual

@@ -66,7 +66,7 @@ La **Práctica Libre** evoluciona de una matriz estática a una experiencia din�
 ## 5. Checklist de Implementación
 
 - [x] Definir silueta del río en `index.html` (div con CSS gradient + onda).
-- [x] Crear generador de contenedores dinámicos en `js/riverMode.js` (módulo independiente para `FREE` mode).
+- [x] Crear generador de contenedores dinámicos en `js/lineMode.js` (módulo independiente para `FREE` mode).
 - [x] Implementar motor de caída con 3 velocidades (80/140/200 px/s).
 - [x] Integrar lógica de "explosión" (acertar) y "hundimiento" (fallar) con actualización de marcadores.
 - [x] Asegurar que el fondo del sitio sea visible durante toda la sesión (arena transparente).

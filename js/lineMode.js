@@ -1,19 +1,19 @@
 /**
- * RIVERMODE.JS - Modo Arcade "El Rio" (f19 v2.0)
+ * LINEMODE.JS - Modo Arcade "Line Mode" (f19 v2.0)
  * Baldora
  *
  * Motor de caida dinamica para el modo FREE.
- * Contenedores flotantes descienden hacia el rio;
+ * Contenedores flotantes descienden hacia la linea limite;
  * el jugador escribe respuestas en un input global.
  */
 
-const RiverMode = {
+const LineMode = {
     // === Estado ===
     containers: [],       // Contenedores activos en pantalla
     inputEl: null,        // Input global
     arenaEl: null,        // Contenedor principal del arena
     layerEl: null,        // Capa donde se renderizan los contenedores
-    silhouetteEl: null,   // Silueta del rio
+    silhouetteEl: null,   // Silueta del line mode
     animFrame: null,      // requestAnimationFrame handle
     spawnTimer: null,      // setInterval handle para spawn
     correctCount: 0,
@@ -34,7 +34,7 @@ const RiverMode = {
     _opPool: [],
 
     /**
-     * Inicia el modo El Rio
+     * Inicia el line mode
      * @param {number[]} rows - Filas seleccionadas
      * @param {number[]} cols - Columnas seleccionadas
      */
@@ -51,10 +51,10 @@ const RiverMode = {
         this._running = true;
 
         // Cachear elementos DOM
-        this.arenaEl = document.getElementById('river-arena');
-        this.layerEl = document.getElementById('river-containers-layer');
-        this.groundEl = document.getElementById('river-limit-line');
-        this.inputEl = document.getElementById('river-input');
+        this.arenaEl = document.getElementById('line-arena');
+        this.layerEl = document.getElementById('line-containers-layer');
+        this.groundEl = document.getElementById('line-limit');
+        this.inputEl = document.getElementById('line-input');
 
         // Limpiar capa
         this.layerEl.innerHTML = '';
@@ -64,7 +64,7 @@ const RiverMode = {
         const controlsPanel = document.querySelector('.controls-panel');
         if (matrixPanel) matrixPanel.style.display = 'none';
         if (controlsPanel) controlsPanel.style.display = 'none';
-        document.getElementById('game-view')?.classList.add('river-active');
+        document.getElementById('game-view')?.classList.add('line-active');
         this.arenaEl.style.display = 'flex';
 
         // Bind input: auto-submit al escribir, sin necesidad de Enter
@@ -102,7 +102,7 @@ const RiverMode = {
     },
 
     /**
-     * Detiene todo el modo El Rio y restaura la UI
+     * Detiene todo el line mode y restaura la UI
      */
     stop() {
         this._running = false;
@@ -129,7 +129,7 @@ const RiverMode = {
         this.containers = [];
 
         // Restaurar UI clasica
-        document.getElementById('game-view')?.classList.remove('river-active');
+        document.getElementById('game-view')?.classList.remove('line-active');
         if (this.arenaEl) this.arenaEl.style.display = 'none';
         const matrixPanel = document.querySelector('.matrix-panel');
         const controlsPanel = document.querySelector('.controls-panel');
@@ -178,8 +178,8 @@ const RiverMode = {
 
         // Crear elemento DOM
         const el = document.createElement('div');
-        el.className = 'river-container';
-        el.innerHTML = `<span class="river-op">${op.row} &times; ${op.col} =</span>`;
+        el.className = 'line-container';
+        el.innerHTML = `<span class="line-op">${op.row} &times; ${op.col} =</span>`;
 
         // Posicion X aleatoria (10%-80% del ancho disponible para evitar desborde)
         const arenaRect = this.arenaEl.getBoundingClientRect();
@@ -232,7 +232,7 @@ const RiverMode = {
             c.el.style.transform = `translateY(${c.y}px)`;
         }
 
-        // Verificar colisiones con el rio
+        // Verificar colisiones con la linea limite
         this._checkCollisions();
 
         // Limpiar contenedores muertos
@@ -279,7 +279,7 @@ const RiverMode = {
         // Resetear inactividad de App si existe
         if (typeof App !== 'undefined') App.resetInactivityTimer();
 
-        // Buscar contenedor cuyo resultado coincida (el más cercano al suelo primero)
+        // Buscar contenedor cuyo resultado coincida (el más cercano a la linea limite primero)
         let match = null;
         let bestY = -Infinity;
 
@@ -355,4 +355,4 @@ const RiverMode = {
     }
 };
 
-window.RiverMode = RiverMode;
+window.LineMode = LineMode;

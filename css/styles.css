@@ -3921,14 +3921,14 @@ body::before {
     }
 }
 
-/* ===== MODO ARCADE: EL RIO (f19 v2.0) ===== */
+/* ===== MODO ARCADE: LINE MODE (f19 v2.0) ===== */
 
-/* Cuando el modo río está activo: game-container sin restricciones */
-#game-view.river-active {
+/* Cuando el line mode está activo: game-container sin restricciones */
+#game-view.line-active {
     overflow: hidden;
 }
 
-#game-view.river-active .game-container {
+#game-view.line-active .game-container {
     padding: 0 !important;
     max-width: none !important;
     width: 100% !important;
@@ -3937,7 +3937,7 @@ body::before {
     flex-direction: column;
 }
 
-.river-arena {
+.line-arena {
     position: relative;
     width: 100%;
     flex: 1;
@@ -3948,14 +3948,14 @@ body::before {
     background: transparent;
 }
 
-.river-containers-layer {
+.line-containers-layer {
     position: relative;
     flex: 1;
     overflow: hidden;
 }
 
 /* Contenedores flotantes (burbujas con operacion) */
-.river-container {
+.line-container {
     position: absolute;
     display: flex;
     align-items: center;
@@ -3979,17 +3979,17 @@ body::before {
     z-index: 2;
 }
 
-[data-theme="dark"] .river-container {
+[data-theme="dark"] .line-container {
     background: rgba(30, 41, 59, 0.85);
     border-color: var(--clr-sand-300);
 }
 
-.river-op {
+.line-op {
     letter-spacing: 0.04em;
 }
 
 /* Explosion al acertar */
-.river-container.exploding {
+.line-container.exploding {
     transition: transform 0.3s ease-out, opacity 0.3s ease-out;
     transform: scale(1.4) !important;
     opacity: 0 !important;
@@ -3998,7 +3998,7 @@ body::before {
 }
 
 /* Hundimiento al fallar */
-.river-container.drowning {
+.line-container.drowning {
     transition: transform 0.4s ease-in, opacity 0.4s ease-in;
     transform: translateY(40px) !important;
     opacity: 0 !important;
@@ -4007,7 +4007,7 @@ body::before {
 }
 
 /* Línea límite magenta */
-.river-limit-line {
+.line-limit {
     width: 100%;
     height: 5px;
     background: #e0007a;
@@ -4018,7 +4018,7 @@ body::before {
 }
 
 /* Barra de controles debajo de la línea */
-.river-controls {
+.line-controls {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4029,8 +4029,8 @@ body::before {
 }
 
 /* Input global — tamaño fijo, no cambia durante la partida */
-/* Usa #river-input para superar la especificidad de input[type="number"] */
-#river-input.river-input {
+/* Usa #line-input para superar la especificidad de input[type="number"] */
+#line-input.line-input {
     width: 3.5ch !important;
     flex-shrink: 0;
     padding: 0.5vw 1vw;
@@ -4050,23 +4050,23 @@ body::before {
     -moz-appearance: textfield;
 }
 
-.river-input::-webkit-inner-spin-button,
-.river-input::-webkit-outer-spin-button {
+.line-input::-webkit-inner-spin-button,
+.line-input::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-.river-input:focus {
+.line-input:focus {
     box-shadow: 0 0 20px rgba(224, 0, 122, 0.5);
 }
 
-[data-theme="dark"] .river-input {
+[data-theme="dark"] .line-input {
     background: rgba(15, 23, 42, 0.92);
     color: var(--clr-sand-100);
 }
 
 /* Botón terminar sesión */
-.river-end-btn {
+.line-end-btn {
     padding: 0.45rem 1rem;
     font-family: var(--font-display);
     font-size: 0.85rem;
@@ -4080,14 +4080,14 @@ body::before {
     white-space: nowrap;
 }
 
-.river-end-btn:hover {
+.line-end-btn:hover {
     background: var(--clr-rose-500);
     color: #fff;
 }
 
 /* Responsive */
 @media (max-width: 600px) {
-    .river-arena { min-height: 60vh; }
-    .river-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
-    .river-input { font-size: clamp(0.9rem, 4.05vw, 2.7rem); }
+    .line-arena { min-height: 60vh; }
+    .line-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
+    .line-input { font-size: clamp(0.9rem, 4.05vw, 2.7rem); }
 }
