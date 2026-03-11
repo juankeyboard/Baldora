@@ -415,8 +415,8 @@ const BattleManager = (() => {
         if (ghostTimer) clearTimeout(ghostTimer);
         
         let winner = 'tie';
-        if (markerPosition <= 10) winner = 'blue';
-        else if (markerPosition >= 90) winner = 'yellow';
+        if (markerPosition >= 90) winner = 'blue';   // Player (derecha) jaló la carne hasta su lado
+        else if (markerPosition <= 10) winner = 'yellow'; // Ghost (izquierda) jaló la carne hasta su lado
         else {
             if (blueScore > yellowScore) winner = 'blue';
             else if (yellowScore > blueScore) winner = 'yellow';
