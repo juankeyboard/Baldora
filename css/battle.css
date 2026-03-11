@@ -160,7 +160,8 @@
 
 .battle-ops-counter strong {
     color: var(--clr-ink-900);
-    font-size: 1rem;
+    font-size: 4rem;
+    line-height: 1;
 }
 
 /* ─── Arena: Cuerda y Personajes ─────────────────────────── */
