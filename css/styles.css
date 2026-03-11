@@ -3930,7 +3930,7 @@ body::before {
     min-height: 70vh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
     background: transparent;
 }
 
@@ -4013,24 +4013,23 @@ body::before {
     z-index: 3;
 }
 
-/* Input global — ancho automático al contenido */
+/* Input global — grande y centrado */
 .river-input {
-    width: 3ch;
-    min-width: 3ch;
-    max-width: 6ch;
-    padding: 0.9rem 0.8rem;
+    width: 2ch;
+    padding: 1vw 2vw;
     font-family: var(--font-display);
-    font-size: 14.4rem;
+    font-size: clamp(4rem, 18vw, 22rem);
     font-weight: 700;
     text-align: center;
     color: var(--clr-ink-900);
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
-    border: 2px solid #e0007a;
+    border: 3px solid #e0007a;
     border-radius: var(--radius-full);
-    box-shadow: 0 0 16px rgba(224, 0, 122, 0.25);
+    box-shadow: 0 0 24px rgba(224, 0, 122, 0.35);
     outline: none;
+    line-height: 1;
     -moz-appearance: textfield;
 }
 
@@ -4073,5 +4072,5 @@ body::before {
 @media (max-width: 600px) {
     .river-arena { min-height: 60vh; }
     .river-container { font-size: 1.05rem; padding: 0.45rem 0.85rem; min-width: 90px; }
-    .river-input { font-size: 10rem; }
+    .river-input { font-size: clamp(3.5rem, 18vw, 10rem); }
 }

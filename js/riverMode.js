@@ -74,7 +74,7 @@ const RiverMode = {
             if (e.key === 'Enter') {
                 e.preventDefault();
                 this.inputEl.value = '';
-                this.inputEl.style.width = '3ch';
+                this.inputEl.style.width = '2ch';
             }
         };
         this.inputEl.addEventListener('keydown', this._onKeyDown);
@@ -253,9 +253,9 @@ const RiverMode = {
     // === Input ===
 
     _handleInput() {
-        // Ajustar ancho del input al contenido (mín 3ch, máx 6ch)
+        // Ajustar ancho al número de dígitos escritos
         const len = this.inputEl.value.length || 1;
-        this.inputEl.style.width = Math.min(len + 1, 6) + 'ch';
+        this.inputEl.style.width = (len + 0.5) + 'ch';
 
         const val = parseInt(this.inputEl.value);
         if (isNaN(val)) return;
