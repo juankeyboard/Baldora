@@ -181,12 +181,12 @@
     height: 12px;
     background: linear-gradient(
         90deg,
-        #3b82f6 0%,
-        #3b82f6 calc(50% - 1.5px),
+        #facc15 0%,
+        #facc15 calc(50% - 1.5px),
         #000    calc(50% - 1.5px),
         #000    calc(50% + 1.5px),
-        #facc15 calc(50% + 1.5px),
-        #facc15 100%
+        #3b82f6 calc(50% + 1.5px),
+        #3b82f6 100%
     );
     border-radius: 6px;
     position: relative;
@@ -217,7 +217,7 @@
 
 /* Zonas de victoria */
 .battle-rope-track::before {
-    content: '🔵';
+    content: '🟡';
     position: absolute;
     left: -30px;
     top: 50%;
@@ -226,7 +226,7 @@
 }
 
 .battle-rope-track::after {
-    content: '🟡';
+    content: '🔵';
     position: absolute;
     right: -30px;
     top: 50%;

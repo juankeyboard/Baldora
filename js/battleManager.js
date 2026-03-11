@@ -316,10 +316,10 @@ const BattleManager = (() => {
     function _handleGhostHit() {
         yellowScore++;
         document.getElementById('battle-score-yellow').textContent = yellowScore;
-        markerPosition += 5;
-        markerPosition = Math.min(100, markerPosition);
+        markerPosition -= 5; // Ghost en izquierda: jala hacia 0
+        markerPosition = Math.max(0, markerPosition);
         _updateRopeUI();
-        if (markerPosition >= 95) _endBattle('ko_yellow');
+        if (markerPosition <= 5) _endBattle('ko_yellow');
     }
 
     function _generateNewOp() {
@@ -369,11 +369,11 @@ const BattleManager = (() => {
         if (typeof AudioManager !== 'undefined') AudioManager.playCorrect();
         blueScore++;
         document.getElementById('battle-score-blue').textContent = blueScore;
-        markerPosition -= 5;
-        markerPosition = Math.max(0, markerPosition);
+        markerPosition += 5; // Player en derecha: jala hacia 100
+        markerPosition = Math.min(100, markerPosition);
         _updateRopeUI();
 
-        if (markerPosition <= 5) {
+        if (markerPosition >= 95) {
             _endBattle('ko_blue');
         } else {
             _generateNewOp();

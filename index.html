@@ -1111,12 +1111,12 @@
     <section id="battle-view" class="view">
         <!-- Header con scores -->
         <div class="battle-header">
-            <!-- Jugador (Tú) -->
+            <!-- Fantasma (Oponente) — izquierda -->
             <div class="battle-player-info">
-                <img id="battle-avatar-blue" class="battle-avatar battle-avatar-blue" src="" alt="Tú" referrerpolicy="no-referrer">
+                <div id="battle-avatar-yellow" class="battle-avatar battle-avatar-yellow">👻</div>
                 <div class="battle-player-meta">
-                    <span class="battle-player-name" id="battle-player-blue-name">Tú</span>
-                    <span class="battle-score blue" id="battle-score-blue">0</span>
+                    <span class="battle-player-name" id="battle-player-yellow-name">Fantasma</span>
+                    <span class="battle-score yellow" id="battle-score-yellow">0</span>
                 </div>
             </div>
             <!-- Centro: timer -->
@@ -1125,13 +1125,13 @@
                     ⏱ <strong id="battle-timer-display">1:00</strong>
                 </div>
             </div>
-            <!-- Fantasma (Oponente) -->
+            <!-- Jugador (Tú) — derecha -->
             <div class="battle-player-info battle-player-info-right">
                 <div class="battle-player-meta battle-player-meta-right">
-                    <span class="battle-player-name" id="battle-player-yellow-name">Fantasma</span>
-                    <span class="battle-score yellow" id="battle-score-yellow">0</span>
+                    <span class="battle-player-name" id="battle-player-blue-name">Tú</span>
+                    <span class="battle-score blue" id="battle-score-blue">0</span>
                 </div>
-                <div id="battle-avatar-yellow" class="battle-avatar battle-avatar-yellow">👻</div>
+                <img id="battle-avatar-blue" class="battle-avatar battle-avatar-blue" src="" alt="Tú" referrerpolicy="no-referrer">
             </div>
         </div>
 
