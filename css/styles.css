@@ -4014,8 +4014,9 @@ body::before {
 }
 
 /* Input global — tamaño fijo, no cambia durante la partida */
-.river-input {
-    width: 3.5ch;
+/* Usa #river-input para superar la especificidad de input[type="number"] */
+#river-input.river-input {
+    width: 3.5ch !important;
     flex-shrink: 0;
     padding: 0.5vw 1vw;
     font-family: var(--font-display);
