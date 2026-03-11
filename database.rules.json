@@ -6,6 +6,10 @@
         ".write": "auth != null && auth.uid === $uid"
       }
     },
+    "visits": {
+      ".read": true,
+      ".write": true
+    },
     "leaderboard": {
       ".read": true,
       "players": {
