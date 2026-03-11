@@ -979,3 +979,13 @@
 .btn-challenge-self:hover {
     background: #5a7830;
 }
+
+/* ─── Botones flotantes en vista de batalla ──────────────── */
+/* Solo se mantiene visible el botón de perfil/auth */
+body.battle-mode #btn-lang-toggle,
+body.battle-mode #btn-audio-toggle,
+body.battle-mode #btn-patreon-float,
+body.battle-mode #btn-store-float,
+body.battle-mode #btn-help-tour {
+    display: none !important;
+}

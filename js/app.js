@@ -255,6 +255,9 @@ const App = {
         // Ocultar todas las vistas de forma genérica
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
+        // Modo batalla: oculta botones flotantes innecesarios
+        document.body.classList.toggle('battle-mode', view === 'BATTLE');
+
         const profileView = document.getElementById('profile-view');
         // Actualizar el botón de ayuda según la vista
         const helpBtn = document.getElementById('btn-help-tour');

@@ -464,3 +464,17 @@ const BattleManager = (() => {
 document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => BattleManager.init(), 900);
 });
+
+// ─── Teclado numérico (PC) ────────────────────────────────
+document.addEventListener('keydown', (e) => {
+    // Solo activo durante la batalla
+    if (!document.body.classList.contains('battle-mode')) return;
+
+    if (e.key >= '0' && e.key <= '9') {
+        e.preventDefault();
+        BattleManager.onDialPress(parseInt(e.key));
+    } else if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        BattleManager.onDialClear();
+    }
+});
