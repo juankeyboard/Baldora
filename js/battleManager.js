@@ -231,24 +231,51 @@ const BattleManager = (() => {
             ghostResponses = ghostData.responses;
             ghostIndex = 0;
 
-            _startBattle();
+            _startCountdown();
         } catch (err) {
             console.error('Error iniciando batalla ghost:', err);
             alert('Error al conectar con la comunidad.');
         }
     }
 
+    function _startCountdown() {
+        const overlay = document.getElementById('battle-countdown-overlay');
+        const numEl = document.getElementById('battle-countdown-number');
+        if (!overlay || !numEl) { _startBattle(); return; }
+
+        // Mostrar la vista de batalla de fondo antes de la cuenta
+        _showBattleView();
+
+        let count = 3;
+        numEl.textContent = count;
+        overlay.classList.add('active');
+
+        const tick = setInterval(() => {
+            count--;
+            numEl.textContent = count;
+            // Reiniciar animación
+            numEl.style.animation = 'none';
+            void numEl.offsetWidth;
+            numEl.style.animation = 'countPulse 0.5s ease';
+
+            if (count <= 0) {
+                clearInterval(tick);
+                overlay.classList.remove('active');
+                _startBattle();
+            }
+        }, 1000);
+    }
+
     function _startBattle() {
         gameActive = true;
         myColor = 'blue';
-        
+
         // Inicializar DataManager para registrar esta sesión de duelo (Aporta a las ligas)
         if (typeof DataManager !== 'undefined') {
             const user = AuthManager.getUser();
             DataManager.init(user ? user.displayName : 'Cavernícola');
         }
 
-        _showBattleView();
         _generateNewOp();
         _startGhostEngine();
         _startBattleTimer();
@@ -438,20 +465,25 @@ const BattleManager = (() => {
 
     function _showResultOverlay(winner) {
         const overlay = document.getElementById('battle-result-overlay');
+        const iconEl  = document.getElementById('battle-result-icon');
         const titleEl = document.getElementById('battle-result-title');
-        const msgEl = document.getElementById('battle-result-msg');
+        const msgEl   = document.getElementById('battle-result-msg');
         if (!overlay) return;
-        
+
         if (winner === 'blue') {
-            titleEl.textContent = '¡VICTORIA!';
-            titleEl.style.color = '#76c442';
+            if (iconEl) iconEl.textContent = '🏆';
+            titleEl.textContent = '¡Victoria!';
+            titleEl.style.color = '';
             msgEl.textContent = 'Has derrotado al fantasma con tu agilidad mental.';
         } else if (winner === 'yellow') {
-            titleEl.textContent = 'DERROTA';
-            titleEl.style.color = '#e91e63';
+            if (iconEl) iconEl.textContent = '👻';
+            titleEl.textContent = 'Derrota';
+            titleEl.style.color = '';
             msgEl.textContent = 'El fantasma ha sido más rápido esta vez.';
         } else {
-            titleEl.textContent = 'EMPATE';
+            if (iconEl) iconEl.textContent = '🤝';
+            titleEl.textContent = 'Empate';
+            titleEl.style.color = '';
             msgEl.textContent = 'Fuerzas igualadas en la arena.';
         }
         // Paso 4: Usar clase CSS para activar transición de opacidad

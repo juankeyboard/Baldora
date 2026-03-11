@@ -1135,11 +1135,9 @@
             </div>
         </div>
 
-        <!-- Arena: Cuerda y Pieza de Carne -->
+        <!-- Arena: solo la cuerda -->
         <div class="battle-arena">
-            <div class="battle-characters">
-                <div class="battle-meat" id="battle-meat">🥩</div>
-            </div>
+            <div>
             <div class="battle-rope-track">
                 <div class="battle-rope-fill-blue"></div>
                 <div class="battle-rope-fill-yellow"></div>
@@ -1231,22 +1229,25 @@
         </div>
     </section>
 
-    <!-- ===== OVERLAY: RESULTADO DE BATALLA (Feature 15) ===== -->    <div id="battle-result-overlay">
+    <!-- ===== OVERLAY: RESULTADO DE BATALLA (Feature 15) ===== -->
+    <div id="battle-result-overlay">
         <div class="battle-result-card">
-            <div id="battle-result-title"
-                style="font-family: var(--font-display); font-size: 2.5rem; color: white; margin-bottom: 8px;">Resultado
-            </div>
-            <div id="battle-result-msg" style="font-size: 0.95rem; color: rgba(255,255,255,0.5); margin-bottom: 28px;">
-            </div>
+            <div class="battle-result-icon" id="battle-result-icon">🏆</div>
+            <div class="battle-result-title" id="battle-result-title">Resultado</div>
+            <div class="battle-result-msg" id="battle-result-msg"></div>
             <div class="battle-result-actions">
-                <!-- CA-05: Visible si el oponente no es aún amigo -->
-                <button class="btn-add-friend" id="btn-add-friend" style="display:none;">
-                    ➕ Añadir a Amigos
-                </button>
                 <button class="btn-battle-home" onclick="BattleManager.closeBattleResult()">
                     🏠 Volver al menú
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- ===== OVERLAY: CUENTA REGRESIVA VS (Feature 15) ===== -->
+    <div id="battle-countdown-overlay" class="battle-countdown-overlay">
+        <div class="battle-countdown-box">
+            <div class="battle-countdown-number" id="battle-countdown-number">3</div>
+            <div class="battle-countdown-label">Esperando al oponente…</div>
         </div>
     </div>
 

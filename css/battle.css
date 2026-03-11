@@ -576,12 +576,12 @@
 #battle-result-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(12px);
+    background: rgba(0, 0, 0, 0.55);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 8000;
+    padding: 20px;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.4s;
@@ -593,80 +593,59 @@
 }
 
 .battle-result-card {
-    background: var(--clr-sand-100);
-    border: 2px solid var(--clr-sand-300);
-    border-radius: 28px;
-    padding: 48px 40px;
-    text-align: center;
+    background: var(--clr-surface-high);
+    border-radius: var(--radius-lg);
+    padding: 32px 28px;
     max-width: 440px;
-    width: 90%;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
-    animation: resultSlide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    width: 100%;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    animation: resultSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @keyframes resultSlide {
-    from {
-        transform: translateY(60px) scale(0.85);
-        opacity: 0;
-    }
+    from { transform: translateY(40px) scale(0.92); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+}
 
-    to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-    }
+.battle-result-icon {
+    font-size: 2rem;
+    text-align: center;
 }
 
 .battle-result-title {
     font-family: var(--font-display);
-    font-size: 2.5rem;
-    color: var(--clr-ink-900);
-    margin-bottom: 8px;
+    font-size: 1.3rem;
+    color: var(--clr-rose-500);
+    margin: 0;
+    text-align: center;
 }
 
 .battle-result-msg {
-    font-size: 0.95rem;
-    color: var(--clr-rock-500);
-    margin-bottom: 28px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    text-align: center;
 }
 
 .battle-result-actions {
     display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-}
-
-.btn-add-friend {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    padding: 12px 24px;
-    font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.btn-add-friend:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    justify-content: center;
+    margin-top: 4px;
 }
 
 .btn-battle-home {
     background: var(--clr-sand-300);
     color: var(--clr-ink-900);
     border: 1px solid var(--clr-sand-300);
-    border-radius: 12px;
-    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    padding: 10px 24px;
     font-family: var(--font-main);
     font-size: 0.9rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.15s;
 }
@@ -674,6 +653,55 @@
 .btn-battle-home:hover {
     background: var(--clr-rock-500);
     color: white;
+}
+
+/* ─── Overlay: Cuenta Regresiva VS ───────────────────────── */
+.battle-countdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 8500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+}
+
+.battle-countdown-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.battle-countdown-box {
+    background: var(--clr-surface-high);
+    border-radius: var(--radius-lg);
+    padding: 36px 48px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.battle-countdown-number {
+    font-family: var(--font-display);
+    font-size: 5rem;
+    font-weight: 700;
+    color: var(--clr-rose-500);
+    line-height: 1;
+    animation: countPulse 0.5s ease;
+}
+
+@keyframes countPulse {
+    from { transform: scale(1.4); opacity: 0.4; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.battle-countdown-label {
+    font-size: 0.9rem;
+    color: var(--clr-rock-500);
 }
 
 /* ─── Botón Buscar Duelo (en Config View) ────────────────── */
