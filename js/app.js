@@ -176,6 +176,14 @@ const App = {
                 freeSpeedDisplay.textContent = `${multiplier}×`;
             });
         }
+
+        const freeDiffSlider = document.getElementById('free-difficulty');
+        const freeDiffDisplay = document.getElementById('free-difficulty-display');
+        if (freeDiffSlider && freeDiffDisplay) {
+            freeDiffSlider.addEventListener('input', () => {
+                freeDiffDisplay.textContent = (parseInt(freeDiffSlider.value) / 10).toFixed(1);
+            });
+        }
         // Feature 15: Modo VS
         if (this.elements.modeVs) {
             this.elements.modeVs.addEventListener('change', () => { AudioManager.playClick(); this.updateModeUI(); });
@@ -553,8 +561,9 @@ const App = {
             // Delegar toda la mecanica al motor del rio
             const freeSpeedSlider = document.getElementById('free-speed');
             const multiplier = freeSpeedSlider ? parseInt(freeSpeedSlider.value) / 10 : 1.0;
-            RiverMode.start(this.selectedRows, this.selectedCols, multiplier * 100);
-            // multiplier: 0.1–3.0 → velocidad: 10–300 px/s
+            const freeDiffSlider = document.getElementById('free-difficulty');
+            const difficulty = freeDiffSlider ? parseInt(freeDiffSlider.value) / 10 : 0.3;
+            RiverMode.start(this.selectedRows, this.selectedCols, multiplier * 100, difficulty);
             // Activar sonido y BGM
             if (AudioManager.getMuteState()) {
                 AudioManager.toggleMute();

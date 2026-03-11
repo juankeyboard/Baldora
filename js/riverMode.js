@@ -22,9 +22,9 @@ const RiverMode = {
     _running: false,
 
     // Configuracion
-    MAX_CONTAINERS: 5,
-    SPAWN_INTERVAL: 2000,  // ms entre spawns
     baseSpeed: 100,        // px/s: velocidad configurada por el usuario
+    _difficulty: 0.3,      // 0.0–1.0: controla cuántas ops simultáneas
+    _lastSpawnTime: 0,     // timestamp del último spawn (usado en game loop)
 
     // Tablas seleccionadas (copia local)
     _rows: [],
@@ -38,10 +38,11 @@ const RiverMode = {
      * @param {number[]} rows - Filas seleccionadas
      * @param {number[]} cols - Columnas seleccionadas
      */
-    start(rows, cols, speed = 100) {
+    start(rows, cols, speed = 100, difficulty = 0.3) {
         this._rows = rows.slice();
         this._cols = cols.slice();
         this.baseSpeed = speed;
+        this._difficulty = Math.max(0, Math.min(1, difficulty));
         this._rebuildPool();
 
         this.correctCount = 0;
@@ -90,11 +91,9 @@ const RiverMode = {
         this.inputEl.value = '';
         this.inputEl.focus();
 
-        // Primer spawn inmediato, luego cada SPAWN_INTERVAL
+        // Spawn inicial inmediato
+        this._lastSpawnTime = 0;
         this._spawnContainer();
-        this.spawnTimer = setInterval(() => {
-            if (this._running) this._spawnContainer();
-        }, this.SPAWN_INTERVAL);
 
         // Iniciar game loop
         this.lastFrameTime = performance.now();
@@ -113,11 +112,7 @@ const RiverMode = {
             this.animFrame = null;
         }
 
-        // Detener spawner
-        if (this.spawnTimer) {
-            clearInterval(this.spawnTimer);
-            this.spawnTimer = null;
-        }
+        // (spawner integrado en game loop, no hay timer separado)
 
         // Limpiar listeners
         if (this.inputEl) {
@@ -209,11 +204,23 @@ const RiverMode = {
 
     // === Game Loop ===
 
+    // Calcula cuántas operaciones simultáneas y el intervalo de spawn
+    _spawnParams() {
+        const maxOps = Math.round(1 + this._difficulty * 4); // 1 a 5
+        const arenaH = this.layerEl ? this.layerEl.offsetHeight : 500;
+        const fallTime = arenaH / this.baseSpeed; // segundos hasta el suelo
+
+        // difficulty 0: solo cuando no hay contenedores vivos
+        // difficulty >0: intervalo = fallTime / maxOps * 1000 ms
+        const interval = this._difficulty === 0 ? Infinity : (fallTime / maxOps) * 1000;
+        return { maxOps, interval };
+    },
+
     _gameLoop() {
         if (!this._running) return;
 
         const now = performance.now();
-        const dt = (now - this.lastFrameTime) / 1000; // delta en segundos
+        const dt = (now - this.lastFrameTime) / 1000;
         this.lastFrameTime = now;
 
         // Mover contenedores
@@ -228,6 +235,18 @@ const RiverMode = {
 
         // Limpiar contenedores muertos
         this.containers = this.containers.filter(c => !c.dead);
+
+        // Spawn basado en dificultad
+        const { maxOps, interval } = this._spawnParams();
+        const alive = this.containers.filter(c => !c.dead).length;
+        const shouldSpawn = this._difficulty === 0
+            ? alive === 0                          // fácil: solo cuando no hay ninguna
+            : (now - this._lastSpawnTime) >= interval && alive < maxOps;
+
+        if (shouldSpawn) {
+            this._spawnContainer();
+            this._lastSpawnTime = now;
+        }
 
         this.animFrame = requestAnimationFrame(() => this._gameLoop());
     },
