@@ -383,11 +383,14 @@ const BattleManager = (() => {
     function _updateRopeUI() {
         const indicator = document.getElementById('battle-rope-indicator');
         if (indicator) indicator.style.left = `${markerPosition}%`;
-        const blueCave = document.getElementById('battle-cave-blue');
-        const yellowCave = document.getElementById('battle-cave-yellow');
-        if (blueCave && yellowCave) {
-            blueCave.style.transform = `translateX(${(markerPosition-50)*0.5}px)`;
-            yellowCave.style.transform = `translateX(${(markerPosition-50)*0.5}px)`;
+        const meat = document.getElementById('battle-meat');
+        if (meat) {
+            // Mapear markerPosition (0-100) al ancho de la pista (~90% del viewport)
+            const trackWidth = meat.parentElement
+                ? meat.parentElement.offsetWidth || 300
+                : 300;
+            const offset = ((markerPosition - 50) / 100) * trackWidth;
+            meat.style.transform = `translateX(${offset}px)`;
         }
     }
 
