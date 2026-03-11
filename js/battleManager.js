@@ -238,7 +238,11 @@ const BattleManager = (() => {
         if (typeof App !== 'undefined' && typeof App.showView === 'function') {
             App.showView('BATTLE');
         }
-        
+
+        // Paso 5: Limpiar overlay de resultado anterior
+        const prevOverlay = document.getElementById('battle-result-overlay');
+        if (prevOverlay) prevOverlay.classList.remove('active');
+
         // Reset UI
         blueScore = 0;
         yellowScore = 0;
@@ -352,12 +356,16 @@ const BattleManager = (() => {
     }
 
     function _startBattleTimer() {
-        let timeLeft = 60;
+        // Paso 2: Usar currentTimeLimit (ms) en vez de hardcodear 60s
+        let timeLeft = Math.floor(currentTimeLimit / 1000);
         const timerEl = document.getElementById('battle-timer-display');
         const interval = setInterval(() => {
             if (!gameActive) { clearInterval(interval); return; }
             timeLeft--;
-            if (timerEl) timerEl.textContent = `0:${String(timeLeft).padStart(2, '0')}`;
+            // Paso 2: Formato M:SS correcto para cualquier duración
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            if (timerEl) timerEl.textContent = `${mins}:${String(secs).padStart(2, '0')}`;
             if (timeLeft <= 0) { clearInterval(interval); _endBattle('timeout'); }
         }, 1000);
     }
@@ -382,6 +390,11 @@ const BattleManager = (() => {
             console.log('[Battle] Sincronizando resultados del duelo...');
             CloudSync.saveGame();
         }
+
+        // Paso 3: Limpiar sesión de DataManager para no contaminar partidas futuras
+        if (typeof DataManager !== 'undefined') {
+            DataManager.resetSession();
+        }
     }
 
     function _showResultOverlay(winner) {
@@ -402,12 +415,14 @@ const BattleManager = (() => {
             titleEl.textContent = 'EMPATE';
             msgEl.textContent = 'Fuerzas igualadas en la arena.';
         }
-        overlay.style.display = 'flex';
+        // Paso 4: Usar clase CSS para activar transición de opacidad
+        overlay.classList.add('active');
     }
 
     function closeBattleResult() {
         const overlay = document.getElementById('battle-result-overlay');
-        if (overlay) overlay.style.display = 'none';
+        // Paso 4: Usar clase CSS para desactivar con transición
+        if (overlay) overlay.classList.remove('active');
         if (typeof App !== 'undefined') App.showView('CONFIG');
     }
 
