@@ -172,8 +172,8 @@ const App = {
         const freeSpeedDisplay = document.getElementById('free-speed-display');
         if (freeSpeedSlider && freeSpeedDisplay) {
             freeSpeedSlider.addEventListener('input', () => {
-                const v = parseInt(freeSpeedSlider.value);
-                freeSpeedDisplay.textContent = v <= 60 ? 'Muy lenta' : v <= 100 ? 'Normal' : v <= 160 ? 'Rápida' : 'Extrema';
+                const multiplier = (parseInt(freeSpeedSlider.value) / 10).toFixed(1);
+                freeSpeedDisplay.textContent = `${multiplier}×`;
             });
         }
         // Feature 15: Modo VS
@@ -552,8 +552,9 @@ const App = {
             this.startInactivityTimer();
             // Delegar toda la mecanica al motor del rio
             const freeSpeedSlider = document.getElementById('free-speed');
-            const baseSpeed = freeSpeedSlider ? parseInt(freeSpeedSlider.value) : 100;
-            RiverMode.start(this.selectedRows, this.selectedCols, baseSpeed);
+            const multiplier = freeSpeedSlider ? parseInt(freeSpeedSlider.value) / 10 : 1.0;
+            RiverMode.start(this.selectedRows, this.selectedCols, multiplier * 100);
+            // multiplier: 0.1–3.0 → velocidad: 10–300 px/s
             // Activar sonido y BGM
             if (AudioManager.getMuteState()) {
                 AudioManager.toggleMute();
