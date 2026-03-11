@@ -72,10 +72,13 @@ const GridManager = {
                 // Event listener para mostrar resultado al hacer clic
                 cell.addEventListener('click', () => {
                     if (!cell.classList.contains('disabled') && !cell.classList.contains('header')) {
-                        this.showResultOnClick(row, col);
                         // f19 §2.2: clic en matriz resetea timer de inactividad
                         if (typeof App !== 'undefined') {
                             App.resetInactivityTimer();
+                        }
+                        // f19 §3.1: consulta de resultados solo en Práctica Libre
+                        if (typeof App !== 'undefined' && App.gameMode === 'FREE') {
+                            this.showResultOnClick(row, col);
                         }
                     }
                 });
