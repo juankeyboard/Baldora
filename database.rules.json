@@ -7,20 +7,18 @@
       }
     },
     "leaderboard": {
+      ".read": true,
       "players": {
-        ".read": true,
         "$uid": {
           ".write": "auth != null && auth.uid === $uid"
         }
       },
       "ghosts": {
-        ".read": true,
         "$uid": {
           ".write": "auth != null && auth.uid === $uid"
         }
       },
       "community_benchmarks": {
-        ".read": true,
         ".write": "auth != null"
       }
     }

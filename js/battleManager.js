@@ -195,13 +195,36 @@ const BattleManager = (() => {
      */
     async function startGhostBattle(opponentUid) {
         try {
-            // Leer ghost desde leaderboard/ghosts (ruta pública — incluye responses)
-            const ghostSnap = await db.ref(`leaderboard/ghosts/${opponentUid}`).once('value');
-            const ghostData = ghostSnap.val();
+            // Leer ghost público (incluye responses si ya fueron guardadas)
+            const [ghostSnap, playerSnap] = await Promise.all([
+                db.ref(`leaderboard/ghosts/${opponentUid}`).once('value'),
+                db.ref(`leaderboard/players/${opponentUid}`).once('value')
+            ]);
 
+            let ghostData = ghostSnap.val();
+            const playerData = playerSnap.val();
+
+            // Si no hay responses exactas, construir ghost sintético con avg_time_ms (f15 §2.1 Coincidencia Parcial)
             if (!ghostData || !ghostData.responses || ghostData.responses.length === 0) {
-                alert('Este cavernícola aún no tiene partida registrada. ¡Invítalo a jugar!');
-                return;
+                const avgTime = (ghostData && ghostData.avg_time_ms) || (playerData && playerData.best_avg_time_ms);
+
+                if (!avgTime) {
+                    alert('Este cavernícola aún no tiene partida registrada. ¡Invítalo a jugar!');
+                    return;
+                }
+
+                // Generar 60 respuestas sintéticas con variación natural (±30%) basadas en su promedio
+                const syntheticResponses = Array.from({ length: 60 }, () => ({
+                    time_ms: Math.round(avgTime * (0.7 + Math.random() * 0.6)),
+                    is_correct: true
+                }));
+
+                ghostData = {
+                    nickname: (ghostData && ghostData.nickname) || (playerData && playerData.displayName) || 'Cavernícola',
+                    score: (ghostData && ghostData.score) || (playerData && playerData.best_correct) || 0,
+                    avg_time_ms: avgTime,
+                    responses: syntheticResponses
+                };
             }
 
             oponentGhost = ghostData;
