@@ -25,8 +25,34 @@ const CloudSync = {
      */
     async _ensureGhostExists(uid) {
         try {
-            const ghostSnap = await this.db.ref(`users/${uid}/best_session_ghost`).once('value');
-            if (ghostSnap.exists()) return;
+            // Verificar ghost privado Y ghost público simultáneamente
+            const [privateSnap, publicResponsesSnap] = await Promise.all([
+                this.db.ref(`users/${uid}/best_session_ghost`).once('value'),
+                this.db.ref(`leaderboard/ghosts/${uid}/responses`).once('value')
+            ]);
+
+            // Si el ghost público ya tiene responses, no hay nada que hacer
+            if (publicResponsesSnap.exists()) return;
+
+            // Si existe el ghost privado pero el público está vacío, re-sincronizar
+            if (privateSnap.exists()) {
+                console.log('[CloudSync] Re-sincronizando ghost privado al leaderboard público...');
+                const ghostData = privateSnap.val();
+                const statsSnap = await this.db.ref(`users/${uid}/stats`).once('value');
+                const stats = statsSnap.val();
+                await this.db.ref(`leaderboard/ghosts/${uid}`).update({
+                    nickname: firebase.auth().currentUser.displayName || 'Cavernícola',
+                    score: ghostData.total_correct,
+                    avg_time_ms: ghostData.avg_time_ms,
+                    tier: stats ? stats.community_tier : 100,
+                    league: stats ? stats.community_league : 'MADERA',
+                    responses: ghostData.responses
+                });
+                this.db.ref(`leaderboard/players/${uid}`).update({ ghost_available: true })
+                    .catch(e => console.warn('[CloudSync] No se pudo marcar ghost_available:', e));
+                console.log('%c[CloudSync] ¡Ghost re-sincronizado al Salón de la Fama!', "color: #00c8ff; font-weight: bold;");
+                return;
+            }
 
             console.log('[CloudSync] Buscando mejor partida antigua para promover a Fantasma...');
             const gamesSnap = await this.db.ref(`users/${uid}/games`).limitToLast(50).once('value');
@@ -172,7 +198,10 @@ const CloudSync = {
                 displayName: user.displayName || 'Cavernícola',
                 photoURL: user.photoURL || '',
                 community_score: communityScore,
-                last_played: now
+                last_played: now,
+                // Campos de respaldo para la tabla del Hall of Fame (siempre disponibles)
+                best_correct: stats.correct,
+                best_avg_time_ms: avgCorrectTime || stats.avgTime
             };
 
             // 5.1. ACTUALIZAR GHOST (Feature 15)

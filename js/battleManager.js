@@ -96,8 +96,9 @@ const BattleManager = (() => {
                         tier: d.tier || 100,
                         league: d.league || 'MADERA',
                         rank: d.rank || null,
-                        score: ghostInfo.score || null,
-                        avg_time_ms: ghostInfo.avg_time_ms || null,
+                        // Usar ?? para manejar score=0, con fallback a los campos de respaldo en players
+                        score: ghostInfo.score ?? d.best_correct ?? null,
+                        avg_time_ms: ghostInfo.avg_time_ms ?? d.best_avg_time_ms ?? null,
                         last_played: d.last_played || null
                     });
                 }
