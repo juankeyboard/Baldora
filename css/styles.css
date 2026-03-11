@@ -4028,7 +4028,7 @@ body::before {
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     border: 3px solid #e0007a;
-    border-radius: var(--radius-full);
+    border-radius: 8px;
     box-shadow: 0 0 24px rgba(224, 0, 122, 0.35);
     outline: none;
     line-height: 1;
