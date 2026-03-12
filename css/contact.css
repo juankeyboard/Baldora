@@ -1,0 +1,342 @@
+/* =============================================
+   contact.css — Feature f20: Vista de Contacto
+   BaldoraContact — Aditivo al design system
+   ============================================= */
+
+/* ── Contenedor principal ────────────────────── */
+.contact-container {
+    max-width: 900px;
+    margin: 4rem auto;
+    padding: 2.5rem;
+    background-color: #FFF;
+    border-radius: 20px;
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+    font-family: var(--font-body, 'Nunito', sans-serif);
+    color: #3D3B30;
+}
+
+.contact-title {
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-size: 2.2rem;
+    color: var(--clr-rose-500, #E05A5A);
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.contact-subtitle {
+    text-align: center;
+    color: #7A786E;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    font-style: italic;
+}
+
+.contact-response-time {
+    text-align: center;
+    color: #7A786E;
+    font-size: 0.875rem;
+    margin-bottom: 2.5rem;
+}
+
+/* ── Layout dos columnas ─────────────────────── */
+.contact-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    align-items: start;
+}
+
+/* ── Bloque de info lateral ──────────────────── */
+.contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    background: #FAFAF5;
+    border-radius: 14px;
+    border: 1px solid #F0EDE0;
+}
+
+.contact-info-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.contact-info-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.contact-info-item strong {
+    display: block;
+    font-weight: 700;
+    color: #3D3B30;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.contact-info-item span {
+    color: #7A786E;
+    font-size: 0.875rem;
+}
+
+/* ── Formulario ──────────────────────────────── */
+.contact-form .form-group {
+    margin-bottom: 1.25rem;
+}
+
+.contact-form label {
+    display: block;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #3D3B30;
+    margin-bottom: 0.4rem;
+}
+
+.contact-form input[type="text"],
+.contact-form input[type="email"],
+.contact-form select,
+.contact-form textarea {
+    width: 100%;
+    padding: 0.65rem 0.9rem;
+    border: 2px solid #E8E5D5;
+    border-radius: 10px;
+    font-family: var(--font-body, 'Nunito', sans-serif);
+    font-size: 0.95rem;
+    color: #3D3B30;
+    background: #FAFAF5;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.contact-form input[type="text"]:focus,
+.contact-form input[type="email"]:focus,
+.contact-form select:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: var(--clr-rose-500, #E05A5A);
+    box-shadow: 0 0 0 3px rgba(224, 90, 90, 0.12);
+    background: #FFF;
+}
+
+.contact-form input.input-error,
+.contact-form select.input-error,
+.contact-form textarea.input-error {
+    border-color: #E53935;
+}
+
+.contact-form textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.contact-form select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A786E' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    padding-right: 2.5rem;
+    cursor: pointer;
+}
+
+/* Contador de caracteres */
+.char-counter {
+    display: block;
+    text-align: right;
+    font-size: 0.78rem;
+    color: #9E9B8A;
+    margin-top: 3px;
+}
+
+.char-counter.char-limit {
+    color: #E53935;
+    font-weight: 700;
+}
+
+/* Campo requerido */
+.required {
+    color: var(--clr-rose-500, #E05A5A);
+}
+
+/* ── Checkboxes de consentimiento (Ley 1581) ─── */
+.consent-group {
+    background: #F5F3E8;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #E8E5D5;
+}
+
+.consent-check-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    color: #5A5849;
+    line-height: 1.5;
+}
+
+.consent-check-label input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 17px;
+    height: 17px;
+    margin-top: 2px;
+    accent-color: var(--clr-rose-500, #E05A5A);
+    cursor: pointer;
+}
+
+.consent-link {
+    color: var(--clr-rose-500, #E05A5A);
+    text-decoration: underline;
+}
+
+.consent-link:hover {
+    opacity: 0.8;
+}
+
+/* ── Boton de envio ──────────────────────────── */
+.contact-form-footer {
+    margin-top: 1.75rem;
+}
+
+.btn-contact-submit {
+    width: 100%;
+    padding: 0.85rem 1.5rem;
+    background: var(--clr-rose-500, #E05A5A);
+    color: white;
+    font-family: var(--font-display, 'Oswald', sans-serif);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-contact-submit:hover:not(:disabled) {
+    background: #C84848;
+    box-shadow: 0 4px 14px rgba(224, 90, 90, 0.35);
+}
+
+.btn-contact-submit:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+.btn-contact-submit:disabled {
+    background: #C8C5B5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Spinner inline */
+.btn-spinner::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: contact-spin 0.7s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+@keyframes contact-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ── Mensajes de estado ───────────────────────── */
+.contact-status {
+    margin-top: 1rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    animation: contact-fade-in 0.3s ease;
+}
+
+@keyframes contact-fade-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.contact-success {
+    background: #E8F5E9;
+    color: #2E7D32;
+    border: 1px solid #A5D6A7;
+}
+
+.contact-error {
+    background: #FFEBEE;
+    color: #C62828;
+    border: 1px solid #EF9A9A;
+}
+
+/* ── Boton volver (reutiliza patron legal) ────── */
+.btn-back-contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: 2px solid #E8E5D5;
+    border-radius: 8px;
+    padding: 0.45rem 1rem;
+    font-family: var(--font-body, 'Nunito', sans-serif);
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #5A5849;
+    cursor: pointer;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-back-contact:hover {
+    border-color: var(--clr-rose-500, #E05A5A);
+    color: var(--clr-rose-500, #E05A5A);
+}
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 700px) {
+    .contact-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .contact-info {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .contact-info-item {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 480px) {
+    .contact-container {
+        margin: 1.5rem;
+        padding: 1.5rem;
+    }
+
+    .contact-title {
+        font-size: 1.8rem;
+    }
+
+    .contact-info {
+        flex-direction: column;
+    }
+
+    .contact-info-item {
+        flex: unset;
+    }
+}

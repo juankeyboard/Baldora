@@ -78,6 +78,10 @@
     <link rel="stylesheet" href="css/legal.css">
     <!-- Feature 15: Multijugador -->
     <link rel="stylesheet" href="css/battle.css?v=3">
+    <!-- f20: Vista de Contacto -->
+    <link rel="stylesheet" href="css/contact.css">
+    <!-- EmailJS SDK — f20: envio de correo sin backend -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 
 <body>
@@ -871,8 +875,6 @@
                     </a>
                 </div>
                 
-                <button class="btn-back-legal" type="button" onclick="BaldoraLegal.goBack()">Volver al Inicio</button>
-
                 <h3>1. Datos que Baldora Recopila</h3>
                 <table>
                     <thead>
@@ -1024,6 +1026,9 @@
                         </tr>
                     </tbody>
                 </table>
+                <div class="legal-back-footer">
+                    <button class="btn-back-legal" type="button" onclick="BaldoraLegal.goBack()">&#8592; Volver al Inicio</button>
+                </div>
             </div>
         </div>
     </section>
@@ -1040,8 +1045,6 @@
                         <img src="images/baldora_banner.png" alt="Logo Baldora.org" class="logo-banner">
                     </a>
                 </div>
-
-                <button class="btn-back-legal" type="button" onclick="BaldoraLegal.goBack()">Volver al Inicio</button>
 
                 <h3>1. Aceptacion</h3>
                 <p>Al usar Baldora, el usuario acepta estos terminos. Si crea cuenta o usa funciones restringidas, puede
@@ -1108,6 +1111,9 @@
                 <h3>12. Modificaciones</h3>
                 <p>Baldora puede actualizar estos documentos cuando cambie el producto o su modelo comercial. Si el
                     cambio afecta derechos del usuario, se recomienda nueva aceptacion expresa.</p>
+                <div class="legal-back-footer">
+                    <button class="btn-back-legal" type="button" onclick="BaldoraLegal.goBack()">&#8592; Volver al Inicio</button>
+                </div>
             </div>
         </div>
     </section>
@@ -1274,6 +1280,100 @@
         </div>
     </div>
 
+    <!-- ===== VISTA DE CONTACTO (f20) ===== -->
+    <section id="contact-view" class="view">
+        <div class="contact-container">
+
+            <!-- Logo -->
+            <div class="logo-header-internal">
+                <a href="#" onclick="App.showView('CONFIG'); return false;">
+                    <img src="images/baldora_banner.png" alt="Logo Baldora.org" class="logo-banner">
+                </a>
+            </div>
+
+            <h2 class="contact-title">Contacto</h2>
+            <p class="contact-subtitle">¿Tienes alguna pregunta, sugerencia o necesitas soporte? Escríbenos.</p>
+            <p class="contact-response-time">&#9203; Tiempo de respuesta: 1&ndash;3 días hábiles</p>
+
+            <div class="contact-layout">
+
+                <!-- Formulario -->
+                <form id="contact-form" class="contact-form" novalidate>
+
+                    <div class="form-group">
+                        <label for="contact-name">Nombre <span class="required">*</span></label>
+                        <input type="text" id="contact-name" name="from_name"
+                            placeholder="Tu nombre completo" required maxlength="100" autocomplete="name">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-email">Correo electrónico <span class="required">*</span></label>
+                        <input type="email" id="contact-email" name="from_email"
+                            placeholder="tucorreo@ejemplo.com" required maxlength="200" autocomplete="email">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-subject">Motivo <span class="required">*</span></label>
+                        <select id="contact-subject" name="subject" required>
+                            <option value="">Selecciona un motivo</option>
+                            <option value="Soporte técnico">Soporte técnico</option>
+                            <option value="Consulta comercial">Consulta comercial</option>
+                            <option value="Sugerencia o retroalimentación">Sugerencia o retroalimentación</option>
+                            <option value="Reporte de error">Reporte de error</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-message">Mensaje <span class="required">*</span></label>
+                        <textarea id="contact-message" name="message" rows="5"
+                            placeholder="Cuéntanos en qué podemos ayudarte..." required maxlength="2000"></textarea>
+                        <span class="char-counter" id="contact-char-counter">0 / 2000</span>
+                    </div>
+
+                    <!-- Consentimiento obligatorio — Ley 1581/2012 §6.1 -->
+                    <div class="form-group consent-group">
+                        <label class="consent-check-label">
+                            <input type="checkbox" id="contact-consent-required" required>
+                            <span>Autorizo el tratamiento de mis datos personales para atender mi solicitud,
+                                conforme a la <a href="#" onclick="BaldoraContact._showPrivacy(); return false;"
+                                class="consent-link">Política de Privacidad</a>.</span>
+                        </label>
+                    </div>
+
+                    <!-- Consentimiento opcional marketing — Ley 1581/2012 §6.2 -->
+                    <div class="form-group consent-group">
+                        <label class="consent-check-label">
+                            <input type="checkbox" id="contact-consent-marketing">
+                            <span>(Opcional) Autorizo recibir novedades y comunicaciones comerciales de Baldora
+                                por correo electrónico.</span>
+                        </label>
+                    </div>
+
+                    <div class="contact-form-footer">
+                        <button type="submit" id="btn-contact-submit" class="btn-contact-submit">
+                            <span class="btn-text">Enviar mensaje</span>
+                            <span class="btn-spinner" hidden>Enviando...</span>
+                        </button>
+                    </div>
+
+                    <!-- Estados de respuesta -->
+                    <div id="contact-success" class="contact-status contact-success" hidden>
+                        &#9989; ¡Mensaje recibido! Te responderemos a la brevedad en <strong>juankeyboard@gmail.com</strong>.
+                    </div>
+                    <div id="contact-error" class="contact-status contact-error" hidden>
+                        <span id="contact-error-text">Ocurrió un error. Intenta nuevamente.</span>
+                    </div>
+
+                </form>
+
+            </div><!-- /.contact-layout -->
+            <div class="legal-back-footer">
+                <button class="btn-back-legal" type="button" onclick="BaldoraContact.hide()">&#8592; Volver al Inicio</button>
+            </div>
+        </div><!-- /.contact-container -->
+    </section>
+
     <!-- ===== FOOTER INSTITUCIONAL ===== -->
     <footer class="main-footer">
         <div class="footer-content">
@@ -1293,6 +1393,8 @@
                 <a href="#" id="footer-link-terms" class="footer-legal-link">Términos</a>
                 <span class="separator"></span>
                 <a href="https://opensource.org/licenses/MIT" target="_blank" rel="noopener noreferrer">Licencia MIT</a>
+                <span class="separator"></span>
+                <a href="#" id="footer-link-contact" class="footer-legal-link">Contacto</a>
                 <span class="separator"></span>
                 <span class="visit-counter">
                     <svg class="icon-visitors" viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
@@ -1366,6 +1468,8 @@
     <!-- Feature 15: Multijugador –– Nicknames y BattleManager -->
     <script src="js/nicknames.js"></script>
     <script src="js/battleManager.js"></script>
+    <!-- f20: Vista de Contacto -->
+    <script src="js/contact.js"></script>
 </body>
 
 </html>

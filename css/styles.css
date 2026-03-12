@@ -1502,6 +1502,13 @@ input[type="number"]:focus {
     gap: var(--space-sm);
 }
 
+.legal-back-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 2.5rem;
+    padding-bottom: 1rem;
+}
+
 /* ── BOTONES VERDES UNIFICADOS (Descargar, Nueva Partida, Volver Perfil/Legal) ── */
 .btn-download,
 #btn-new-game,
