@@ -265,7 +265,12 @@ const LineMode = {
             const elBottom = elTop + c.el.offsetHeight;
 
             if (elBottom >= groundTop) {
-                this._erase(c);
+                if (this.inputEl && this.inputEl.value.trim() !== '') {
+                    this.inputEl.value = '';
+                    this._erase(c);
+                } else {
+                    this._drown(c);
+                }
             }
         }
     },
