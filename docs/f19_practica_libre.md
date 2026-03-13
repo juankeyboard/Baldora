@@ -76,4 +76,20 @@ La **Práctica Libre** evoluciona de una matriz estática a una experiencia din�
 - [x] Soporte dark mode.
 
 ---
-*Última actualización: 11 de Marzo, 2026 - v2.0*
+
+## 6. Cambios v2.1 (13 de Marzo, 2026)
+
+### 6.1. Input de respuesta — Tamaño y forma
+- **Antes:** `width: 3.5ch` — input estrecho, apenas 3 dígitos de ancho.
+- **Ahora:** `width: clamp(200px, 45vw, 520px)` — input rectangular prominente, ~500% más ancho.
+- **Forma:** Padding asimétrico (`0.4rem 2.5rem`) para reforzar la orientación horizontal (más ancha que alta).
+- **Archivo:** `css/styles.css` selector `#line-input.line-input`.
+
+### 6.2. Comportamiento al tocar la línea final
+- **Antes:** Al tocar `#line-limit`, el contenedor llamaba `_drown()` — contaba como error, reproducía sonido incorrecto y mostraba animación de hundimiento.
+- **Ahora:** Llama `_erase()` — el contenedor desaparece con fade-out de 200ms, sin contar error, sin sonido, sin penalización.
+- **Efecto en puntuación:** Las operaciones que pasan la línea ya no incrementan el contador de "Incorrectas".
+- **Archivo:** `js/lineMode.js` métodos `_checkCollisions()` y `_erase()`.
+
+---
+*Última actualización: 13 de Marzo, 2026 - v2.1*

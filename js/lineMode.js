@@ -265,7 +265,7 @@ const LineMode = {
             const elBottom = elTop + c.el.offsetHeight;
 
             if (elBottom >= groundTop) {
-                this._drown(c);
+                this._erase(c);
             }
         }
     },
@@ -326,6 +326,17 @@ const LineMode = {
                 container.el.parentNode.removeChild(container.el);
             }
         }, 300);
+    },
+
+    _erase(container) {
+        container.dead = true;
+        container.el.style.transition = 'opacity 0.2s ease-out';
+        container.el.style.opacity = '0';
+        setTimeout(() => {
+            if (container.el.parentNode) {
+                container.el.parentNode.removeChild(container.el);
+            }
+        }, 200);
     },
 
     _drown(container) {
