@@ -197,9 +197,14 @@ const App = {
 
 
 
-        // Answer input - detectar actividad
+        // Answer input - detectar actividad y auto-avanzar si el valor es correcto
         this.elements.answerInput.addEventListener('input', () => {
             this.resetInactivityTimer();
+            if (!this.currentOperation) return;
+            const val = parseInt(this.elements.answerInput.value);
+            if (!isNaN(val) && val === this.currentOperation.row * this.currentOperation.col) {
+                this.submitAnswer();
+            }
         });
 
         this.elements.answerInput.addEventListener('keypress', (e) => {
