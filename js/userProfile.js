@@ -357,6 +357,45 @@ const UserProfile = {
         }
     },
 
+    // ── Eliminación de cuenta ──
+
+    showDeleteAccountModal() {
+        const modal = document.getElementById('delete-account-modal');
+        if (modal) modal.style.display = 'flex';
+    },
+
+    cancelDeleteAccount() {
+        const modal = document.getElementById('delete-account-modal');
+        if (modal) modal.style.display = 'none';
+    },
+
+    async confirmDeleteAccount() {
+        const uid = AuthManager.getUid();
+        if (!uid) return;
+        this.cancelDeleteAccount();
+        try {
+            const db = firebase.database();
+            await db.ref(`users/${uid}/pendingDeletion`).set({
+                requestedAt: new Date().toISOString(),
+                status: 'pending'
+            });
+            // Mostrar confirmación usando el mismo sistema de mensajes del proyecto
+            setTimeout(() => {
+                const modal = document.getElementById('delete-account-modal');
+                if (modal) {
+                    modal.querySelector('.delete-modal-title').textContent = 'Solicitud registrada';
+                    modal.querySelector('.delete-modal-desc').innerHTML =
+                        'Tu solicitud de eliminación ha sido registrada. Tu cuenta será dada de baja en <strong>10 días hábiles</strong>.<br><br>Si inicias sesión antes de esa fecha, la solicitud quedará cancelada automáticamente.';
+                    modal.querySelector('.delete-modal-actions').innerHTML =
+                        '<button class="btn-delete-cancel" type="button" onclick="UserProfile.cancelDeleteAccount()">Entendido</button>';
+                    modal.style.display = 'flex';
+                }
+            }, 100);
+        } catch (err) {
+            console.error('Error al registrar solicitud de eliminación:', err);
+        }
+    },
+
     // ── Eliminación de prácticas ──
 
     _pendingDeleteId: null,

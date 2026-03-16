@@ -3800,6 +3800,27 @@ body::before {
     border-bottom-color: transparent;
 }
 
+/* ── Enlace de eliminación de cuenta ── */
+.btn-delete-account-link {
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: 6px;
+    font-family: var(--font-main);
+    font-size: 0.78rem;
+    color: var(--clr-rose-500);
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+    display: block;
+}
+
+.btn-delete-account-link:hover {
+    opacity: 1;
+}
+
 /* ===== GRUPO DE BOTONES FLOTANTES (Derecha) ===== */
 
 .floating-buttons-group {

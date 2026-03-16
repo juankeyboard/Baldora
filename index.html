@@ -701,6 +701,8 @@
                                 <span id="profile-total-games">0</span> <span
                                     data-i18n="profile.practices">prácticas</span>
                             </p>
+                            <button class="btn-delete-account-link" type="button"
+                                onclick="UserProfile.showDeleteAccountModal()">Eliminar mi cuenta</button>
                         </div>
                     </div>
                     <!-- Posición en la comunidad (badge de liga) -->
@@ -807,7 +809,27 @@
         </div>
     </section>
 
-    <!-- ===== MODAL ELIMINAR PARTIDA (Feature 14) ===== -->
+    <!-- ===== MODAL ELIMINAR CUENTA (Feature 14) ===== -->
+<div id="delete-account-modal" class="delete-modal-overlay" style="display:none;">
+    <div class="delete-modal-box">
+        <div class="delete-modal-icon">&#9888;&#65039;</div>
+        <h3 class="delete-modal-title">Eliminar mi cuenta</h3>
+        <p class="delete-modal-desc">
+            Tu cuenta será dada de baja en <strong>10 días hábiles</strong> a partir de esta solicitud.
+            <br><br>
+            Si durante ese periodo <strong>inicias sesión en Baldora</strong>, tu solicitud quedará cancelada
+            y tu cuenta se conservará sin cambios.
+        </p>
+        <div class="delete-modal-actions">
+            <button class="btn-delete-cancel" type="button"
+                onclick="UserProfile.cancelDeleteAccount()">Cancelar</button>
+            <button class="btn-delete-confirm" type="button"
+                onclick="UserProfile.confirmDeleteAccount()">Solicitar eliminación</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL ELIMINAR PARTIDA (Feature 14) ===== -->
     <div id="delete-game-modal" class="delete-modal-overlay" style="display:none;">
         <div class="delete-modal-box">
             <div class="delete-modal-icon">&#9888;&#65039;</div>
@@ -867,7 +889,7 @@
     <section id="privacy-view" class="view">
         <div class="legal-container">
             <h2>Politica de Privacidad</h2>
-            <p class="legal-updated">Ultima actualizacion: 9 de marzo de 2026</p>
+            <p class="legal-updated">Ultima actualizacion: 16 de marzo de 2026</p>
             <div class="legal-content">
                 <!-- Logo y Botón Volver integrados -->
                 <div class="logo-header-internal">
@@ -985,9 +1007,18 @@
                 <ul>
                     <li><strong>Acceso:</strong> Conocer que datos se almacenan.</li>
                     <li><strong>Rectificacion:</strong> Solicitar correccion de datos inexactos.</li>
-                    <li><strong>Supresion:</strong> Solicitar eliminacion de cuenta y datos.</li>
+                    <li><strong>Supresion:</strong> Solicitar eliminacion de cuenta y datos directamente desde su perfil.</li>
                     <li><strong>Portabilidad:</strong> Solicitar exportacion de datos disponibles.</li>
                     <li><strong>Revocacion:</strong> Retirar consentimiento.</li>
+                </ul>
+
+                <h3>10. Eliminacion de Cuenta</h3>
+                <p>El usuario autenticado puede solicitar la eliminacion de su cuenta directamente desde la vista de perfil, en la opcion <em>"Eliminar mi cuenta"</em>.</p>
+                <ul>
+                    <li>La solicitud queda registrada y la cuenta sera dada de baja en un plazo de <strong>10 dias habiles</strong>.</li>
+                    <li>Si durante ese periodo el usuario <strong>inicia sesion en Baldora</strong>, la solicitud quedara cancelada automaticamente y la cuenta se conservara sin cambios.</li>
+                    <li>Transcurrido el plazo sin que el usuario haya iniciado sesion, se procedera a eliminar el perfil, el historial de partidas y los datos personales asociados.</li>
+                    <li>Los registros de compras podran conservarse durante el periodo exigido por obligaciones legales, segun lo indicado en la seccion 9.</li>
                 </ul>
 
                 <h3>7. Transferencias Internacionales</h3>
