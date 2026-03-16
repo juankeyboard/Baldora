@@ -151,6 +151,15 @@ const Onboarding = {
                 }
             },
             {
+                element: '.community-badge',
+                popover: {
+                    title: t('onboarding.profile.t5'),
+                    description: t('onboarding.profile.d5'),
+                    side: 'left',
+                    align: 'center'
+                }
+            },
+            {
                 element: '.profile-table-wrapper',
                 popover: {
                     title: t('onboarding.profile.t4'),

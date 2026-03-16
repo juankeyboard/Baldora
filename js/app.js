@@ -317,7 +317,10 @@ const App = {
                 break;
             case 'PROFILE':
                 if (profileView) profileView.classList.add('active');
-                if (helpBtn) helpBtn.style.display = 'none';
+                if (helpBtn) {
+                    helpBtn.onclick = () => Onboarding.replayTour('profile');
+                    helpBtn.style.display = 'flex';
+                }
                 break;
             case 'BATTLE':
                 if (this.elements.battleView) this.elements.battleView.classList.add('active');

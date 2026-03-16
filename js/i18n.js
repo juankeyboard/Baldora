@@ -140,6 +140,8 @@ const I18n = {
             'onboarding.profile.d3': 'Filtra tu historial de prácticas por modo de juego y rango de fechas para analizar tu progreso.',
             'onboarding.profile.t4': '📋 Historial Detallado',
             'onboarding.profile.d4': 'Aquí ves cada sesión de práctica con sus resultados. Puedes eliminar registros individualmente.',
+            'onboarding.profile.t5': '🏅 Tu Posición en la Comunidad',
+            'onboarding.profile.d5': 'Este badge muestra tu liga dentro de Baldora. Se calcula con un <strong>puntaje comunitario</strong> que combina tres métricas:<br><br>• <strong>Corrección</strong> — cuántas operaciones resuelves bien respecto a tu propio máximo.<br>• <strong>Velocidad</strong> — qué tan rápido respondes frente al resto de jugadores.<br>• <strong>Precisión</strong> — tu porcentaje global de aciertos frente al mínimo de la comunidad.<br><br>Tu posición se actualiza en cada práctica y define tu liga:<br>💎 Diamante · 🏅 Platino · 🥇 Oro · 🥈 Plata · 🥉 Bronce · 🪵 Madera',
 
             // Liga comunidad
             'league.DIAMANTE': 'DIAMANTE',
@@ -282,6 +284,8 @@ const I18n = {
             'onboarding.profile.d3': 'Filter your practice history by game mode and date range to analyze your progress.',
             'onboarding.profile.t4': '📋 Detailed History',
             'onboarding.profile.d4': 'Here you see each practice session with its results. You can delete individual records.',
+            'onboarding.profile.t5': '🏅 Your Community Position',
+            'onboarding.profile.d5': 'This badge shows your league in Baldora. It is calculated with a <strong>community score</strong> that combines three metrics:<br><br>• <strong>Accuracy</strong> — how many operations you solve correctly relative to your own best.<br>• <strong>Speed</strong> — how fast you respond compared to all players.<br>• <strong>Precision</strong> — your overall accuracy rate relative to the community minimum.<br><br>Your position updates after every practice and defines your league:<br>💎 Diamond · 🏅 Platinum · 🥇 Gold · 🥈 Silver · 🥉 Bronze · 🪵 Wood',
 
             // Liga comunidad
             'league.DIAMANTE': 'DIAMOND',
