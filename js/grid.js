@@ -35,18 +35,22 @@ const GridManager = {
         // Ajustar el grid dinámicamente
         this.container.style.gridTemplateColumns = `repeat(${numCols}, minmax(32px, 1fr))`;
 
+        // ⚡ Bolt Optimization: Use DocumentFragment to batch DOM insertions
+        // This prevents multiple layout thrashing and repaints when rendering the grid cells.
+        const fragment = document.createDocumentFragment();
+
         // Celda esquinera
         const cornerCell = document.createElement('div');
         cornerCell.className = 'matrix-cell header';
         cornerCell.textContent = '×';
-        this.container.appendChild(cornerCell);
+        fragment.appendChild(cornerCell);
 
         // Headers de columnas (solo las seleccionadas)
         for (const col of this.selectedCols) {
             const headerCell = document.createElement('div');
             headerCell.className = 'matrix-cell header';
             headerCell.textContent = col;
-            this.container.appendChild(headerCell);
+            fragment.appendChild(headerCell);
         }
 
         // Filas (solo las seleccionadas)
@@ -55,7 +59,7 @@ const GridManager = {
             const rowHeader = document.createElement('div');
             rowHeader.className = 'matrix-cell header';
             rowHeader.textContent = row;
-            this.container.appendChild(rowHeader);
+            fragment.appendChild(rowHeader);
 
             // Celdas de la fila (solo columnas seleccionadas)
             for (const col of this.selectedCols) {
@@ -83,9 +87,12 @@ const GridManager = {
                     }
                 });
 
-                this.container.appendChild(cell);
+                fragment.appendChild(cell);
             }
         }
+
+        // Append the entire fragment at once
+        this.container.appendChild(fragment);
     },
 
     initPendingOperations() {
