@@ -93,14 +93,24 @@
 html {
     font-size: 16px;
     scroll-behavior: smooth;
+    background-image: url('../images/baldora_background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100%;
 }
 
 body {
     font-family: var(--font-main);
-    background: var(--clr-surface-high);
+    background: rgba(255, 255, 255, 0.45);
     color: var(--clr-ink-900);
     min-height: 100vh;
     line-height: 1.6;
+}
+
+[data-theme="dark"] body {
+    background: rgba(15, 23, 42, 0.82);
 }
 
 /* ===== TYPOGRAPHY ===== */
@@ -1757,27 +1767,7 @@ input[type="number"]:focus {
 /* ===== BACKGROUND IMAGE ===== */
 
 /* ===== BACKGROUND IMAGE ===== */
-
-body::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('../images/baldora_background.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.6;
-    z-index: -1;
-    pointer-events: none;
-}
-
-/* Modo oscuro - reducir más la opacidad */
-[data-theme="dark"] body::before {
-    opacity: 0.2;
-}
+/* Imagen en html (más confiable cross-browser que body::before fixed) */
 
 /* ===== CELDA ACTIVA (OPERACION ACTUAL) ===== */
 
