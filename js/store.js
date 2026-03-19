@@ -26,6 +26,17 @@ const BaldoraStore = {
     purchaseHistory: [],
     currentTab: 'catalog', // 'catalog' | 'history'
     previousView: 'CONFIG',
+    _viewCache: null,
+
+    /**
+     * Cachea las vistas para mejor rendimiento (⚡ Bolt optimization)
+     */
+    _getViewCache() {
+        if (!this._viewCache) {
+            this._viewCache = Array.from(document.querySelectorAll('.view'));
+        }
+        return this._viewCache;
+    },
 
     // ---- Inicializacion ----
     init() {
@@ -79,7 +90,7 @@ const BaldoraStore = {
         }
 
         // Ocultar todas las vistas y mostrar tienda
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        this._getViewCache().forEach(v => v.classList.remove('active'));
         const storeView = document.getElementById('store-view');
         if (storeView) {
             storeView.classList.add('active');
@@ -95,7 +106,7 @@ const BaldoraStore = {
         if (typeof App !== 'undefined' && typeof App.showView === 'function') {
             App.showView(viewName);
         } else {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            this._getViewCache().forEach(v => v.classList.remove('active'));
             const targetId = viewName.toLowerCase() + '-view';
             // Mapear nombres a IDs
             const viewMap = {
@@ -115,7 +126,7 @@ const BaldoraStore = {
         const user = firebase.auth().currentUser;
         if (!user) {
             // Redirigir a config si no hay sesion
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            this._getViewCache().forEach(v => v.classList.remove('active'));
             const configView = document.getElementById('config-view');
             if (configView) configView.classList.add('active');
             return false;

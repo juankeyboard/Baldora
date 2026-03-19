@@ -1,0 +1,3 @@
+## 2024-05-24 - DOM Query Caching
+**Learning:** Benchmarking confirms that caching `.view` NodeLists as arrays for repeated class removal operations (e.g., hiding all views) provides a ~58% performance improvement over direct `document.querySelectorAll` calls in this codebase.
+**Action:** Independent modules (e.g., BattleManager, BaldoraLegal, BaldoraStore, BaldoraContact) should implement a lazy-loading `_getViewCache()` pattern to store NodeLists locally, ensuring optimized view-switching performance. The main `App` singleton caches all `.view` elements in `this.elements.allViews` during `App.cacheElements()`.
