@@ -58,6 +58,19 @@ const AuthManager = {
             btnViewProfile.addEventListener('click', () => {
                 const dropdown = document.getElementById('auth-dropdown');
                 if (dropdown) dropdown.classList.remove('open');
+
+                // Si hay una partida en curso, terminarla limpiamente antes de ir al perfil
+                if (typeof App !== 'undefined' && App.state === 'PLAYING') {
+                    if (typeof LineMode !== 'undefined') LineMode.stop();
+                    if (typeof AudioManager !== 'undefined') AudioManager.stopBGM();
+                    if (App.timerInterval) {
+                        clearInterval(App.timerInterval);
+                        App.timerInterval = null;
+                    }
+                    App.clearInactivityTimer?.();
+                    App.clearHelpCheck?.();
+                }
+
                 if (typeof UserProfile !== 'undefined') {
                     UserProfile.show();
                 }
