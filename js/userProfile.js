@@ -6,6 +6,7 @@
 const UserProfile = {
     games: [],
     filteredGames: [],
+    _pagination: { page: 1, perPage: 25 },
 
     /**
      * Muestra la vista de perfil y carga los datos
@@ -99,6 +100,7 @@ const UserProfile = {
             return true;
         });
 
+        this._pagination.page = 1;
         this._renderGamesTable(this.filteredGames);
     },
 
@@ -113,6 +115,18 @@ const UserProfile = {
         if (dateFrom) dateFrom.value = '';
         if (dateTo) dateTo.value = '';
         this.filteredGames = [...this.games];
+        this._pagination.page = 1;
+        this._renderGamesTable(this.filteredGames);
+    },
+
+    setPage(page) {
+        this._pagination.page = page;
+        this._renderGamesTable(this.filteredGames);
+    },
+
+    setPerPage(n) {
+        this._pagination.perPage = parseInt(n, 10);
+        this._pagination.page = 1;
         this._renderGamesTable(this.filteredGames);
     },
 
@@ -165,10 +179,18 @@ const UserProfile = {
 
         if (games.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="profile-empty-row">No hay prácticas con los filtros seleccionados</td></tr>';
+            this._renderPaginationControls(0);
             return;
         }
 
-        tbody.innerHTML = games.map((game, index) => {
+        // Calcular página válida
+        const { perPage } = this._pagination;
+        const totalPages = Math.ceil(games.length / perPage);
+        if (this._pagination.page > totalPages) this._pagination.page = totalPages;
+        const start = (this._pagination.page - 1) * perPage;
+        const pageGames = games.slice(start, start + perPage);
+
+        tbody.innerHTML = pageGames.map((game, index) => {
             const date = new Date(game.timestamp);
             const dateStr = date.toLocaleDateString('es-ES', {
                 day: '2-digit', month: '2-digit', year: 'numeric'
@@ -211,6 +233,59 @@ const UserProfile = {
                 </tr>
             `;
         }).join('');
+
+        this._renderPaginationControls(games.length);
+    },
+
+    _renderPaginationControls(total) {
+        const container = document.getElementById('profile-pagination');
+        if (!container) return;
+
+        if (total === 0) {
+            container.innerHTML = '';
+            return;
+        }
+
+        const { page, perPage } = this._pagination;
+        const totalPages = Math.ceil(total / perPage);
+        const start = (page - 1) * perPage + 1;
+        const end = Math.min(page * perPage, total);
+
+        // Botones de página: mostrar máx 5 alrededor de la página actual
+        let pageButtons = '';
+        const delta = 2;
+        const rangeStart = Math.max(1, page - delta);
+        const rangeEnd = Math.min(totalPages, page + delta);
+
+        if (rangeStart > 1) {
+            pageButtons += `<button class="pgn-btn" onclick="UserProfile.setPage(1)">1</button>`;
+            if (rangeStart > 2) pageButtons += `<span class="pgn-ellipsis">…</span>`;
+        }
+        for (let i = rangeStart; i <= rangeEnd; i++) {
+            pageButtons += `<button class="pgn-btn${i === page ? ' pgn-btn-active' : ''}" onclick="UserProfile.setPage(${i})">${i}</button>`;
+        }
+        if (rangeEnd < totalPages) {
+            if (rangeEnd < totalPages - 1) pageButtons += `<span class="pgn-ellipsis">…</span>`;
+            pageButtons += `<button class="pgn-btn" onclick="UserProfile.setPage(${totalPages})">${totalPages}</button>`;
+        }
+
+        container.innerHTML = `
+            <div class="pgn-info">Mostrando ${start}–${end} de ${total} prácticas</div>
+            <div class="pgn-controls">
+                <button class="pgn-btn pgn-nav" onclick="UserProfile.setPage(${page - 1})" ${page === 1 ? 'disabled' : ''}>&#8249;</button>
+                ${pageButtons}
+                <button class="pgn-btn pgn-nav" onclick="UserProfile.setPage(${page + 1})" ${page === totalPages ? 'disabled' : ''}>&#8250;</button>
+            </div>
+            <div class="pgn-perpage">
+                <label>Por página:
+                    <select onchange="UserProfile.setPerPage(this.value)">
+                        ${[10, 25, 50, 100].map(n =>
+                            `<option value="${n}" ${n === perPage ? 'selected' : ''}>${n}</option>`
+                        ).join('')}
+                    </select>
+                </label>
+            </div>
+        `;
     },
 
     _renderAiContent(analysis) {
