@@ -3546,95 +3546,43 @@ body::before {
     font-style: italic;
 }
 
-/* Paginación del historial */
+/* Paginación de la tabla de prácticas */
 .profile-pagination {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    justify-content: center;
     gap: 12px;
-    padding: 12px 0 32px;
-    font-size: 0.85rem;
+    padding: 14px 16px;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--clr-sand-300);
 }
 
-.pgn-info {
-    color: var(--text-secondary);
-    white-space: nowrap;
-}
-
-.pgn-controls {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.pgn-btn {
-    min-width: 34px;
-    height: 34px;
-    padding: 0 8px;
-    border: var(--border-light);
+.pagination-btn {
+    padding: 6px 16px;
+    border: 1px solid var(--clr-sand-300);
     border-radius: var(--radius-sm);
     background: var(--bg-primary);
     color: var(--text-primary);
-    font-family: var(--font-main);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: all var(--transition-fast);
+    transition: background 0.15s, border-color 0.15s;
 }
 
-.pgn-btn:hover:not(:disabled) {
+.pagination-btn:hover:not(:disabled) {
     background: var(--clr-sand-100);
     border-color: var(--clr-sand-400);
 }
 
-.pgn-btn:disabled {
+.pagination-btn:disabled {
     opacity: 0.35;
     cursor: default;
 }
 
-.pgn-btn-active {
-    background: var(--clr-rose-500);
-    color: white;
-    border-color: var(--clr-rose-500);
-    font-weight: 700;
-}
-
-.pgn-btn-active:hover:not(:disabled) {
-    background: var(--clr-rose-700);
-    border-color: var(--clr-rose-700);
-}
-
-.pgn-nav {
-    font-size: 1.1rem;
-    font-weight: 600;
-}
-
-.pgn-ellipsis {
-    padding: 0 4px;
-    color: var(--text-muted);
-    user-select: none;
-}
-
-.pgn-perpage label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    color: var(--text-secondary);
-    font-size: 0.82rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.pgn-perpage select {
-    padding: 6px 10px;
-    border: var(--border-light);
-    border-radius: var(--radius-sm);
-    font-family: var(--font-main);
+.pagination-info {
     font-size: 0.85rem;
-    background: var(--bg-primary);
-    color: var(--text-primary);
-    cursor: pointer;
+    color: var(--text-secondary);
+    min-width: 100px;
+    text-align: center;
 }
 
 /* Modo badge en la tabla */

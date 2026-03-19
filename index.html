@@ -149,13 +149,6 @@
             </svg>
         </a>
 
-        <!-- 5. Tienda (REQ-002) â€” Solo visible con auth -->
-        <button type="button" id="btn-store-float" class="floating-btn store-float-btn" title="Tienda">
-            <svg class="store-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z" />
-            </svg>
-        </button>
-
         <!-- 6. Ayuda Tour -->
         <button type="button" id="btn-help-tour" class="floating-btn btn-help-tour" title="Ver tutorial">?</button>
 
@@ -803,6 +796,7 @@
                             </tr>
                         </tbody>
                     </table>
+                    <div id="profile-pagination" class="profile-pagination"></div>
                 </div>
                 <div id="profile-pagination" class="profile-pagination"></div>
             </div>
@@ -853,38 +847,6 @@
         </div>
     </div>
 
-    <!-- ===== VISTA DE TIENDA (REQ-002) ===== -->
-    <section id="store-view" class="view">
-        <div class="store-container">
-            <div class="store-header">
-                <h2>Tienda Baldora</h2>
-                <button class="btn-back-store" type="button" onclick="BaldoraStore.hide()">&#8592; Volver</button>
-            </div>
-
-            <div class="store-tabs">
-                <button class="store-tab active" id="store-tab-catalog" type="button">Catalogo</button>
-                <button class="store-tab" id="store-tab-history" type="button">Mis Compras</button>
-            </div>
-
-            <div class="store-catalog-section active">
-                <div class="store-products-grid">
-                    <!-- Productos se renderizan via JS -->
-                </div>
-            </div>
-
-            <div class="store-history-section">
-                <div class="store-history-header">
-                    <span>Producto</span>
-                    <span>Fecha</span>
-                    <span>Estado</span>
-                    <span>Detalle</span>
-                </div>
-                <div class="store-history-list">
-                    <!-- Historial se renderiza via JS -->
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- ===== VISTA DE POLITICA DE PRIVACIDAD (REQ-002) ===== -->
     <section id="privacy-view" class="view">
