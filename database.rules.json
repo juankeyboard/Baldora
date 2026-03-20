@@ -10,10 +10,6 @@
       ".read": true,
       ".write": true
     },
-    "contacts": {
-      ".read": false,
-      ".write": true
-    },
     "leaderboard": {
       ".read": true,
       "players": {
