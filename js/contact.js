@@ -26,6 +26,13 @@ const BaldoraContact = {
     // Vista previa para volver al cerrar
     previousView: 'CONFIG',
 
+    _getViewCache() {
+        if (!this._cachedViews) {
+            this._cachedViews = Array.from(document.querySelectorAll('.view'));
+        }
+        return this._cachedViews;
+    },
+
     // ─── Inicializacion ───────────────────────────────────────────────────
     init() {
         this._setupFooterLink();
@@ -51,7 +58,7 @@ const BaldoraContact = {
         }
 
         // Activar vista de contacto
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        this._getViewCache().forEach(v => v.classList.remove('active'));
         const view = document.getElementById('contact-view');
         if (view) view.classList.add('active');
 
@@ -68,7 +75,7 @@ const BaldoraContact = {
             App.showView(this.previousView || 'CONFIG');
         } else {
             // Fallback si App no esta disponible
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            this._getViewCache().forEach(v => v.classList.remove('active'));
             const configView = document.getElementById('config-view');
             if (configView) configView.classList.add('active');
         }

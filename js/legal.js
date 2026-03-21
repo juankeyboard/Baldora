@@ -9,6 +9,13 @@ const BaldoraLegal = {
     previousView: 'CONFIG',
     consentVersion: '1.0',
 
+    _getViewCache() {
+        if (!this._cachedViews) {
+            this._cachedViews = Array.from(document.querySelectorAll('.view'));
+        }
+        return this._cachedViews;
+    },
+
     // ---- Inicializacion ----
     init() {
         this._setupFooterLinks();
@@ -50,7 +57,7 @@ const BaldoraLegal = {
     },
 
     _switchToView(viewId) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        this._getViewCache().forEach(v => v.classList.remove('active'));
         const target = document.getElementById(viewId);
         if (target) target.classList.add('active');
         // Scroll al inicio
@@ -185,7 +192,7 @@ const BaldoraLegal = {
         if (typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().signOut().then(() => {
                 // Redirigir a config
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                this._getViewCache().forEach(v => v.classList.remove('active'));
                 const configView = document.getElementById('config-view');
                 if (configView) configView.classList.add('active');
             });

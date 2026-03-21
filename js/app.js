@@ -275,8 +275,11 @@ const App = {
     showView(view) {
         this.state = view;
 
-        // Ocultar todas las vistas de forma genérica
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        // Ocultar todas las vistas de forma genérica usando caché
+        if (!this.elements.allViews) {
+            this.elements.allViews = Array.from(document.querySelectorAll('.view'));
+        }
+        this.elements.allViews.forEach(v => v.classList.remove('active'));
 
         // Modo batalla: oculta botones flotantes innecesarios
         document.body.classList.toggle('battle-mode', view === 'BATTLE');
