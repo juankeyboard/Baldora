@@ -22,6 +22,15 @@ const BattleManager = (() => {
     let currentCols = [];
     let currentTimeLimit = 60000;
 
+    // --- Caché de Vistas (Performance optimization) ---
+    let _viewCache = null;
+    function _getViewCache() {
+        if (!_viewCache) {
+            _viewCache = Array.from(document.querySelectorAll('.view'));
+        }
+        return _viewCache;
+    }
+
     // --- Game Logic ---
     let markerPosition = 50; 
     let blueScore = 0;
@@ -58,7 +67,7 @@ const BattleManager = (() => {
         if (typeof App !== 'undefined') {
             App.showView('GHOST_SELECTION');
         } else {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            _getViewCache().forEach(v => v.classList.remove('active'));
             const selectionView = document.getElementById('ghost-selection-view');
             if (selectionView) selectionView.classList.add('active');
         }
@@ -185,7 +194,7 @@ const BattleManager = (() => {
         if (typeof App !== 'undefined') {
             App.showView('CONFIG');
         } else {
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            _getViewCache().forEach(v => v.classList.remove('active'));
             const configView = document.getElementById('config-view');
             if (configView) configView.classList.add('active');
         }

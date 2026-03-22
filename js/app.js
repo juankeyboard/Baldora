@@ -90,6 +90,9 @@ const App = {
      */
     cacheElements() {
         this.elements = {
+            // Cache all views as an array for faster iteration (performance optimization)
+            allViews: Array.from(document.querySelectorAll('.view')),
+
             // Views
             configView: document.getElementById('config-view'),
             gameView: document.getElementById('game-view'),
@@ -275,8 +278,8 @@ const App = {
     showView(view) {
         this.state = view;
 
-        // Ocultar todas las vistas de forma genérica
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        // Ocultar todas las vistas iterando sobre el array en caché para evitar reflows/DOM queries (performance optimization)
+        this.elements.allViews.forEach(v => v.classList.remove('active'));
 
         // Modo batalla: oculta botones flotantes innecesarios
         document.body.classList.toggle('battle-mode', view === 'BATTLE');
