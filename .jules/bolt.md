@@ -1,0 +1,3 @@
+## 2026-03-23 - Concurrent Firebase Writes
+**Learning:** Sequential `await` calls for independent Firebase Realtime Database writes introduce unnecessary network roundtrips.
+**Action:** Use `Promise.all` to group independent Firebase operations (like updating user stats, leaderboard, and ghost data) to execute concurrently. This improves performance by reducing the total operation time to the slowest request rather than the sum of all requests.

@@ -81,24 +81,29 @@ const CloudSync = {
                     }))
                 };
                 
-                await this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData);
-                
                 // Actualizar también en el leaderboard de fantasmas
                 const statsSnap = await this.db.ref(`users/${uid}/stats`).once('value');
                 const stats = statsSnap.val();
                 
-                await this.db.ref(`leaderboard/ghosts/${uid}`).update({
-                    nickname: firebase.auth().currentUser.displayName || 'Cavernícola',
-                    score: bestScore,
-                    avg_time_ms: bestTime,
-                    tier: stats ? stats.community_tier : 100,
-                    league: stats ? stats.community_league : 'MADERA',
-                    responses: ghostData.responses
-                });
-
-                // Marcar ghost_available en el leaderboard público
-                this.db.ref(`leaderboard/players/${uid}`).update({ ghost_available: true })
-                    .catch(e => console.warn('[CloudSync] No se pudo marcar ghost_available:', e));
+                /**
+                 * ⚡ Bolt: Usando Promise.all para escrituras independientes en Firebase.
+                 * Por qué: Disminuye los roundtrips de red al ejecutar las escrituras en paralelo en lugar de secuencialmente.
+                 * Impacto: Reduce el tiempo de la operación total al tiempo del request más lento (max) en vez de la suma de todos (sum).
+                 */
+                await Promise.all([
+                    this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData),
+                    this.db.ref(`leaderboard/ghosts/${uid}`).update({
+                        nickname: firebase.auth().currentUser.displayName || 'Cavernícola',
+                        score: bestScore,
+                        avg_time_ms: bestTime,
+                        tier: stats ? stats.community_tier : 100,
+                        league: stats ? stats.community_league : 'MADERA',
+                        responses: ghostData.responses
+                    }),
+                    // Marcar ghost_available en el leaderboard público
+                    this.db.ref(`leaderboard/players/${uid}`).update({ ghost_available: true })
+                        .catch(e => console.warn('[CloudSync] No se pudo marcar ghost_available:', e))
+                ]);
 
                 console.log('%c[CloudSync] ¡Migración exitosa! Tu mejor récord ahora es un Fantasma retable.', "color: #00c8ff; font-weight: bold;");
             }
@@ -164,34 +169,14 @@ const CloudSync = {
             // Asumimos Diamante inicialmente, _recalculateAllTiers lo ajustará si hay otros
             const initialLeague = 'DIAMANTE';
 
+            // 5.1. ACTUALIZAR GHOST (Feature 15) - Lo hacemos primero para saber si inyectar flag
+            const ghostSnap = await this.db.ref(`users/${uid}/best_session_ghost`).once('value');
+            const currentBest = ghostSnap.val();
+            let isBetterGhost = !currentBest || stats.correct > currentBest.total_correct || (stats.correct === currentBest.total_correct && avgCorrectTime < currentBest.avg_time_ms);
+
             // 5. ACTUALIZACIÓN POR NODOS (Evita fallo en raíz /)
             const now = new Date().toISOString();
             const gameId = this.db.ref(`users/${uid}/games`).push().key;
-
-            // Guardar partida y stats (Nodo privado: permiso garantizado)
-            await this.db.ref(`users/${uid}`).update({
-                [`games/${gameId}`]: {
-                    timestamp: now,
-                    game_mode: sessionData[0]?.game_mode || 'UNKNOWN',
-                    total_operations: stats.total,
-                    correct_operations: stats.correct,
-                    accuracy: stats.accuracy,
-                    avg_response_time: avgCorrectTime || stats.avgTime,
-                    attempts: sessionData.map(a => ({ factor_a: a.factor_a, factor_b: a.factor_b, is_correct: a.is_correct === 1, response_time: a.response_time }))
-                },
-                stats: {
-                    ...s,
-                    total_games: (s.total_games || 0) + 1,
-                    total_operations: newTotalOps,
-                    total_correct: newTotalCorrect,
-                    global_accuracy: newGlobalAccuracy,
-                    avg_response_time: newAvgTime,
-                    community_score: communityScore,
-                    community_league: initialLeague,
-                    community_rank: 1,
-                    last_updated: now
-                }
-            });
 
             // Actualizar entrada pública (Nodo leaderboard: debe estar permitido)
             const leaderboardUpdate = {
@@ -204,10 +189,32 @@ const CloudSync = {
                 best_avg_time_ms: avgCorrectTime || stats.avgTime
             };
 
-            // 5.1. ACTUALIZAR GHOST (Feature 15)
-            const ghostSnap = await this.db.ref(`users/${uid}/best_session_ghost`).once('value');
-            const currentBest = ghostSnap.val();
-            let isBetterGhost = !currentBest || stats.correct > currentBest.total_correct || (stats.correct === currentBest.total_correct && avgCorrectTime < currentBest.avg_time_ms);
+            const promises = [
+                // Guardar partida y stats (Nodo privado: permiso garantizado)
+                this.db.ref(`users/${uid}`).update({
+                    [`games/${gameId}`]: {
+                        timestamp: now,
+                        game_mode: sessionData[0]?.game_mode || 'UNKNOWN',
+                        total_operations: stats.total,
+                        correct_operations: stats.correct,
+                        accuracy: stats.accuracy,
+                        avg_response_time: avgCorrectTime || stats.avgTime,
+                        attempts: sessionData.map(a => ({ factor_a: a.factor_a, factor_b: a.factor_b, is_correct: a.is_correct === 1, response_time: a.response_time }))
+                    },
+                    stats: {
+                        ...s,
+                        total_games: (s.total_games || 0) + 1,
+                        total_operations: newTotalOps,
+                        total_correct: newTotalCorrect,
+                        global_accuracy: newGlobalAccuracy,
+                        avg_response_time: newAvgTime,
+                        community_score: communityScore,
+                        community_league: initialLeague,
+                        community_rank: 1,
+                        last_updated: now
+                    }
+                })
+            ];
 
             if (isBetterGhost) {
                 const ghostData = {
@@ -218,22 +225,32 @@ const CloudSync = {
                         time_ms: a.response_time, is_correct: a.is_correct === 1, factor_a: a.factor_a, factor_b: a.factor_b
                     }))
                 };
-                // Guardar en el perfil privado
-                await this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData);
                 // Inyectar en el listado rápido del Salón de la Fama
                 leaderboardUpdate.ghost_available = true; // Flag para búsqueda rápida si fuera necesario
+
+                // Guardar en el perfil privado
+                promises.push(this.db.ref(`users/${uid}/best_session_ghost`).set(ghostData));
+
                 // Guardar ghost público con responses para que otros jugadores puedan retarlo
-                await this.db.ref(`leaderboard/ghosts/${uid}`).update({
+                promises.push(this.db.ref(`leaderboard/ghosts/${uid}`).update({
                     nickname: user.displayName || 'Cavernícola',
                     score: stats.correct,
                     avg_time_ms: avgCorrectTime || stats.avgTime,
                     tier: 1, // Se actualiza correctamente en _recalculateMyTier
                     league: 'MADERA', // Se actualiza correctamente en _recalculateMyTier
                     responses: ghostData.responses
-                });
+                }));
             }
 
-            await this.db.ref(`leaderboard/players/${uid}`).update(leaderboardUpdate);
+            // Añadir al final para que capte leaderboardUpdate.ghost_available si fue seteado
+            promises.push(this.db.ref(`leaderboard/players/${uid}`).update(leaderboardUpdate));
+
+            /**
+             * ⚡ Bolt: Usando Promise.all para escrituras independientes bloqueantes en Firebase.
+             * Por qué: Disminuye los roundtrips de red al ejecutar las escrituras en paralelo.
+             * Impacto: Reduce el tiempo de la operación total al request más lento.
+             */
+            await Promise.all(promises);
 
             // Intentar actualizar benchmarks (Solo si las reglas lo permiten)
             this.db.ref(`leaderboard/community_benchmarks`).update({
@@ -280,7 +297,7 @@ const CloudSync = {
             const tier = Math.min(100, Math.floor(((rank - 1) / total) * 100) + 1);
             const league = this._tierToLeague(tier);
 
-            // ACTUALIZAR STATS PRIVADOS (usuario siempre tiene permiso)
+            // ACTUALIZAR STATS PRIVADOS (usuario siempre tiene permiso) - Es la única bloqueante originalmente
             await this.db.ref(`users/${uid}/stats`).update({
                 community_tier: tier,
                 community_league: league,
