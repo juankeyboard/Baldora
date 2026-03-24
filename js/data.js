@@ -220,7 +220,16 @@ const DataManager = {
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
+
+        // ⚡ Bolt: Prevent "Maximum call stack size exceeded" on large arrays
+        // Using Math.max(...times) with >100k items crashes due to spread operator limits.
+        // A simple loop is safer and faster for large datasets.
+        let maxFound = -Infinity;
+        for (let i = 0; i < times.length; i++) {
+            if (times[i] > maxFound) maxFound = times[i];
+        }
+
+        const maxTime = Math.min(maxFound, 10000); // Cap at 10s
         const bins = {};
 
         for (let i = 0; i <= maxTime; i += binSize) {
