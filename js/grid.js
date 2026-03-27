@@ -35,18 +35,26 @@ const GridManager = {
         // Ajustar el grid dinámicamente
         this.container.style.gridTemplateColumns = `repeat(${numCols}, minmax(32px, 1fr))`;
 
+        // ⚡ Bolt: Performance Optimization
+        // What: Use DocumentFragment for grid rendering
+        // Why: Creating a 15x15 grid generates ~256 DOM nodes. Appending them individually to the live DOM
+        // causes significant layout thrashing and repaints.
+        // Impact: Reduces DOM reflows from O(N*M) to O(1) by building the entire grid structure in memory
+        // and appending it to the container just once.
+        const fragment = document.createDocumentFragment();
+
         // Celda esquinera
         const cornerCell = document.createElement('div');
         cornerCell.className = 'matrix-cell header';
         cornerCell.textContent = '×';
-        this.container.appendChild(cornerCell);
+        fragment.appendChild(cornerCell);
 
         // Headers de columnas (solo las seleccionadas)
         for (const col of this.selectedCols) {
             const headerCell = document.createElement('div');
             headerCell.className = 'matrix-cell header';
             headerCell.textContent = col;
-            this.container.appendChild(headerCell);
+            fragment.appendChild(headerCell);
         }
 
         // Filas (solo las seleccionadas)
@@ -55,7 +63,7 @@ const GridManager = {
             const rowHeader = document.createElement('div');
             rowHeader.className = 'matrix-cell header';
             rowHeader.textContent = row;
-            this.container.appendChild(rowHeader);
+            fragment.appendChild(rowHeader);
 
             // Celdas de la fila (solo columnas seleccionadas)
             for (const col of this.selectedCols) {
@@ -83,9 +91,12 @@ const GridManager = {
                     }
                 });
 
-                this.container.appendChild(cell);
+                fragment.appendChild(cell);
             }
         }
+
+        // ⚡ Bolt: Append the entire fragment to the live DOM at once
+        this.container.appendChild(fragment);
     },
 
     initPendingOperations() {
