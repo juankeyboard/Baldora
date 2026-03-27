@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Benchmark</title>
+</head>
+<body>
+    <div id="rows-grid">
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+    </div>
+    <div id="cols-grid">
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+        <button class="table-btn"></button>
+    </div>
+    <script>
+        function runBenchmark() {
+            const iterations = 100000;
+
+            // Unoptimized rows
+            let unoptimizedRowsStart = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                const allSelected = i % 2 === 0;
+                if (allSelected) {
+                    document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.remove('active'));
+                } else {
+                    document.querySelectorAll('#rows-grid .table-btn').forEach(btn => btn.classList.add('active'));
+                }
+            }
+            let unoptimizedRowsEnd = performance.now();
+            let unoptimizedRowsTime = unoptimizedRowsEnd - unoptimizedRowsStart;
+
+            // Optimized rows
+            let optimizedRowsStart = performance.now();
+            const rowsBtns = document.querySelectorAll('#rows-grid .table-btn');
+            for (let i = 0; i < iterations; i++) {
+                const allSelected = i % 2 === 0;
+                if (allSelected) {
+                    rowsBtns.forEach(btn => btn.classList.remove('active'));
+                } else {
+                    rowsBtns.forEach(btn => btn.classList.add('active'));
+                }
+            }
+            let optimizedRowsEnd = performance.now();
+            let optimizedRowsTime = optimizedRowsEnd - optimizedRowsStart;
+
+            console.log("Unoptimized:", unoptimizedRowsTime, "ms");
+            console.log("Optimized:", optimizedRowsTime, "ms");
+            console.log("Improvement:", ((unoptimizedRowsTime - optimizedRowsTime) / unoptimizedRowsTime * 100).toFixed(2) + "%");
+        }
+
+        // Wait a bit to ensure everything is ready
+        setTimeout(runBenchmark, 100);
+    </script>
+</body>
+</html>
