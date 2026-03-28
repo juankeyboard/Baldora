@@ -1,0 +1,3 @@
+## 2024-12-05 - Batching DOM Insertions with DocumentFragment
+**Learning:** In the Baldora application, generating the matrix grid initially appended each cell directly to the DOM in a loop. For a 15x15 grid, this resulted in up to 225 individual DOM reflows and repaints, creating a performance bottleneck and causing sluggish transitions to the gameplay view.
+**Action:** When performing bulk DOM manipulations, especially when generating large UI components dynamically, always use `DocumentFragment` to batch insertions. Construct the entire sub-tree in memory first, then append the single `DocumentFragment` to the live DOM to minimize reflows.
