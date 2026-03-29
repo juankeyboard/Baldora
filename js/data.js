@@ -220,7 +220,9 @@ const DataManager = {
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
+        // ⚡ Bolt: Usar reduce en lugar de Math.max(...times)
+        // para prevenir errores "Maximum call stack size exceeded" con historiales de > 100k records.
+        const maxTime = Math.min(times.reduce((max, t) => Math.max(max, t), -Infinity), 10000); // Cap at 10s
         const bins = {};
 
         for (let i = 0; i <= maxTime; i += binSize) {

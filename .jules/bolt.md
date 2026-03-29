@@ -1,0 +1,3 @@
+## 2024-05-18 - [Batching Matrix Rendering]
+**Learning:** In applications like Baldora where a 15x15 matrix (225 items + headers) is frequently re-rendered (such as via `GridManager.render()`), appending elements one by one directly into the DOM triggers expensive reflows that significantly hit rendering performance, especially since this operation is tied to dynamic UI interactions.
+**Action:** Use `DocumentFragment` when generating the matrix grid to batch node insertions entirely in-memory, appending to the real DOM only once. Avoid appending rows or cells directly to the grid container during loops.
