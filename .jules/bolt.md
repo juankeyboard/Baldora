@@ -1,0 +1,3 @@
+## 2024-05-24 - Firebase Realtime Database Concurrent Updates
+**Learning:** Independent Firebase Realtime Database write operations must use `Promise.all` for concurrency to minimize network roundtrips. Avoid multi-path root updates (`/`) as they can fail entirely if one node lacks permissions.
+**Action:** Always batch independent reads and writes using `Promise.all` to optimize Firebase interactions without causing security rule failures.
