@@ -1,0 +1,3 @@
+## 2026-03-12 - Concurrent Firebase Database Writes
+**Learning:** In a heavily permission-based Firebase Realtime Database setup, combining multi-path updates from different nodes at the root level (`/`) can fail entirely if one node lacks permissions. Thus, we cannot use a single `.update(updates)` on the root. However, running sequential `await db.ref(path).update()` operations introduces unnecessary latency.
+**Action:** Always batch independent, safe Firebase writes using `Promise.all([write1, write2, ...])` instead of multi-path root updates. This provides the performance benefit of concurrency without the risk of a single permission failure rejecting the entire operation.
