@@ -1,0 +1,3 @@
+## 2026-04-02 - [DocumentFragment for grid batch rendering]
+**Learning:** [In vanilla JS apps with dynamic grid rendering (like Baldora's 15x15 matrix), repeatedly appending generated DOM nodes (`container.appendChild(cell)`) within a nested loop triggers hundreds of individual reflows/repaints, which is a performance bottleneck.]
+**Action:** [When building or re-rendering large DOM structures dynamically, always use `DocumentFragment` to batch all node insertions and append the fragment to the DOM exactly once to minimize reflows.]
