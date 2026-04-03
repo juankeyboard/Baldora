@@ -5,6 +5,7 @@
 
 const ChartsManager = {
     charts: {},
+    contexts: {}, // ⚡ Bolt: Cache canvas 2D contexts to avoid expensive DOM queries during re-renders
 
     colors: {
         primary: '#6366f1',
@@ -29,10 +30,23 @@ const ChartsManager = {
     destroyAll() {
         Object.values(this.charts).forEach(chart => chart.destroy());
         this.charts = {};
+        // ⚡ Note: We don't clear contexts here as the DOM elements persist
+    },
+
+    // ⚡ Bolt: Helper to get or create canvas context, minimizing document.getElementById calls
+    _getContext(id) {
+        if (!this.contexts[id]) {
+            const el = document.getElementById(id);
+            if (el) {
+                this.contexts[id] = el.getContext('2d');
+            }
+        }
+        return this.contexts[id];
     },
 
     renderPieChart(correct, wrong) {
-        const ctx = document.getElementById('chart-pie').getContext('2d');
+        const ctx = this._getContext('chart-pie');
+        if (!ctx) return;
 
         if (this.charts.pie) this.charts.pie.destroy();
 
@@ -59,7 +73,8 @@ const ChartsManager = {
     },
 
     renderErrorsByTable(errorsByTable) {
-        const ctx = document.getElementById('chart-bar-tables').getContext('2d');
+        const ctx = this._getContext('chart-bar-tables');
+        if (!ctx) return;
 
         if (this.charts.tables) this.charts.tables.destroy();
 
@@ -88,7 +103,8 @@ const ChartsManager = {
     },
 
     renderTopErrors(topErrors) {
-        const ctx = document.getElementById('chart-bar-top').getContext('2d');
+        const ctx = this._getContext('chart-bar-top');
+        if (!ctx) return;
 
         if (this.charts.top) this.charts.top.destroy();
 
@@ -118,7 +134,8 @@ const ChartsManager = {
     },
 
     renderHistogram(distribution) {
-        const ctx = document.getElementById('chart-histogram').getContext('2d');
+        const ctx = this._getContext('chart-histogram');
+        if (!ctx) return;
 
         if (this.charts.histogram) this.charts.histogram.destroy();
 
