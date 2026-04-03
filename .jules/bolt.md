@@ -1,0 +1,3 @@
+## 2024-05-24 - Firebase Realtime Database Write Batching
+**Learning:** In the CloudSync module, independent Firebase Realtime Database `.set()` and `.update()` operations for multi-path writes (e.g., updating user stats, public leaderboards, and ghost data) were being chained sequentially via `await`, causing unnecessary waterfall network latency. Since these writes do not strictly depend on each other's success to proceed (aside from eventual consistency), they should be executed concurrently.
+**Action:** Always batch independent Firebase writes and reads into a `Promise.all(promises)` array for concurrency, to eliminate waterfall latency while keeping functional dependencies sequential.
