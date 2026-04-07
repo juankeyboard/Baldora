@@ -1,0 +1,3 @@
+## 2025-01-20 - [DOM Matrix Rendering Optimization]
+**Learning:** The application dynamically generates a 15x15 matrix grid (256 DOM elements) on initialization or grid re-renders. Previously, it appended each element directly to the container sequentially, causing numerous individual DOM reflows and painting operations, creating a significant UI block on slower devices or during heavy state changes.
+**Action:** Always utilize a `DocumentFragment` when programmatically inserting batches of elements (e.g., > 10 items) into the DOM. This allows appending all elements to an off-screen fragment first, and then appending the fragment to the DOM in a single operation, drastically reducing reflow overhead.
