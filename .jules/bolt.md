@@ -1,0 +1,3 @@
+## 2024-03-24 - Data Aggregation Bottleneck
+**Learning:** In the DataManager module, chained array operations like `.filter().map().reduce()` or sequential `.filter()` and `.forEach()` calls on the large `history` array scale poorly. When generating analytics, processing large sessions caused unnecessary CPU overhead due to multiple N-passes over the data and the allocation of intermediate arrays.
+**Action:** Replace functional array iteration chains with raw `for` loops that process all metrics in a single pass whenever iterating over potentially large arrays (like gameplay history or session data).
