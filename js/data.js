@@ -154,14 +154,21 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalTime = 0;
+
+        // Optimization: Single-pass for loop to avoid intermediate array allocations
+        // from chained methods like .filter(), .map(), and .reduce()
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) {
+                correct++;
+            }
+            totalTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -179,12 +186,15 @@ const DataManager = {
         }
 
         // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        // Optimization: Single-pass loop to avoid intermediate array allocation from .filter()
+        const historyLen = this.history.length;
+        for (let i = 0; i < historyLen; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
                 errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
+            }
+        }
 
         return errors;
     },
@@ -195,12 +205,15 @@ const DataManager = {
     getTopErrors(limit = 5) {
         const errorCounts = {};
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        // Optimization: Single-pass loop to avoid intermediate array allocation from .filter()
+        const historyLen = this.history.length;
+        for (let i = 0; i < historyLen; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 const key = `${a.factor_a}×${a.factor_b}`;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
         return Object.entries(errorCounts)
             .map(([op, count]) => ({ operation: op, count }))
@@ -212,27 +225,38 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const historyLen = this.history.length;
 
-        if (times.length === 0) {
+        if (historyLen === 0) {
             return { labels: [], counts: [] };
+        }
+
+        // Optimization: Calculate maxTime in a single pass without using .map()
+        // and without using Math.max(...times) which can cause stack overflow on large arrays.
+        let maxFoundTime = 0;
+        for (let i = 0; i < historyLen; i++) {
+            if (this.history[i].response_time > maxFoundTime) {
+                maxFoundTime = this.history[i].response_time;
+            }
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
+        const maxTime = Math.min(maxFoundTime, 10000); // Cap at 10s
         const bins = {};
 
         for (let i = 0; i <= maxTime; i += binSize) {
             bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
         }
 
-        times.forEach(t => {
+        // Optimization: Single-pass over this.history to populate bins
+        for (let i = 0; i < historyLen; i++) {
+            const t = this.history[i].response_time;
             const cappedTime = Math.min(t, maxTime);
             const binIndex = Math.floor(cappedTime / binSize) * binSize;
             const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
             bins[label] = (bins[label] || 0) + 1;
-        });
+        }
 
         return {
             labels: Object.keys(bins),
@@ -244,8 +268,18 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+
+        // Optimization: Single-pass loop to avoid two separate array allocations from .filter()
+        const historyLen = this.history.length;
+        for (let i = 0; i < historyLen; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else if (this.history[i].is_correct === 0) {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
