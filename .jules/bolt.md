@@ -1,0 +1,3 @@
+## 2026-04-11 - Optimize chained array operations in vanilla JS
+**Learning:** In the vanilla JS architecture used here, processing large arrays (like `DataManager.history`) with chained array methods (`.filter().map().reduce()`) introduces unnecessary array allocations and CPU overhead. Furthermore, using the spread operator with `Math.max(...array)` on large datasets can trigger "Maximum call stack size exceeded" errors.
+**Action:** Replace functional array chains and spread operators with single-pass `for` loops when dealing with core data arrays to save memory and CPU cycles. Always document such optimizations with comments.
