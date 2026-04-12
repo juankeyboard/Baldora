@@ -1,0 +1,3 @@
+## 2024-05-24 - [Avoid Array Chaining & Spread Operators for Large Arrays in Vanilla JS]
+**Learning:** In a vanilla JS architecture like Baldora's where data is processed locally, chaining array methods like `.filter().map().reduce()` causes significant CPU overhead by allocating intermediate arrays. Furthermore, using the spread operator (`...`) with `Math.max` or `Math.min` on large arrays (e.g., historical attempt arrays exceeding ~100k items) can throw a 'Maximum call stack size exceeded' error.
+**Action:** When iterating over large, potentially unbounded arrays in memory (like `history` or `sessionData`), always use single-pass `for` loops to combine operations (filtering, mapping, aggregation) and manually compute extremum values within the loop.
