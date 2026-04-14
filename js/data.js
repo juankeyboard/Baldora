@@ -151,17 +151,23 @@ const DataManager = {
 
     /**
      * Obtiene estadísticas de la sesión actual
+     * ⚡ Bolt: Optimizado con un único bucle para evitar múltiples iteraciones y asignaciones de memoria
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalResponseTime = 0;
+
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) {
+                correct++;
+            }
+            totalResponseTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalResponseTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -210,29 +216,35 @@ const DataManager = {
 
     /**
      * Obtiene distribución de tiempos de respuesta para histograma
+     * ⚡ Bolt: Eliminado map() y spread en Math.max(...) para evitar desbordamientos de stack con arrays grandes
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        if (this.history.length === 0) {
             return { labels: [], counts: [] };
+        }
+
+        let maxResponseTime = 0;
+        for (let i = 0; i < this.history.length; i++) {
+            if (this.history[i].response_time > maxResponseTime) {
+                maxResponseTime = this.history[i].response_time;
+            }
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
+        const maxTime = Math.min(maxResponseTime, 10000); // Cap at 10s
         const bins = {};
 
         for (let i = 0; i <= maxTime; i += binSize) {
             bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
+        for (let i = 0; i < this.history.length; i++) {
+            const cappedTime = Math.min(this.history[i].response_time, maxTime);
             const binIndex = Math.floor(cappedTime / binSize) * binSize;
             const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
             bins[label] = (bins[label] || 0) + 1;
-        });
+        }
 
         return {
             labels: Object.keys(bins),
@@ -242,10 +254,19 @@ const DataManager = {
 
     /**
      * Obtiene distribución de aciertos vs errores
+     * ⚡ Bolt: Optimizado con un único bucle para evitar múltiples iteraciones con filter()
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+
+        for (let i = 0; i < this.history.length; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
