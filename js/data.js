@@ -153,15 +153,22 @@ const DataManager = {
      * Obtiene estadísticas de la sesión actual
      */
     getSessionStats() {
+        // ⚡ Bolt: Replaced chained array methods (.filter, .map, .reduce)
+        // with a single-pass loop to minimize array iterations and memory allocation
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalTime = 0;
+
+        for (let i = 0; i < total; i++) {
+            const item = this.sessionData[i];
+            if (item.is_correct === 1) {
+                correct++;
+            }
+            totalTime += item.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -178,13 +185,15 @@ const DataManager = {
             errors[i] = 0;
         }
 
-        // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
-                errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
+        // ⚡ Bolt: Single-pass iteration to process large history array, avoiding intermediate .filter array allocation
+        const len = this.history.length;
+        for (let i = 0; i < len; i++) {
+            const item = this.history[i];
+            if (item.is_correct === 0) {
+                errors[item.factor_a] = (errors[item.factor_a] || 0) + 1;
+                errors[item.factor_b] = (errors[item.factor_b] || 0) + 1;
+            }
+        }
 
         return errors;
     },
@@ -195,12 +204,15 @@ const DataManager = {
     getTopErrors(limit = 5) {
         const errorCounts = {};
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                const key = `${a.factor_a}×${a.factor_b}`;
+        // ⚡ Bolt: Single-pass iteration to avoid intermediate .filter allocations
+        const len = this.history.length;
+        for (let i = 0; i < len; i++) {
+            const item = this.history[i];
+            if (item.is_correct === 0) {
+                const key = `${item.factor_a}×${item.factor_b}`;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
         return Object.entries(errorCounts)
             .map(([op, count]) => ({ operation: op, count }))
@@ -244,8 +256,18 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        // ⚡ Bolt: Calculate distribution in a single pass instead of running .filter() twice on the entire history array
+        let correct = 0;
+        let wrong = 0;
+        const len = this.history.length;
+
+        for (let i = 0; i < len; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else if (this.history[i].is_correct === 0) {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
