@@ -1,0 +1,3 @@
+## 2024-05-24 - DataManager memory/CPU optimization
+**Learning:** Chaining array iteration methods (`.filter().map().reduce()`) on potentially unbound data sets in this vanilla architecture (like user game history) causes measurable unnecessary CPU processing overhead and array object allocations. Furthermore, utilizing spread syntax `Math.max(...times)` on un-paginated history arrays can result in "Maximum call stack size exceeded" errors when users play frequently.
+**Action:** When working on analytical aggregations of historical user arrays (or large DOM node arrays), always rewrite chained higher-order functions to single-pass `for` loops, which naturally avoid excess memory allocations and completely prevent array spread callstack limitations.
