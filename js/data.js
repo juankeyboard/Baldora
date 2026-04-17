@@ -154,15 +154,21 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        if (total === 0) return { total: 0, correct: 0, wrong: 0, avgTime: 0, accuracy: 0 };
+
+        let correct = 0;
+        let totalTime = 0;
+
+        // Single pass loop to combine counting and sum, avoiding intermediate arrays from filter/map
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) correct++;
+            totalTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
-        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const avgTime = Math.round(totalTime / total);
+        const accuracy = Math.round((correct / total) * 100);
 
         return { total, correct, wrong, avgTime, accuracy };
     },
@@ -212,27 +218,35 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        const total = this.history.length;
+        if (total === 0) {
             return { labels: [], counts: [] };
+        }
+
+        let maxTimeFound = 0;
+        // Avoid Math.max(...array) which throws "Maximum call stack size exceeded" on large arrays
+        // Avoid .map() to prevent creating intermediate arrays
+        for (let i = 0; i < total; i++) {
+            const time = this.history[i].response_time;
+            if (time > maxTimeFound) maxTimeFound = time;
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
+        const maxTime = Math.min(maxTimeFound, 10000); // Cap at 10s
         const bins = {};
 
         for (let i = 0; i <= maxTime; i += binSize) {
             bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
         }
 
-        times.forEach(t => {
+        for (let i = 0; i < total; i++) {
+            const t = this.history[i].response_time;
             const cappedTime = Math.min(t, maxTime);
             const binIndex = Math.floor(cappedTime / binSize) * binSize;
             const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
             bins[label] = (bins[label] || 0) + 1;
-        });
+        }
 
         return {
             labels: Object.keys(bins),
@@ -244,8 +258,18 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+        const total = this.history.length;
+
+        // Single pass loop to count correct and wrong, avoiding multiple array loops from filter
+        for (let i = 0; i < total; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
