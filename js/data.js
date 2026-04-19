@@ -154,14 +154,18 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalTime = 0;
+
+        // ⚡ Bolt: single-pass iteration prevents intermediate array allocation from chained filter/map/reduce
+        for (let i = 0; i < total; i++) {
+            const a = this.sessionData[i];
+            if (a.is_correct === 1) correct++;
+            totalTime += a.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -179,12 +183,15 @@ const DataManager = {
         }
 
         // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        // ⚡ Bolt: Optimized filter+forEach into a single loop to avoid allocating new arrays
+        const len = this.history.length;
+        for (let i = 0; i < len; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
                 errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
+            }
+        }
 
         return errors;
     },
@@ -194,13 +201,16 @@ const DataManager = {
      */
     getTopErrors(limit = 5) {
         const errorCounts = {};
+        const len = this.history.length;
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        // ⚡ Bolt: Single-pass loop prevents allocation from chained filter+forEach
+        for (let i = 0; i < len; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 const key = `${a.factor_a}×${a.factor_b}`;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
         return Object.entries(errorCounts)
             .map(([op, count]) => ({ operation: op, count }))
@@ -212,27 +222,36 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const len = this.history.length;
 
-        if (times.length === 0) {
+        if (len === 0) {
             return { labels: [], counts: [] };
+        }
+
+        // ⚡ Bolt: Replaced `Math.max(...times)` with a loop to prevent "call stack size exceeded" errors on arrays >100k items
+        let actualMax = 0;
+        for (let i = 0; i < len; i++) {
+            if (this.history[i].response_time > actualMax) {
+                actualMax = this.history[i].response_time;
+            }
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
+        const maxTime = Math.min(actualMax, 10000); // Cap at 10s
         const bins = {};
 
         for (let i = 0; i <= maxTime; i += binSize) {
             bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
         }
 
-        times.forEach(t => {
+        for (let i = 0; i < len; i++) {
+            const t = this.history[i].response_time;
             const cappedTime = Math.min(t, maxTime);
             const binIndex = Math.floor(cappedTime / binSize) * binSize;
             const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
             bins[label] = (bins[label] || 0) + 1;
-        });
+        }
 
         return {
             labels: Object.keys(bins),
@@ -244,8 +263,18 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        const len = this.history.length;
+        let correct = 0;
+        let wrong = 0;
+
+        // ⚡ Bolt: Single-pass iteration to prevent memory overhead of dual .filter() calls
+        for (let i = 0; i < len; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else if (this.history[i].is_correct === 0) { // Keep explicit 0 check to match exact previous behavior
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
