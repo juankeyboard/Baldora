@@ -1,0 +1,3 @@
+## 2025-12-09 - Avoid Array.prototype methods chaining and Math.max/min with spread operator on large arrays
+**Learning:** Using `Math.max(...times)` with the spread operator on a large array (e.g., `history` array with >100,000 items) results in a "Maximum call stack size exceeded" error. Also, chaining array methods like `.filter()`, `.map()`, and `.reduce()` in vanilla JS adds significant CPU and memory overhead compared to single-pass `for` loops.
+**Action:** When working with large datasets in JavaScript, replace `Math.max(...array)` with a standard `for` loop iteration. Similarly, replace chained array methods with single-pass `for` loops for calculating metrics and aggregations to optimize both execution time and memory usage.
