@@ -1,0 +1,3 @@
+## 2024-04-26 - Array Method Chains and Math.max Overheads in Vanilla JS
+**Learning:** In a vanilla JS architecture processing large data arrays (such as the `history` array in `DataManager`), chaining array methods like `.filter().map().reduce()` creates significant CPU and memory overhead due to intermediate array allocation. Additionally, using `Math.max(...array)` on arrays with over ~100,000 items throws a "Maximum call stack size exceeded" error.
+**Action:** Replace chained array methods and spread operators on large arrays with single-pass `for` loops to combine filtering and metric aggregation, which prevents call stack limits and significantly reduces execution time.
