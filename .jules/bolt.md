@@ -1,0 +1,3 @@
+## 2024-05-18 - [Batching DOM insertions with DocumentFragment in Vanilla JS]
+**Learning:** [In a Vanilla JS application with heavy DOM manipulation, such as rendering a dense matrix grid, performing multiple insertions directly onto a live DOM element can cause costly layout recalculations (reflows) for each insertion. By using a DocumentFragment, we can batch all insertions off-DOM and append them in a single operation, which significantly improves rendering performance by avoiding O(N) reflows.]
+**Action:** [Next time you encounter multiple DOM element creations and insertions within loops in a vanilla JS context, replace direct `appendChild` calls with a `DocumentFragment` first, and then append the fragment to the container element at the very end.]
