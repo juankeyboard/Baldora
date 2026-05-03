@@ -1,0 +1,3 @@
+## 2024-05-24 - DataManager memory and callstack optimization
+**Learning:** In vanilla JS apps, chaining `filter().map().reduce()` or using `Math.max(...array)` on arrays that can grow large (like gameplay history which might be imported from CSV or played continuously) leads to significant performance issues and potential "Maximum call stack size exceeded" errors. Single-pass loops avoid creating intermediate arrays and bypass parameter limits for spread operators.
+**Action:** When implementing data aggregation or finding max/min values over potentially large datasets, prefer simple `for` loops instead of array method chaining and spread operators.
