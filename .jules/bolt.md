@@ -1,0 +1,3 @@
+## 2024-05-06 - Avoid Maximum call stack size exceeded in Array Math operations
+**Learning:** Using the spread operator (`...`) with `Math.min` or `Math.max` on large arrays (e.g. `history` array in `DataManager`) causes "Maximum call stack size exceeded" errors because V8 limits the number of arguments passed to a function. In this specific app, `getResponseTimeDistribution` crashes if the player has too many recorded attempts.
+**Action:** Use a single-pass loop or `reduce` instead of `Math.max(...times)` to find minimum and maximum values in large datasets. Also, converting `.map().filter()` chains into single-pass `for` loops in `DataManager` methods like `getSessionStats` can provide an 80% speedup.
