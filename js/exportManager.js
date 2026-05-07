@@ -57,7 +57,12 @@ const ExportManager = {
         const modeNames = { 'TIMER': 'Contrarreloj', 'FREE': 'Práctica Libre', 'ADAPTIVE': 'Adaptativo' };
         const modeName = modeNames[mode] || mode;
         const total = history.length;
-        const correct = history.filter(h => h.is_correct === 1).length;
+
+        let correct = 0;
+        for (let i = 0; i < total; i++) {
+            if (history[i].is_correct === 1) correct++;
+        }
+
         const accuracy = total > 0 ? (correct / total * 100).toFixed(0) : 0;
         const aiText = this.generateAIAnalysis(accuracy, total, correct);
 

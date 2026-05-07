@@ -1,0 +1,3 @@
+## 2024-05-07 - Single-pass loop performance in Javascript metrics
+**Learning:** When dealing with large datasets (e.g. game history with hundreds of thousands of entries), chaining array iteration methods like `.filter().map().reduce()` or even simple combinations like `.filter().length` creates intermediate array allocations and executes multiple O(n) passes over the data. This causes severe bottlenecks and memory spikes.
+**Action:** Replace chained array methods with single-pass `for` loops for aggregation or filtering metrics across massive data collections (like `sessionData` or `history`).
