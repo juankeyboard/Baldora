@@ -1,0 +1,4 @@
+
+## 2024-05-30 - Prevent call stack overflow and optimize array processing
+**Learning:** In vanilla JS environments without a backend (like this architecture), processing large historical datasets (e.g., 100,000+ items loaded via CSV into memory) can break the application. Using the spread operator with `Math.max(...array)` on large arrays throws a 'Maximum call stack size exceeded' error. Additionally, chaining methods like `.filter().map().reduce()` allocates multiple intermediate arrays, causing significant performance and memory overhead.
+**Action:** Always replace chained array methods with single-pass `for` loops when parsing potentially large datasets (`history`, `sessionData`). Avoid spreading large arrays into function arguments like `Math.max` or `Math.min`, and instead determine extremes during the single-pass loop.
