@@ -154,15 +154,23 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        if (total === 0) {
+            return { total: 0, correct: 0, wrong: 0, avgTime: 0, accuracy: 0 };
+        }
+
+        let correct = 0;
+        let sumTime = 0;
+
+        // ⚡ Bolt Optimization: Single-pass for loop avoids O(N) array allocations from filter/map
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) correct++;
+            sumTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
-        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const avgTime = Math.round(sumTime / total);
+        const accuracy = Math.round((correct / total) * 100);
 
         return { total, correct, wrong, avgTime, accuracy };
     },
@@ -212,31 +220,47 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        if (this.history.length === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
+        // Crear bins de 500ms, cap at 10s (20 bins)
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        const limitTime = 10000;
+        const maxBins = Math.floor(limitTime / binSize) + 1;
+        const binCounts = new Array(maxBins).fill(0);
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        let actualMaxTime = 0;
+
+        // ⚡ Bolt Optimization: Single pass avoids spreading large array (...times) which causes
+        // "Maximum call stack size exceeded". Also uses array-based binning over string keys.
+        for (let i = 0; i < this.history.length; i++) {
+            const t = this.history[i].response_time;
+            if (t > actualMaxTime) {
+                actualMaxTime = t;
+            }
+            const cappedTime = Math.min(t, limitTime);
+            const binIndex = Math.floor(cappedTime / binSize);
+            binCounts[binIndex]++;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const maxTimeCapped = Math.min(actualMaxTime, limitTime);
+        const requiredBins = Math.floor(maxTimeCapped / binSize) + 1;
+
+        const labels = new Array(requiredBins);
+        const counts = new Array(requiredBins);
+
+        // Map integer indices back to string labels only for required bins
+        for (let i = 0; i < requiredBins; i++) {
+            const startStr = (i * binSize) / 1000;
+            const endStr = ((i + 1) * binSize) / 1000;
+            labels[i] = `${startStr}-${endStr}s`;
+            counts[i] = binCounts[i];
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels,
+            counts
         };
     },
 
@@ -244,8 +268,17 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+
+        // ⚡ Bolt Optimization: Single pass avoids double iteration and filter allocations
+        for (let i = 0; i < this.history.length; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
