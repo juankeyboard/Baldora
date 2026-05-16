@@ -1,0 +1,3 @@
+## 2024-05-19 - Max Call Stack with Spread Operator in Large Arrays
+**Learning:** Using the spread operator (`...`) with `Math.max` or `Math.min` on large data arrays (like `history` >100,000 items) will throw a "Maximum call stack size exceeded" error. Additionally, building histograms using object property assignments inside loops with string interpolation is very slow for large datasets.
+**Action:** Always use single-pass `for` loops to find extremes in arrays that can grow unboundedly, and prefer pre-allocated integer-indexed arrays (e.g., `new Array(size).fill(0)`) for binning data before mapping to string labels at the very end.
