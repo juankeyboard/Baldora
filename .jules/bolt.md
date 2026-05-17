@@ -1,0 +1,3 @@
+## 2024-05-17 - [DataManager Large Array Performance]
+**Learning:** Using chained array methods (`.filter().map().reduce()`) or the spread operator with `Math.max(...array)` on very large arrays (e.g. >100,000 items in history or sessionData) causes severe CPU overhead, intermediate array allocations, and "Maximum call stack size exceeded" errors. Using object string keys for histogram binning in loops also adds significant overhead.
+**Action:** Always use single-pass `for` loops for data processing over large arrays to find extremes, sum values, or filter. Use integer-indexed arrays for counting/binning and map them to strings only after the loop has finished.
