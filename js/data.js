@@ -154,15 +154,24 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        if (total === 0) {
+            return { total: 0, correct: 0, wrong: 0, avgTime: 0, accuracy: 0 };
+        }
+
+        let correct = 0;
+        let sumTime = 0;
+
+        for (let i = 0; i < total; i++) {
+            const item = this.sessionData[i];
+            if (item.is_correct === 1) {
+                correct++;
+            }
+            sumTime += item.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
-        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const avgTime = Math.round(sumTime / total);
+        const accuracy = Math.round((correct / total) * 100);
 
         return { total, correct, wrong, avgTime, accuracy };
     },
@@ -171,20 +180,24 @@ const DataManager = {
      * Obtiene errores agrupados por tabla (factor_a o factor_b)
      */
     getErrorsByTable() {
-        const errors = {};
+        // Use an array for O(1) integer access, indexes 0 to 15
+        const errArray = new Array(16).fill(0);
 
-        // Inicializar todas las tablas del 1 al 15
-        for (let i = 1; i <= 15; i++) {
-            errors[i] = 0;
+        const len = this.history.length;
+        for (let i = 0; i < len; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
+                // Ensure bounds if any bad data exists
+                if (a.factor_a >= 1 && a.factor_a <= 15) errArray[a.factor_a]++;
+                if (a.factor_b >= 1 && a.factor_b <= 15) errArray[a.factor_b]++;
+            }
         }
 
-        // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
-                errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
+        // Convert back to object mapping "1" to "15"
+        const errors = {};
+        for (let i = 1; i <= 15; i++) {
+            errors[i] = errArray[i];
+        }
 
         return errors;
     },
@@ -195,48 +208,65 @@ const DataManager = {
     getTopErrors(limit = 5) {
         const errorCounts = {};
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        const len = this.history.length;
+        for (let i = 0; i < len; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 const key = `${a.factor_a}×${a.factor_b}`;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
-        return Object.entries(errorCounts)
-            .map(([op, count]) => ({ operation: op, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, limit);
+        const entries = Object.entries(errorCounts);
+        const result = new Array(entries.length);
+
+        for (let i = 0; i < entries.length; i++) {
+            result[i] = { operation: entries[i][0], count: entries[i][1] };
+        }
+
+        result.sort((a, b) => b.count - a.count);
+        return result.slice(0, limit);
     },
 
     /**
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        const len = this.history.length;
+        if (len === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
-        const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
-
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        let maxTimeRaw = 0;
+        for (let i = 0; i < len; i++) {
+            const t = this.history[i].response_time;
+            if (t > maxTimeRaw) {
+                maxTimeRaw = t;
+            }
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const maxTime = Math.min(maxTimeRaw, 10000); // Cap at 10s
+        const binSize = 500;
+
+        const numBins = Math.floor(maxTime / binSize) + 1;
+        const bins = new Array(numBins).fill(0);
+
+        for (let i = 0; i < len; i++) {
+            let t = this.history[i].response_time;
+            if (t > maxTime) t = maxTime;
+            const binIndex = Math.floor(t / binSize);
+            bins[binIndex]++;
+        }
+
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const start = i * binSize;
+            labels[i] = `${start / 1000}-${(start + binSize) / 1000}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels: labels,
+            counts: bins
         };
     },
 
@@ -244,8 +274,17 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+        const len = this.history.length;
+
+        for (let i = 0; i < len; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else if (this.history[i].is_correct === 0) {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
