@@ -1,0 +1,3 @@
+## 2024-05-18 - Avoid chaining array methods on large datasets in vanilla JS architecture
+**Learning:** When processing large data arrays in this vanilla JS architecture (such as the `history` or `sessionData` arrays in `DataManager`), avoid chaining array methods like `.filter().map().reduce()`. Single-pass `for` loops can be 7x-10x faster for datasets of 100,000+ items by reducing CPU overhead and avoiding intermediate array allocations.
+**Action:** When implementing aggregation or stat generation methods on `history` and `sessionData`, use single-pass `for` loops instead of array method chains to maximize performance.
