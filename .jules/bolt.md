@@ -1,0 +1,3 @@
+## 2024-05-24 - DataManager Chained Methods Optimization
+**Learning:** In vanilla JS apps handling large datasets without Web Workers, chaining array methods (`.filter()`, `.map()`, `.reduce()`) creates multiple intermediate array allocations and causes significant CPU overhead and GC pressure. Further, using `Math.max(...array)` on large arrays throws a "Maximum call stack size exceeded" error.
+**Action:** Replace array method chains with single-pass `for` loops, pre-allocate arrays where possible instead of using string-keyed objects, and compute min/max manually iteratively when dealing with arrays that can grow beyond 100,000 items.
