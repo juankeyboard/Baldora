@@ -212,31 +212,52 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const historyLen = this.history.length;
 
-        if (times.length === 0) {
+        if (historyLen === 0) {
             return { labels: [], counts: [] };
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        let maxTimeRaw = 0;
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // ⚡ Bolt Optimization: Use a single-pass loop instead of Math.max(...times)
+        // to prevent 'Maximum call stack size exceeded' errors on arrays >100k items
+        for (let i = 0; i < historyLen; i++) {
+            const t = this.history[i].response_time;
+            if (t > maxTimeRaw) {
+                maxTimeRaw = t;
+            }
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const maxTime = Math.min(maxTimeRaw, 10000); // Cap at 10s
+        const numBins = Math.floor(maxTime / binSize) + 1;
+
+        // ⚡ Bolt Optimization: Use integer-indexed array for binning instead of object
+        // properties with string interpolation inside the loop to avoid expensive
+        // string operations and object key lookups for every item.
+        const binCounts = new Array(numBins).fill(0);
+
+        for (let i = 0; i < historyLen; i++) {
+            let t = this.history[i].response_time;
+            if (t > maxTime) t = maxTime; // Cap each item
+
+            const binIndex = Math.floor(t / binSize);
+            binCounts[binIndex]++;
+        }
+
+        // ⚡ Bolt Optimization: Map to string labels only once after the main loop
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const startStr = (i * binSize / 1000);
+            const endStr = ((i + 1) * binSize / 1000);
+            labels[i] = `${startStr}-${endStr}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels: labels,
+            counts: binCounts
         };
     },
 
