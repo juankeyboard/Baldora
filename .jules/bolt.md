@@ -1,0 +1,3 @@
+## 2024-05-18 - Avoid Spread Operator with Math.max on Large Arrays
+**Learning:** Using `Math.max(...times)` on large arrays (like `history` or `sessionData` with 100,000+ items) causes "Maximum call stack size exceeded" errors, crashing the application. Additionally, using string-based object property lookups inside loops for bucketing/binning (e.g., `bins[\`${i / 1000}-${(i + binSize) / 1000}s\`] = 0;`) causes significant CPU overhead and garbage collection pauses.
+**Action:** Always use a single-pass `for` loop to find extreme values (max/min) in large datasets. For histogram bucketing, use integer-indexed arrays to track counts inside the loop, and map those integer indices to string labels in a separate, smaller loop after the main dataset iteration is complete.
