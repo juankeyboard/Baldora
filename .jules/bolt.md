@@ -1,0 +1,3 @@
+## 2024-05-24 - DataManager array operations bottleneck on large history
+**Learning:** In vanilla JS applications lacking backend pagination, processing large data arrays (100k+ elements) using chained array methods (`.filter().map().reduce()`) creates a massive CPU bottleneck. Additionally, `Math.max(...times)` crashes with "Maximum call stack size exceeded" on very large datasets due to argument limits.
+**Action:** When performing data aggregations or analytical processing on arrays that can grow unboundedly, always use single-pass `for` loops. Avoid spreading large arrays into function arguments. Pre-allocate arrays instead of relying on object property string interpolation inside loops when generating chart histogram bins.
