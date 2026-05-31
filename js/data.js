@@ -212,31 +212,49 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const history = this.history;
 
-        if (times.length === 0) {
+        if (history.length === 0) {
             return { labels: [], counts: [] };
+        }
+
+        // Bolt optimization: Single-pass loop to find maxTime to avoid
+        // "Maximum call stack size exceeded" with Math.max(...times) on large arrays.
+        let maxTime = 0;
+        for (let i = 0; i < history.length; i++) {
+            const t = history[i].response_time;
+            if (t > maxTime) {
+                maxTime = t;
+            }
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        maxTime = Math.min(maxTime, 10000); // Cap at 10s
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // Bolt optimization: Use integer-indexed array for bucketing instead of
+        // object properties with string interpolation inside the loop.
+        const numBins = Math.floor(maxTime / binSize) + 1;
+        const binCounts = new Array(numBins).fill(0);
+
+        for (let i = 0; i < history.length; i++) {
+            let t = history[i].response_time;
+            if (t > maxTime) {
+                t = maxTime;
+            }
+            const binIndex = Math.floor(t / binSize);
+            binCounts[binIndex]++;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        // Map bins to string labels after counting
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            labels[i] = `${(i * binSize) / 1000}-${((i + 1) * binSize) / 1000}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels: labels,
+            counts: binCounts
         };
     },
 
