@@ -154,15 +154,26 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        if (total === 0) {
+            return { total: 0, correct: 0, wrong: 0, avgTime: 0, accuracy: 0 };
+        }
+
+        // ⚡ Bolt: Usar un solo bucle for en lugar de encadenar
+        // .filter(), .map() y .reduce() para evitar crear arrays intermedios y acelerar x7-10
+        let correct = 0;
+        let sumTime = 0;
+
+        for (let i = 0; i < total; i++) {
+            const item = this.sessionData[i];
+            if (item.is_correct === 1) {
+                correct++;
+            }
+            sumTime += item.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
-        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const avgTime = Math.round(sumTime / total);
+        const accuracy = Math.round((correct / total) * 100);
 
         return { total, correct, wrong, avgTime, accuracy };
     },
@@ -212,31 +223,53 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const historyLength = this.history.length;
 
-        if (times.length === 0) {
+        if (historyLength === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
-        const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
-
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // ⚡ Bolt: Usar un solo bucle para encontrar maxTime y evitar
+        // RangeError: Maximum call stack size exceeded con Math.max(...times) en arrays muy grandes
+        let maxTime = 0;
+        for (let i = 0; i < historyLength; i++) {
+            if (this.history[i].response_time > maxTime) {
+                maxTime = this.history[i].response_time;
+            }
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        // Limitar a 10s
+        if (maxTime > 10000) {
+            maxTime = 10000;
+        }
+
+        // Crear bins
+        const binSize = 500;
+        const numBins = Math.floor(maxTime / binSize) + 1;
+
+        // ⚡ Bolt: Usar array indexado por entero para bucketing es más rápido
+        // que usar interpolación de strings y búsqueda de propiedades de objetos dentro del bucle
+        const binCounts = new Array(numBins).fill(0);
+
+        for (let i = 0; i < historyLength; i++) {
+            let t = this.history[i].response_time;
+            if (t > maxTime) t = maxTime;
+
+            const binIndex = Math.floor(t / binSize);
+            binCounts[binIndex]++;
+        }
+
+        // Generar labels (strings) solo una vez al final
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const startStr = (i * binSize) / 1000;
+            const endStr = ((i + 1) * binSize) / 1000;
+            labels[i] = `${startStr}-${endStr}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels: labels,
+            counts: binCounts
         };
     },
 
@@ -244,8 +277,19 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        // ⚡ Bolt: Contar en un solo paso en lugar de iterar
+        // todo el array 2 veces con filter()
+        let correct = 0;
+        let wrong = 0;
+        const len = this.history.length;
+
+        for (let i = 0; i < len; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
