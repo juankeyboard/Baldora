@@ -1,0 +1,3 @@
+## 2024-05-18 - Avoid spread operators and string-based lookups in data processing
+**Learning:** Using `Math.max(...times)` on large dataset arrays (like `DataManager.history`) will cause `Maximum call stack size exceeded` errors because V8 limits function arguments. Also, using string interpolation and string-based object property lookups inside a hot loop is significantly slower than using an integer-indexed array for data binning/bucketing.
+**Action:** When bucketing data or finding extremes in large JS arrays, always use single-pass `for` loops. Map integer array indices to final string labels *after* the hot loop has completed.
