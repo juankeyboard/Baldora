@@ -154,15 +154,26 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        if (total === 0) {
+            return { total: 0, correct: 0, wrong: 0, avgTime: 0, accuracy: 0 };
+        }
+
+        let correct = 0;
+        let totalResponseTime = 0;
+
+        // ⚡ Bolt: Use a single-pass loop instead of .filter().length and .map().reduce()
+        // Reduces CPU overhead and avoids intermediate array allocations for large datasets.
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) {
+                correct++;
+            }
+            totalResponseTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
-        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+        const avgTime = Math.round(totalResponseTime / total);
+        const accuracy = Math.round((correct / total) * 100);
 
         return { total, correct, wrong, avgTime, accuracy };
     },
@@ -212,31 +223,49 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        const historyLen = this.history.length;
+        if (historyLen === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
-        const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        let maxTimeOriginal = 0;
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // ⚡ Bolt: Single-pass loop to find max value instead of Math.max(...times)
+        // Prevents "Maximum call stack size exceeded" errors on large arrays.
+        for (let i = 0; i < historyLen; i++) {
+            const t = this.history[i].response_time;
+            if (t > maxTimeOriginal) {
+                maxTimeOriginal = t;
+            }
         }
 
-        times.forEach(t => {
+        const binSize = 500;
+        const maxTime = Math.min(maxTimeOriginal, 10000); // Cap at 10s
+
+        // Number of bins needed
+        const numBins = Math.floor(maxTime / binSize) + 1;
+
+        // ⚡ Bolt: Use integer-indexed arrays instead of object property lookups inside the loop
+        // for O(1) array writes, mapping to string labels after the loop.
+        const binCounts = new Array(numBins).fill(0);
+
+        for (let i = 0; i < historyLen; i++) {
+            const t = this.history[i].response_time;
             const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+            const binIndex = Math.floor(cappedTime / binSize);
+            binCounts[binIndex]++;
+        }
+
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const startStr = (i * binSize) / 1000;
+            const endStr = ((i + 1) * binSize) / 1000;
+            labels[i] = startStr + "-" + endStr + "s";
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels,
+            counts: binCounts
         };
     },
 
@@ -244,8 +273,19 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+        const total = this.history.length;
+
+        // ⚡ Bolt: Use a single-pass loop instead of two .filter() calls
+        // Avoids iterating over the array twice and allocating intermediate arrays.
+        for (let i = 0; i < total; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
