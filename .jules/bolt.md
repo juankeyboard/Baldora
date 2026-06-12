@@ -1,0 +1,3 @@
+## 2024-03-22 - Avoid Array Spread on Large Datasets in DataManager
+**Learning:** In the Baldora codebase, `DataManager.getResponseTimeDistribution()` uses `Math.max(...times)` which crashes with "Maximum call stack size exceeded" on large datasets (e.g., >100,000 items in `history` array). Also, chaining array methods like `.filter().map().reduce()` is significantly slower than single-pass `for` loops for large datasets.
+**Action:** Replace `Math.max(...array)` with a manual loop to find max values. Refactor chained array operations in `DataManager` methods (`getSessionStats`, `getErrorsByTable`, `getTopErrors`, `getResponseTimeDistribution`, `getAccuracyDistribution`) to use single-pass `for` loops to improve performance and prevent stack overflow errors.
