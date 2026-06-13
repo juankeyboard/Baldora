@@ -154,14 +154,20 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let sumTime = 0;
+
+        // ⚡ Bolt: Use a single pass instead of chained filter().map().reduce()
+        // to avoid unnecessary array allocations and improve large dataset performance
+        for (let i = 0; i < total; i++) {
+            if (this.sessionData[i].is_correct === 1) {
+                correct++;
+            }
+            sumTime += this.sessionData[i].response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(sumTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -212,42 +218,64 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const history = this.history;
+        const total = history.length;
 
-        if (times.length === 0) {
+        if (total === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
+        // ⚡ Bolt: Use a single-pass loop with integer binning to avoid memory
+        // allocations (map) and "Maximum call stack size exceeded" (Math.max(...))
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        const maxTimeCap = 10000;
+        const numBins = (maxTimeCap / binSize) + 1;
+        const binCounts = new Array(numBins).fill(0);
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        let maxTime = 0;
+
+        for (let i = 0; i < total; i++) {
+            const t = history[i].response_time;
+            if (t > maxTime) maxTime = t;
+
+            const cappedTime = t > maxTimeCap ? maxTimeCap : t;
+            const binIndex = Math.floor(cappedTime / binSize);
+            binCounts[binIndex]++;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const cappedMax = maxTime > maxTimeCap ? maxTimeCap : maxTime;
+        const maxBinIndex = Math.floor(cappedMax / binSize);
 
-        return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
-        };
+        const labels = [];
+        const counts = [];
+
+        // Generate labels and counts only for valid bins up to the max observed time (or cap)
+        for (let i = 0; i <= maxBinIndex; i++) {
+            const startStr = (i * binSize) / 1000;
+            const endStr = ((i + 1) * binSize) / 1000;
+            labels.push(`${startStr}-${endStr}s`);
+            counts.push(binCounts[i]);
+        }
+
+        return { labels, counts };
     },
 
     /**
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        const history = this.history;
+        const total = history.length;
 
-        return { correct, wrong };
+        // ⚡ Bolt: Use a single pass instead of two .filter() calls to avoid double iteration and allocations
+        for (let i = 0; i < total; i++) {
+            if (history[i].is_correct === 1) {
+                correct++;
+            }
+        }
+
+        return { correct, wrong: total - correct };
     },
 
     /**
