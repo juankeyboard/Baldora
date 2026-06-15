@@ -151,17 +151,23 @@ const DataManager = {
 
     /**
      * Obtiene estadísticas de la sesión actual
+     * @optimized Usa un solo bucle for en lugar de chains de filter, map y reduce
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalResponseTime = 0;
+
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) {
+                correct++;
+            }
+            totalResponseTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalResponseTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -169,38 +175,42 @@ const DataManager = {
 
     /**
      * Obtiene errores agrupados por tabla (factor_a o factor_b)
+     * @optimized Usa un bucle for sin filter
      */
     getErrorsByTable() {
-        const errors = {};
+        const errors = {
+            1: 0, 2: 0, 3: 0, 4: 0, 5: 0,
+            6: 0, 7: 0, 8: 0, 9: 0, 10: 0,
+            11: 0, 12: 0, 13: 0, 14: 0, 15: 0
+        };
 
-        // Inicializar todas las tablas del 1 al 15
-        for (let i = 1; i <= 15; i++) {
-            errors[i] = 0;
+        const total = this.history.length;
+        for (let i = 0; i < total; i++) {
+            const attempt = this.history[i];
+            if (attempt.is_correct === 0) {
+                errors[attempt.factor_a]++;
+                errors[attempt.factor_b]++;
+            }
         }
-
-        // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
-                errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
 
         return errors;
     },
 
     /**
      * Obtiene las operaciones con más errores
+     * @optimized Usa un bucle for sin filter
      */
     getTopErrors(limit = 5) {
         const errorCounts = {};
+        const total = this.history.length;
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                const key = `${a.factor_a}×${a.factor_b}`;
+        for (let i = 0; i < total; i++) {
+            const attempt = this.history[i];
+            if (attempt.is_correct === 0) {
+                const key = attempt.factor_a + '×' + attempt.factor_b;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
         return Object.entries(errorCounts)
             .map(([op, count]) => ({ operation: op, count }))
@@ -210,42 +220,71 @@ const DataManager = {
 
     /**
      * Obtiene distribución de tiempos de respuesta para histograma
+     * @optimized Usa bucle de una pasada, evita Math.max(...array) y string alloc en bucle
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        const total = this.history.length;
+        if (total === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        const absoluteMax = 10000; // Cap at 10s
+        let maxObservedTime = 0;
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // 10000 / 500 = 20 bins + 1 for exact 10000
+        const maxBins = Math.floor(absoluteMax / binSize) + 1;
+        const binCounts = new Array(maxBins).fill(0);
+
+        for (let i = 0; i < total; i++) {
+            let t = this.history[i].response_time;
+            if (t > maxObservedTime) {
+                maxObservedTime = t;
+            }
+            if (t > absoluteMax) {
+                t = absoluteMax;
+            }
+
+            const binIndex = Math.floor(t / binSize);
+            binCounts[binIndex]++;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        // Determinar cuántos bins necesitamos realmente
+        const maxTime = Math.min(maxObservedTime, absoluteMax);
+        const numBins = Math.floor(maxTime / binSize) + 1;
+
+        const labels = new Array(numBins);
+        const counts = new Array(numBins);
+
+        for (let i = 0; i < numBins; i++) {
+            const startSec = (i * binSize) / 1000;
+            const endSec = ((i + 1) * binSize) / 1000;
+            labels[i] = startSec + '-' + endSec + 's';
+            counts[i] = binCounts[i];
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels,
+            counts
         };
     },
 
     /**
      * Obtiene distribución de aciertos vs errores
+     * @optimized Usa un bucle for en lugar de dos llamadas a filter
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+        const total = this.history.length;
+
+        for (let i = 0; i < total; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
