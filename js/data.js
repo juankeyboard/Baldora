@@ -154,14 +154,20 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalResponseTime = 0;
+
+        // ⚡ Bolt: Single-pass loop to avoid .filter(), .map(), and .reduce() overhead
+        for (let i = 0; i < total; i++) {
+            const item = this.sessionData[i];
+            if (item.is_correct === 1) {
+                correct++;
+            }
+            totalResponseTime += item.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalResponseTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -178,13 +184,15 @@ const DataManager = {
             errors[i] = 0;
         }
 
-        // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        // ⚡ Bolt: Single-pass loop instead of .filter().forEach()
+        const len = this.history.length;
+        for (let i = 0; i < len; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
                 errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
+            }
+        }
 
         return errors;
     },
@@ -193,14 +201,17 @@ const DataManager = {
      * Obtiene las operaciones con más errores
      */
     getTopErrors(limit = 5) {
+        // ⚡ Bolt: Single-pass loop instead of .filter().forEach()
         const errorCounts = {};
+        const len = this.history.length;
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
+        for (let i = 0; i < len; i++) {
+            const a = this.history[i];
+            if (a.is_correct === 0) {
                 const key = `${a.factor_a}×${a.factor_b}`;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
         return Object.entries(errorCounts)
             .map(([op, count]) => ({ operation: op, count }))
@@ -244,8 +255,18 @@ const DataManager = {
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        let correct = 0;
+        let wrong = 0;
+        const len = this.history.length;
+
+        // ⚡ Bolt: Single-pass loop instead of multiple .filter().length calls
+        for (let i = 0; i < len; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            } else if (this.history[i].is_correct === 0) {
+                wrong++;
+            }
+        }
 
         return { correct, wrong };
     },
