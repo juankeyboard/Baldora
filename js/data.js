@@ -154,14 +154,20 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let sumTime = 0;
+
+        // Optimized: Single pass loop avoids intermediate array allocations from filter/map/reduce
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) {
+                correct++;
+            }
+            sumTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(sumTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -212,31 +218,44 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        const len = this.history.length;
+        if (len === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        let maxTimeFound = 0;
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // Optimized: Single pass to find max time avoids "Maximum call stack size exceeded" with Math.max(...array) on large arrays
+        for (let i = 0; i < len; i++) {
+            const t = this.history[i].response_time;
+            if (t > maxTimeFound) {
+                maxTimeFound = t;
+            }
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        // Cap at 10s
+        const maxTime = Math.min(maxTimeFound, 10000);
+        const numBins = Math.floor(maxTime / binSize) + 1;
+        const binCounts = new Array(numBins).fill(0);
+
+        // Optimized: Integer-indexed bins avoid string interpolation overhead during loop
+        for (let i = 0; i < len; i++) {
+            const cappedTime = Math.min(this.history[i].response_time, maxTime);
+            const index = Math.floor(cappedTime / binSize);
+            binCounts[index]++;
+        }
+
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const start = (i * binSize) / 1000;
+            const end = ((i + 1) * binSize) / 1000;
+            labels[i] = `${start}-${end}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels: labels,
+            counts: binCounts
         };
     },
 
