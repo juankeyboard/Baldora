@@ -1,0 +1,3 @@
+## 2024-06-25 - Avoid Math.max on arrays in JS
+**Learning:** Using `Math.max(...array)` on arrays larger than ~100k items causes a `Maximum call stack size exceeded` error in V8 (Node.js/Chrome) due to the spread operator expanding items into arguments. Additionally, doing string interpolation object keys during heavy loops is a major bottleneck compared to integer-indexed arrays.
+**Action:** For large array processing paths like `DataManager.history`, ALWAYS use single-pass `for` loops to find extrema instead of spreading, and do bucketing with standard arrays first before mapping to string labels post-loop.
