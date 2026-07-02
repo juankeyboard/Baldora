@@ -154,14 +154,20 @@ const DataManager = {
      */
     getSessionStats() {
         const total = this.sessionData.length;
-        const correct = this.sessionData.filter(a => a.is_correct === 1).length;
+        let correct = 0;
+        let totalResponseTime = 0;
+
+        // Optimización Bolt: Bucle único en lugar de filter().map().reduce()
+        for (let i = 0; i < total; i++) {
+            const attempt = this.sessionData[i];
+            if (attempt.is_correct === 1) {
+                correct++;
+            }
+            totalResponseTime += attempt.response_time;
+        }
+
         const wrong = total - correct;
-
-        const responseTimes = this.sessionData.map(a => a.response_time);
-        const avgTime = total > 0
-            ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / total)
-            : 0;
-
+        const avgTime = total > 0 ? Math.round(totalResponseTime / total) : 0;
         const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
         return { total, correct, wrong, avgTime, accuracy };
@@ -178,13 +184,17 @@ const DataManager = {
             errors[i] = 0;
         }
 
-        // Contar errores
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                errors[a.factor_a] = (errors[a.factor_a] || 0) + 1;
-                errors[a.factor_b] = (errors[a.factor_b] || 0) + 1;
-            });
+        // Optimización Bolt: Bucle único en lugar de filter().forEach()
+        const total = this.history.length;
+        for (let i = 0; i < total; i++) {
+            const attempt = this.history[i];
+            if (attempt.is_correct === 0) {
+                const fa = attempt.factor_a;
+                const fb = attempt.factor_b;
+                errors[fa] = (errors[fa] || 0) + 1;
+                errors[fb] = (errors[fb] || 0) + 1;
+            }
+        }
 
         return errors;
     },
@@ -195,12 +205,15 @@ const DataManager = {
     getTopErrors(limit = 5) {
         const errorCounts = {};
 
-        this.history
-            .filter(a => a.is_correct === 0)
-            .forEach(a => {
-                const key = `${a.factor_a}×${a.factor_b}`;
+        // Optimización Bolt: Bucle único en lugar de filter().forEach()
+        const total = this.history.length;
+        for (let i = 0; i < total; i++) {
+            const attempt = this.history[i];
+            if (attempt.is_correct === 0) {
+                const key = `${attempt.factor_a}×${attempt.factor_b}`;
                 errorCounts[key] = (errorCounts[key] || 0) + 1;
-            });
+            }
+        }
 
         return Object.entries(errorCounts)
             .map(([op, count]) => ({ operation: op, count }))
@@ -212,41 +225,62 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const total = this.history.length;
 
-        if (times.length === 0) {
+        if (total === 0) {
             return { labels: [], counts: [] };
+        }
+
+        // Optimización Bolt: Evitar spread operator y map()
+        let localMaxTime = 0;
+        for (let i = 0; i < total; i++) {
+            const time = this.history[i].response_time;
+            if (time > localMaxTime) {
+                localMaxTime = time;
+            }
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        const maxTime = Math.min(localMaxTime, 10000); // Cap at 10s
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // Optimización Bolt: Arreglo de enteros para buckets
+        const binCount = Math.floor(maxTime / binSize) + 1;
+        const binsArray = new Array(binCount).fill(0);
+
+        for (let i = 0; i < total; i++) {
+            const cappedTime = Math.min(this.history[i].response_time, maxTime);
+            const binIndex = Math.floor(cappedTime / binSize);
+            binsArray[binIndex]++;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const labels = [];
+        const counts = [];
+        for (let i = 0; i < binCount; i++) {
+            const start = (i * binSize) / 1000;
+            const end = ((i + 1) * binSize) / 1000;
+            labels.push(`${start}-${end}s`);
+            counts.push(binsArray[i]);
+        }
 
-        return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
-        };
+        return { labels, counts };
     },
 
     /**
      * Obtiene distribución de aciertos vs errores
      */
     getAccuracyDistribution() {
-        const correct = this.history.filter(a => a.is_correct === 1).length;
-        const wrong = this.history.filter(a => a.is_correct === 0).length;
+        const total = this.history.length;
+        let correct = 0;
 
+        // Optimización Bolt: Bucle único en lugar de filter().length
+        for (let i = 0; i < total; i++) {
+            if (this.history[i].is_correct === 1) {
+                correct++;
+            }
+        }
+
+        const wrong = total - correct;
         return { correct, wrong };
     },
 
