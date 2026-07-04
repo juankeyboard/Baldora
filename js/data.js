@@ -212,31 +212,49 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        // Optimize: avoid array methods like map/filter on large arrays.
+        // Use single-pass for loop and avoid Math.max spread to prevent stack overflow.
+        const len = this.history.length;
+        if (len === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // 1. Find max time in single pass (avoid Math.max call stack error)
+        let maxFound = 0;
+        for (let i = 0; i < len; i++) {
+            const rt = this.history[i].response_time;
+            if (rt > maxFound) {
+                maxFound = rt;
+            }
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const maxTime = Math.min(maxFound, 10000); // Cap at 10s
+        const numBins = Math.floor(maxTime / binSize) + 1;
+
+        // 2. Use integer array for bucketing to avoid string interpolation and object key lookups in loop
+        const counts = new Array(numBins).fill(0);
+
+        for (let i = 0; i < len; i++) {
+            const t = this.history[i].response_time;
+            // Cap time and calculate bin index
+            const cappedTime = t > maxTime ? maxTime : t;
+            const binIndex = Math.floor(cappedTime / binSize);
+            counts[binIndex]++;
+        }
+
+        // 3. Map to string labels after loop (only executed numBins times)
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const start = (i * binSize) / 1000;
+            const end = ((i + 1) * binSize) / 1000;
+            labels[i] = `${start}-${end}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels,
+            counts
         };
     },
 
