@@ -1,0 +1,3 @@
+## 2024-05-19 - Avoid Spread Operator with Math.max on Large Arrays
+**Learning:** Using `Math.max(...times)` (where `times` is an array from `history.map(a => a.response_time)`) throws a "Maximum call stack size exceeded" error when the array is very large (e.g., 200,000 items) because spread operator passes elements as arguments. Also, building histogram labels inside the loop (object string-key bucketing) causes slow iteration.
+**Action:** Use a single-pass `for` loop to find maximum values and do bucketing with integer-indexed arrays. Only construct string labels after bucketing is complete.
