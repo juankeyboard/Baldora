@@ -212,31 +212,44 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
-
-        if (times.length === 0) {
+        const len = this.history.length;
+        if (len === 0) {
             return { labels: [], counts: [] };
+        }
+
+        // Find max time using loop to avoid Maximum call stack size exceeded with Math.max(...times)
+        let maxFoundTime = 0;
+        for (let i = 0; i < len; i++) {
+            const t = this.history[i].response_time;
+            if (t > maxFoundTime) {
+                maxFoundTime = t;
+            }
         }
 
         // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        const maxTime = Math.min(maxFoundTime, 10000); // Cap at 10s
+        const numBins = Math.floor(maxTime / binSize) + 1;
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // Use integer-indexed array for better performance than string keys in object
+        const binCounts = new Array(numBins).fill(0);
+
+        for (let i = 0; i < len; i++) {
+            const t = this.history[i].response_time;
+            const cappedTime = Math.min(t, maxTime);
+            const binIndex = Math.floor(cappedTime / binSize);
+            binCounts[binIndex]++;
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const labels = new Array(numBins);
+        for (let i = 0; i < numBins; i++) {
+            const binStart = i * binSize;
+            labels[i] = `${binStart / 1000}-${(binStart + binSize) / 1000}s`;
+        }
 
         return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
+            labels: labels,
+            counts: binCounts
         };
     },
 
