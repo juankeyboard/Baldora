@@ -1,0 +1,3 @@
+## 2025-02-06 - Avoid Math.max on large arrays & use integer indices for binning
+**Learning:** The application stores gameplay attempts in a large array (`history`). Using spread operators on large datasets (`Math.max(...array)`) causes `Maximum call stack size exceeded` errors. Also, string property interpolation inside iterative bucketing loops reduces performance.
+**Action:** Always replace `Math.max(...array)` with single-pass `for` loops for potentially unbounded history arrays. For bucketing operations, use integer-indexed arrays inside loops, and construct string labels after counts are finalized.
