@@ -212,32 +212,50 @@ const DataManager = {
      * Obtiene distribución de tiempos de respuesta para histograma
      */
     getResponseTimeDistribution() {
-        const times = this.history.map(a => a.response_time);
+        const history = this.history;
+        const len = history.length;
 
-        if (times.length === 0) {
+        if (len === 0) {
             return { labels: [], counts: [] };
         }
 
-        // Crear bins de 500ms
         const binSize = 500;
-        const maxTime = Math.min(Math.max(...times), 10000); // Cap at 10s
-        const bins = {};
+        const maxAllowedTime = 10000; // Cap at 10s
+        let actualMaxTime = 0;
 
-        for (let i = 0; i <= maxTime; i += binSize) {
-            bins[`${i / 1000}-${(i + binSize) / 1000}s`] = 0;
+        // Single pass to find max time (avoids Math.max(...times) call stack error)
+        for (let i = 0; i < len; i++) {
+            const t = history[i].response_time;
+            if (t > actualMaxTime) {
+                actualMaxTime = t;
+            }
         }
 
-        times.forEach(t => {
-            const cappedTime = Math.min(t, maxTime);
-            const binIndex = Math.floor(cappedTime / binSize) * binSize;
-            const label = `${binIndex / 1000}-${(binIndex + binSize) / 1000}s`;
-            bins[label] = (bins[label] || 0) + 1;
-        });
+        const maxTime = actualMaxTime > maxAllowedTime ? maxAllowedTime : actualMaxTime;
+        const actualBinCount = Math.floor(maxTime / binSize) + 1;
 
-        return {
-            labels: Object.keys(bins),
-            counts: Object.values(bins)
-        };
+        // Integer-indexed array for bucketing avoids string-based object property lookups inside the loop
+        const binCounts = new Int32Array(actualBinCount);
+
+        for (let i = 0; i < len; i++) {
+            const t = history[i].response_time;
+            const cappedTime = t > maxTime ? maxTime : t;
+            const binIndex = Math.floor(cappedTime / binSize);
+            binCounts[binIndex]++;
+        }
+
+        const labels = new Array(actualBinCount);
+        const counts = new Array(actualBinCount);
+
+        // Map to string labels after the loop
+        for (let i = 0; i < actualBinCount; i++) {
+            const start = (i * binSize) / 1000;
+            const end = ((i + 1) * binSize) / 1000;
+            labels[i] = `${start}-${end}s`;
+            counts[i] = binCounts[i];
+        }
+
+        return { labels, counts };
     },
 
     /**
