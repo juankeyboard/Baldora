@@ -1,0 +1,3 @@
+## 2024-07-07 - Array Processing Bottlenecks in DataManager
+**Learning:** Using chained array methods like `.filter().map().reduce()` and spread operators (e.g., `Math.max(...times)`) on large datasets (100,000+ items) in vanilla JS creates significant performance overhead due to intermediate array allocations and causes "Maximum call stack size exceeded" errors. Using integer-indexed arrays instead of string properties for bucketing within loops also improves performance.
+**Action:** Replace chained array methods and spread operators with single-pass `for` loops in performance-critical data processing paths to reduce CPU overhead, prevent call stack crashes, and optimize bucketing logic.
