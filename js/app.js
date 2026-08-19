@@ -416,8 +416,10 @@ const App = {
         const btn = document.querySelector(`#rows-grid .table-btn[data-table="${rowNum}"]`);
 
         if (index === -1) {
-            this.selectedRows.push(rowNum);
-            this.selectedRows.sort((a, b) => a - b);
+            // Optimized sorted insert
+            let i = 0;
+            while (i < this.selectedRows.length && this.selectedRows[i] < rowNum) i++;
+            this.selectedRows.splice(i, 0, rowNum);
             btn.classList.add('active');
         } else {
             this.selectedRows.splice(index, 1);
@@ -433,8 +435,10 @@ const App = {
         const btn = document.querySelector(`#cols-grid .table-btn[data-table="${colNum}"]`);
 
         if (index === -1) {
-            this.selectedCols.push(colNum);
-            this.selectedCols.sort((a, b) => a - b);
+            // Optimized sorted insert
+            let i = 0;
+            while (i < this.selectedCols.length && this.selectedCols[i] < colNum) i++;
+            this.selectedCols.splice(i, 0, colNum);
             btn.classList.add('active');
         } else {
             this.selectedCols.splice(index, 1);
